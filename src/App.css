@@ -1,0 +1,64 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.App {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+}
+
+.flex {
+  display: flex;
+}
+
+.navbar {
+  background-color: lightblue;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #ccc;
+}
+
+.sidebar {
+  background-color: #f8f9fa;
+  width: 14rem;
+  height: calc(100vh - 52px);
+  border-right: 1px solid #ccc;
+
+  ul {
+    list-style-type: none;
+    padding: 1rem 2rem;
+
+    li {
+      margin-bottom: 1rem;
+    }
+  }
+}
+
+
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
