@@ -78,7 +78,7 @@ export default function MainContent() {
     };
 
     return (
-        <div>
+        <div className='container col p-5'>
             <Form className="d-flex mb-3" onSubmit={handleSearch}>
                 <FormControl
                     type="search"

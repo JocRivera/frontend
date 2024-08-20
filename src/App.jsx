@@ -1,34 +1,23 @@
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import Sidebar from './layouts/Sidebar'
-import MainContent from './MainContent'
-import Navbar from './layouts/Navbar'
-import 'bootstrap/dist/css/bootstrap.min.css';
-import React, { useState, useEffect } from 'react';
-import './App.css';
-
+import Sidebar from "./layouts/Sidebar";
+import MainContent from "./MainContent";
+import Navbar from "./layouts/Navbar";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "./App.css";
+import { useState } from "react";
 
 function App() {
   const [services, setServices] = useState([]);
-  const [newService, setNewService] = useState('');
+  const [newService, setNewService] = useState("");
 
   return (
-    <div className='App'>
+    <div className="min-vh-100 min-vw-100 overflow-hidden"> 
       <Navbar></Navbar>
-      <div className="flex"><Sidebar></Sidebar>
-        <div className="content">
-          <MainContent></MainContent>
-        </div>
+      <div className="row">
+        <Sidebar className="col-1"></Sidebar>
+        <MainContent className="col-11"></MainContent>
       </div>
     </div>
-
-  )
+  );
 }
 
-
-
-
-
-
-
-export default App
+export default App;
