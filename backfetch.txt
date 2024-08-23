@@ -1,25 +1,286 @@
-useEffect(() => {
-    fetchServices();
-  }, []);
+import React, { useState, useEffect } from 'react';
+import Table from 'react-bootstrap/Table';
+import { Form, FormControl, Button, InputGroup, Modal } from 'react-bootstrap';
 
-  const fetchServices = async () => {
-    try {
-      const response = await fetch('http://localhost:3000/');
-      const data = await response.json();
-      setServices(data);
-    } catch (error) {
-      console.error('Error fetching services:', error);
+
+export default function MainContent() {
+    const [query, setQuery] = useState(''); // Estado para la búsqueda
+    const [services, setServices] = useState([]);
+    const [showModal, setShowModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editService, setEditService] = useState()
+
+    useEffect(() => {
+        fetchServices();
+    }, []);
+    const fetchServices = async () => {
+        try {
+            const response = await fetch('http://localhost:3000/');
+            const data = await response.json();
+            setServices(data);
+        } catch (error) {
+            console.error('Error fetching services:', error);
+        }
+    };
+
+    const [newService, setNewService] = useState({
+        service: '',
+        description: '',
+        price: ''
+    });
+
+
+    // Función para manejar la búsqueda
+    const handleSearch = (e) => {
+        e.preventDefault();
+        // Implementar lógica de búsqueda aquí si es necesario
+    };
+
+    // Filtrar servicios basados en la búsqueda
+    const filteredServices = services.filter(service =>
+        (service.service || '').toLowerCase().includes(query.toLowerCase()) ||
+        (service.description || '').toLowerCase().includes(query.toLowerCase())
+    );
+
+    // Función para añadir un nuevo servicio
+    const handleAddService = () => {
+        setNewService({
+            service: '',
+            description: '',
+            price: ''
+        });
+        // Implementar lógica para añadir un servicio aquí
+        setShowModal(true);
+    };
+    const handleEdit = (service) => {
+        setEditService(service); // Almacena el servicio a editar
+        setNewService(service); // Prellenar el formulario con los datos existentes
+        setShowEditModal(true);
+    };
+
+
+    //
+    const handleClose = () => {
+        setShowModal(false);
+        setShowEditModal(false)
+    };
+
+    const handleSave = async () => {
+        try {
+            // Hacer la solicitud POST al backend con los datos del nuevo servicio
+            const response = await fetch('http://localhost:3000/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newService)
+            });
+
+            if (response.ok) {
+                const savedService = await response.json();
+                setServices(prevServices => [...prevServices, savedService]); // Actualizar la lista de servicios
+                setShowModal(false); // Cerrar el modal
+            } else {
+                console.error('Error al guardar el servicio:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error en la solicitud:', error);
+        }
+    };
+
+    const handleEditService = async () => {
+        try {
+            const response = await fetch(`http://localhost:3000/${editService._id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newService)
+            })
+            if (response.ok) {
+                const updatedService = await response.json();
+                setServices(prevServices =>
+                    prevServices.map(service => service._id === updatedService._id ? updatedService : service)
+                );
+                setShowEditModal(false);
+            } else {
+                console.error(response.statusText)
+            }
+        } catch (error) {
+            console.error(error)
+        }
     }
-  };
-  return (
-    <div className="App">
-      <h1>Service List</h1>
-      <ul>
-        {services.map(services => (
-          <li key={services._id}>
-            {services.name}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+
+
+    const handleDelete = async (e) => {
+        const id = e.target.value
+        try {
+            const response = await fetch(`http://localhost:3000/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                setServices(prevServices => prevServices.filter(service => service._id !== id)); // Eliminar el servicio de la lista
+            } else {
+                console.error('Error al eliminar el servicio:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error en la solicitud:', error);
+        }
+    };
+
+
+
+    const handleChange = (e) => {
+        setNewService({ ...newService, [e.target.name]: e.target.value });
+    };
+
+    return (
+        <div className='container col p-5'>
+            <Form className="d-flex mb-3" onSubmit={handleSearch}>
+                <FormControl
+                    type="search"
+                    placeholder="Buscar..."
+                    className="me-2"
+                    aria-label="Search"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                />
+                <Button variant="outline-success" type="submit">Buscar</Button>
+            </Form>
+            <Button variant="primary" className="mb-3" onClick={handleAddService}>Añadir Servicio</Button>
+            <Table striped bordered hover>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Service</th>
+                        <th>Description</th>
+                        <th>Price</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {filteredServices.length > 0 ? (
+                        filteredServices.map((service) => (
+                            <tr key={service._id}>
+                                <td>{service._id}</td>
+                                <td>{service.service}</td>
+                                <td>{service.description}</td>
+                                <td>{service.price}</td>
+                                <td>
+                                    <Button variant="warning" size="sm" onClick={() => handleEdit(service)}>Editar</Button>
+                                    <Button variant="danger" size="sm" className="ms-2" value={service._id} onClick={(e) => handleDelete(e)}>Eliminar</Button>
+                                </td>
+
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan="5">No services found</td>
+                        </tr>
+                    )}
+                </tbody>
+            </Table>
+            <Modal show={showModal} onHide={handleClose}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Añadir Nuevo Servicio</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Service</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="service"
+                                value={newService.service}
+                                onChange={handleChange}
+                                placeholder="Ingrese el nombre del servicio"
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Description</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="description"
+                                value={newService.description}
+                                onChange={handleChange}
+                                placeholder="Ingrese una descripción"
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Price</Form.Label>
+                            <InputGroup>
+                                <FormControl
+                                    type="number"
+                                    name="price"
+                                    value={newService.price}
+                                    onChange={handleChange}
+                                    placeholder="Ingrese el precio"
+                                />
+                                <InputGroup.Text>COP</InputGroup.Text>
+                            </InputGroup>
+                        </Form.Group>
+                    </Form>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleClose}>
+                        Cerrar
+                    </Button>
+                    <Button variant="primary" onClick={handleSave}>
+                        Guardar
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+            <Modal show={showEditModal} onHide={handleClose}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Editar Servicio</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Service</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="service"
+                                value={newService.service}
+                                onChange={handleChange}
+                                placeholder="Ingrese el nombre del servicio"
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Description</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="description"
+                                value={newService.description}
+                                onChange={handleChange}
+                                placeholder="Ingrese una descripción"
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Price</Form.Label>
+                            <InputGroup>
+                                <FormControl
+                                    type="number"
+                                    name="price"
+                                    value={newService.price}
+                                    onChange={handleChange}
+                                    placeholder="Ingrese el precio"
+                                />
+                                <InputGroup.Text>COP</InputGroup.Text>
+                            </InputGroup>
+                        </Form.Group>
+                    </Form>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleClose}>
+                        Cerrar
+                    </Button>
+                    <Button variant="primary" onClick={handleEditService}>
+                        Guardar Cambios
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+        </div>
+    );
+}

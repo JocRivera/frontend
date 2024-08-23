@@ -1,22 +1,30 @@
 import Sidebar from "./layouts/Sidebar";
-import MainContent from "./MainContent";
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import MainContent from "./components/services/MainContent";
+import ClientManagement from "./components/clients/ClientManagement";
+
 import Navbar from "./layouts/Navbar";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 import { useState } from "react";
 
 function App() {
-  const [services, setServices] = useState([]);
-  const [newService, setNewService] = useState("");
 
   return (
-    <div className="min-vh-100 min-vw-100 overflow-hidden"> 
-      <Navbar></Navbar>
-      <div className="row">
-        <Sidebar className="col-1"></Sidebar>
-        <MainContent className="col-11"></MainContent>
+    <BrowserRouter>
+
+      <div className="min-vh-100 min-vw-100 overflow-hidden">
+        <Navbar />
+        <div className="row">
+          <Sidebar className="col-1" />
+          <Routes>
+            <Route path="/services" element={<MainContent />} />
+            <Route path="/clients" element={<ClientManagement />} />
+          </Routes>
+        </div>
       </div>
-    </div>
+    </BrowserRouter>
+
   );
 }
 

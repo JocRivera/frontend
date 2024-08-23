@@ -1,64 +1,36 @@
 import React from "react";
 import * as Icon from "react-icons/md";
+import { NavLink } from "react-router-dom";
 export default function Sidebar() {
   return (
     <div className="sidebar col-2">
       <ul className="nav flex-column">
         <li className="nav-item">
-          <a className="nav-link " href="#">
-            <Icon.MdSpaceDashboard />
-            dashboard
-          </a>
+          <NavLink to="/" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
+            <Icon.MdSpaceDashboard /> Dashboard
+          </NavLink>
         </li>
         <li className="nav-item">
-          <a className="nav-link" href="#">
-            <Icon.MdHome />
-            cabañas
-          </a>
+          <NavLink to="/services" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
+            <Icon.MdRoomService /> Servicios
+          </NavLink>
         </li>
         <li className="nav-item">
-          <a className="nav-link" href="#">
-            <Icon.MdHome />
-            habitaciones
-          </a>
+          <NavLink to="/cabins" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
+            <Icon.MdHotel /> Cabañas
+          </NavLink>
         </li>
-        <li className="nav-item ">
-          <a className="nav-link" href="#">
-            <Icon.MdRoomService />
-            servicios
-          </a>
+        <li className="nav-item">
+          <NavLink to="/clients" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
+            <Icon.MdPeople /> Clientes
+          </NavLink>
         </li>
-        <li className="nav-item ">
-          <a className="nav-link" href="#">
-            <Icon.MdSunny />
-            planes
-          </a>
+        <li className="nav-item">
+          <NavLink to="/settings" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
+            Configuración
+          </NavLink>
         </li>
-        <li className="nav-item ">
-          <a className="nav-link" href="#">
-            clientes
-          </a>
-        </li>
-        <li className="nav-item ">
-          <a className="nav-link" href="#">
-            reservas
-          </a>
-        </li>
-        <li className="nav-item ">
-          <a className="nav-link" href="#">
-            hospedaje
-          </a>
-        </li>
-        <li className="nav-item ">
-          <a className="nav-link" href="#">
-            usuarios
-          </a>
-        </li>
-        <li className="nav-item ">
-          <a className="nav-link" href="#">
-            configuracion
-          </a>
-        </li>
+
       </ul>
     </div>
   );
