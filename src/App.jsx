@@ -3,6 +3,8 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import MainContent from "./components/services/MainContent";
 import ClientManagement from "./components/clients/ClientManagement";
 import CabinsPage from './components/cabins/CabinPage';
+import UserTable from './components/users/UserTable';
+
 
 import Navbar from "./layouts/Navbar";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -22,6 +24,7 @@ function App() {
             <Route path="/services" element={<MainContent />} />
             <Route path="/clients" element={<ClientManagement />} />
             <Route path="/cabins" element={<CabinsPage />} />
+            <Route path="/users" element={<UserTable />} />
           </Routes>
         </div>
       </div>

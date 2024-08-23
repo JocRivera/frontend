@@ -26,6 +26,11 @@ export default function Sidebar() {
           </NavLink>
         </li>
         <li className="nav-item">
+          <NavLink to="/users" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
+            <Icon.MdPeopleOutline /> Usuarios
+          </NavLink>
+        </li>
+        <li className="nav-item">
           <NavLink to="/settings" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
             <Icon.MdSettings />Configuración
           </NavLink>
