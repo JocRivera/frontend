@@ -2,6 +2,7 @@ import Sidebar from "./layouts/Sidebar";
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import MainContent from "./components/services/MainContent";
 import ClientManagement from "./components/clients/ClientManagement";
+import CabinsPage from './components/cabins/CabinPage';
 
 import Navbar from "./layouts/Navbar";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -20,6 +21,7 @@ function App() {
           <Routes>
             <Route path="/services" element={<MainContent />} />
             <Route path="/clients" element={<ClientManagement />} />
+            <Route path="/cabins" element={<CabinsPage />} />
           </Routes>
         </div>
       </div>

@@ -27,7 +27,7 @@ export default function Sidebar() {
         </li>
         <li className="nav-item">
           <NavLink to="/settings" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-            Configuración
+            <Icon.MdSettings />Configuración
           </NavLink>
         </li>
 
