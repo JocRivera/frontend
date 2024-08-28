@@ -31,10 +31,16 @@ export default function Sidebar() {
           </NavLink>
         </li>
         <li className="nav-item">
+          <NavLink to="/plans" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
+            <Icon.MdBeachAccess /> Planes
+          </NavLink>
+        </li>
+        <li className="nav-item">
           <NavLink to="/settings" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
             <Icon.MdSettings />Configuración
           </NavLink>
         </li>
+
 
       </ul>
     </div>
