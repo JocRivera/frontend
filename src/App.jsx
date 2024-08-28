@@ -6,6 +6,7 @@ import ClientManagement from "./components/clients/ClientManagement";
 import UserTable from './components/users/UserTable';
 import ProfilePage from "./components/utils/auth/ProfilePage";
 import CabanaManagement from "./components/cabins/CabanaManagement";
+import PlanManagement from "./components/plans/PlanManagement";
 import HomePage from "./components/Homepage";
 import NotFound from './404';
 import Navbarx from "./layouts/Navbar";
@@ -36,33 +37,39 @@ function App() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/profile" element={
-                <PrivateRoute 
+                <PrivateRoute
                   allowedRoles={['admin', 'employee', 'client']}
-                  element={<ProfilePage />} 
+                  element={<ProfilePage />}
                 />
               } />
               <Route path="/services" element={
-                <PrivateRoute 
+                <PrivateRoute
                   allowedRoles={['admin', 'employee']}
-                  element={<MainContent />} 
+                  element={<MainContent />}
                 />
               } />
               <Route path="/clients" element={
-                <PrivateRoute 
+                <PrivateRoute
                   allowedRoles={['admin']}
-                  element={<ClientManagement />} 
+                  element={<ClientManagement />}
                 />
               } />
               <Route path="/cabins" element={
-                <PrivateRoute 
+                <PrivateRoute
                   allowedRoles={['admin', 'employee', 'client']}
-                  element={<CabanaManagement />} 
+                  element={<CabanaManagement />}
                 />
               } />
               <Route path="/users" element={
-                <PrivateRoute 
+                <PrivateRoute
                   allowedRoles={['admin']}
-                  element={<UserTable />} 
+                  element={<UserTable />}
+                />
+              } />
+              <Route path="/plans" element={
+                <PrivateRoute
+                  allowedRoles={['admin']}
+                  element={<PlanManagement />}
                 />
               } />
               <Route path="*" element={<NotFound />} />
