@@ -32,8 +32,8 @@ export default function Sidebar() {
           </NavLink>
         </li>
         <li className={`nav-item ${isCabinsOpen ? 'open' : ''}`}>
-          <button 
-            className="nav-link dropdown-toggle" 
+          <button
+            className="nav-link dropdown-toggle"
             onClick={toggleCabinsMenu}
             aria-expanded={isCabinsOpen}
           >
@@ -66,6 +66,11 @@ export default function Sidebar() {
         <li className="nav-item">
           <NavLink to="/users" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
             <Icon.MdPeopleOutline /> <span>Usuarios</span>
+          </NavLink>
+        </li>
+        <li className="nav-item">
+          <NavLink to="/plans" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
+            <Icon.MdBeachAccess /> <span>Planes</span>
           </NavLink>
         </li>
         <li className="nav-item">
