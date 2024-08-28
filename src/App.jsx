@@ -12,6 +12,7 @@ import NotFound from './404';
 import Navbarx from "./layouts/Navbar";
 import PrivateRoute from "./components/utils/auth/PrivateRoute";
 import { useAuth } from "./components/utils/auth/AuthContext";
+import Reservations from './components/pages/Reservations';
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
@@ -72,6 +73,12 @@ function App() {
                   element={<PlanManagement />}
                 />
               } />
+              {/* //poner la ruta de reservas */}
+              <Route path="/reservations" element={
+                <PrivateRoute
+                allowedRoles={['admin', 'employee', 'client']}
+                element={<Reservations />} />
+              }/>
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
