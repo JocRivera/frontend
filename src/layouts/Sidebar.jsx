@@ -58,6 +58,12 @@ export default function Sidebar() {
           </NavLink>
         </li>
         <li className="nav-item">
+          <NavLink to="/reservations" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
+            <Icon.MdPeople /> <span>Reservas</span>
+          </NavLink>
+        </li>
+
+        <li className="nav-item">
           <NavLink to="/users" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
             <Icon.MdPeopleOutline /> <span>Usuarios</span>
           </NavLink>
