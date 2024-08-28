@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Modal, Form, Button, Row, Col } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import './stylesLogin.css';
 
 function RegisterModal({ isOpen, clickModal }) {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: '',
     idNumber: '',
@@ -55,12 +57,15 @@ function RegisterModal({ isOpen, clickModal }) {
     } else {
       setErrors({});
       alert('Registro exitoso');
-      // Lógica para enviar los datos o continuar con el flujo
+      
+      // Redirigir al homepage con el rol adecuado.
+      const userRole = 'client'; // Suponiendo que este es el rol del usuario registrado. Podrías modificar esto según tu lógica.
+      navigate('/', { state: { role: userRole } });
     }
   };
 
   return (
-    <Modal show={isOpen} onHide={clickModal} centered size="lg">
+    <Modal show={isOpen} onHide={clickModal} size="lg">
       <Modal.Body>
         <Button variant="danger" onClick={clickModal} style={{ float: 'right' }}>X</Button>
         <Modal.Title className="text-center">Bienvenido al Registro</Modal.Title>
