@@ -1,0 +1,27 @@
+/* EliminarSwitch.css */
+
+/* Estilo para la etiqueta del switch */
+.switch-label {
+    margin-right: 10px;
+    font-weight: bold;
+  }
+  
+  /* Estilo personalizado para el switch */
+  .custom-switch .form-check-input {
+    background-color: #007bff; /* Color del switch activado */
+    border-color: #007bff; /* Color del borde del switch activado */
+  }
+  
+  .custom-switch .form-check-input:checked {
+    background-color: #007bff; /* Color de fondo cuando está activado */
+    border-color: #007bff; /* Color del borde cuando está activado */
+  }
+  
+  .custom-switch .form-check-input:focus {
+    box-shadow: 0 0 0 .2rem rgba(0, 123, 255, .5); /* Efecto de foco */
+  }
+  
+  .custom-switch .form-check-label {
+    color: #333; /* Color del texto del switch */
+  }
+  

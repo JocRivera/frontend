@@ -93,7 +93,7 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
           <Form.Group className="mb-3" controlId="formDocumento">
             <Form.Label>Documento</Form.Label>
             <Form.Control
-              type="text"
+              type="number"
               name="documento"
               value={formData.documento}
               onChange={handleInputChange}
@@ -115,7 +115,7 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
           <Form.Group className="mb-3" controlId="formTelefono">
             <Form.Label>Teléfono</Form.Label>
             <Form.Control
-              type="text"
+              type="number"
               name="telefono"
               value={formData.telefono}
               onChange={handleInputChange}

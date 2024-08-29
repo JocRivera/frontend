@@ -1,24 +1,23 @@
 import React from "react";
-import { Modal, Button } from "react-bootstrap";
+import { Form } from "react-bootstrap";
+import './EliminarSwitch.css'; // Asegúrate de crear este archivo CSS
 
-const EliminarModal =({show,handleClose,handleConfirm ,itemName}) => {
-    
-    return (
-    
-        <Modal show={show} onHide={handleClose}>
-      <Modal.Header closeButton>
-        <Modal.Title>Confirmación de Eliminación</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        ¿Estás seguro de que deseas eliminar {itemName}?
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose}>Cancelar</Button>
-        <Button variant="danger" onClick={handleConfirm}>Eliminar</Button>
-      </Modal.Footer>
-    </Modal>
+const EliminarSwitch = ({ isOn, handleToggle, itemName }) => {
+  return (
+    <div className="d-flex align-items-center">
+      <Form.Label className="switch-label">
+        ¿Eliminar {itemName}?
+      </Form.Label>
+      <Form.Check 
+        type="switch" 
+        id={`switch-${itemName}`} 
+        checked={isOn} 
+        onChange={handleToggle} 
+        className="custom-switch"
+        label={isOn ? "Activado" : "Desactivado"}
+      />
+    </div>
+  );
+};
 
-    )
-}
-
-export default EliminarModal
+export default EliminarSwitch;

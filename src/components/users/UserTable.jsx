@@ -4,26 +4,42 @@ import UserModal from './UserModel';
 
 const UserTable = () => {
   const [users, setUsers] = useState([]);
-  const [modalState, setModalState] = useState({ showUserModal: false, showConfirmDelete: false, selectedUser: null });
+  const [modalState, setModalState] = useState({
+    showUserModal: false,
+    showConfirmDelete: false,
+    selectedUser: null,
+  });
   const [searchTerm, setSearchTerm] = useState('');
 
-  const toggleUserModal = (user = null) => setModalState({ ...modalState, selectedUser: user, showUserModal: !modalState.showUserModal });
+  const toggleUserModal = (user = null) => {
+    setModalState(prevState => ({
+      ...prevState,
+      selectedUser: user,
+      showUserModal: !prevState.showUserModal,
+    }));
+  };
 
   const saveUser = (user) => {
-    setUsers(user.id ? users.map(u => u.id === user.id ? user : u) : [...users, { ...user, id: users.length + 1 }]);
+    setUsers(prevUsers => user.id
+      ? prevUsers.map(u => u.id === user.id ? user : u)
+      : [...prevUsers, { ...user, id: prevUsers.length + 1 }]
+    );
     toggleUserModal();
   };
 
+  const handleDeleteUser = () => {
+    setUsers(prevUsers => prevUsers.filter(u => u.id !== modalState.selectedUser.id));
+    setModalState(prevState => ({ ...prevState, showConfirmDelete: false }));
+  };
+
   const filteredUsers = users.filter(user =>
-    user.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.documento.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.telefono.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.rol.toLowerCase().includes(searchTerm.toLowerCase())
+    [user.nombre, user.documento, user.email, user.telefono, user.rol].some(field =>
+      field.toLowerCase().includes(searchTerm.toLowerCase())
+    )
   );
 
   return (
-    <div className='container col p-5'>
+    <div className="container">
       {/* Barra de búsqueda */}
       <Form className="d-flex mb-3">
         <FormControl
@@ -64,7 +80,11 @@ const UserTable = () => {
                 <td>{user.rol}</td>
                 <td>
                   <Button variant="warning" onClick={() => toggleUserModal(user)}>Editar</Button>{' '}
-                  <Button variant="danger" onClick={() => setModalState({ ...modalState, selectedUser: user, showConfirmDelete: true })}>Eliminar</Button>
+                  <Button variant="danger" onClick={() => setModalState({
+                    ...modalState,
+                    selectedUser: user,
+                    showConfirmDelete: true,
+                  })}>Eliminar</Button>
                 </td>
               </tr>
             ))
@@ -85,7 +105,7 @@ const UserTable = () => {
       />
 
       {/* Modal de confirmación para eliminar usuario */}
-      <Modal show={modalState.showConfirmDelete} onHide={() => setModalState({ ...modalState, showConfirmDelete: false })}>
+      <Modal show={modalState.showConfirmDelete} onHide={() => setModalState(prevState => ({ ...prevState, showConfirmDelete: false }))}>
         <Modal.Header closeButton>
           <Modal.Title>Confirmar Eliminación</Modal.Title>
         </Modal.Header>
@@ -93,11 +113,8 @@ const UserTable = () => {
           ¿Estás seguro de que deseas eliminar al usuario {modalState.selectedUser?.nombre}?
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setModalState({ ...modalState, showConfirmDelete: false })}>Cancelar</Button>
-          <Button variant="danger" onClick={() => {
-            setUsers(users.filter(u => u.id !== modalState.selectedUser.id));
-            setModalState({ ...modalState, showConfirmDelete: false });
-          }}>Eliminar</Button>
+          <Button variant="secondary" onClick={() => setModalState(prevState => ({ ...prevState, showConfirmDelete: false }))}>Cancelar</Button>
+          <Button variant="danger" onClick={handleDeleteUser}>Eliminar</Button>
         </Modal.Footer>
       </Modal>
     </div>
