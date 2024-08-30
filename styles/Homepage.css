@@ -13153,10 +13153,10 @@ section#contact .section-heading {
   color: #fff;
 }
 
-.form-label {
-  transform: translate(5px, -22px);
+/* .form-label {
+  transform: translate(5px, -2px);
 
-}
+} */
 
 section#contact form#contactForm .form-group {
   margin-bottom: 1.5rem;

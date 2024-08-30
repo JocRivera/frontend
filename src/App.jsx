@@ -7,11 +7,13 @@ import UserTable from "./components/users/UserTable";
 import ProfilePage from "./components/utils/auth/ProfilePage";
 import CabanaManagement from "./components/cabins/CabanaManagement";
 import PlanManagement from "./components/plans/PlanManagement";
+import Reservations from './components/pages/Reservations';
 import HomePage from "./components/Homepage";
 import NotFound from "./404";
 import Navbarx from "./layouts/Navbar";
 import PrivateRoute from "./components/utils/auth/PrivateRoute";
 import RoomsManagement from "./components/rooms/RoomsManagement";
+import SettingManagement from './components/settings/SettingManagement'
 import { useAuth } from "./components/utils/auth/AuthContext";  
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
@@ -91,8 +93,46 @@ function App() {
                     allowedRoles={["admin", "employee", "client"]}
                     element={<RoomsManagement />}
                   />
+
                 }
+                
               />
+              <Route
+                path="/plans"
+                element={
+                  <PrivateRoute
+                    allowedRoles={["admin", "employee", "client"]}
+                    element={<  PlanManagement/>}
+                  />
+
+                }
+                
+              />
+              <Route
+                path="/reservations"
+                element={
+                  <PrivateRoute
+                    allowedRoles={["admin", "employee", "client"]}
+                    element={<  Reservations/>}
+                  />
+
+                }
+                
+              />
+               <Route
+                path="/settings"
+                element={
+                  <PrivateRoute
+                    allowedRoles={["admin", "employee", "client"]}
+                    element={<  SettingManagement/>}
+                  />
+
+                }
+                
+              />
+
+
+               
               {/* Ruta para manejar páginas no encontradas */}
               <Route path="*" element={<NotFound />} />
             </Routes>

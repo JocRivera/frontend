@@ -71,7 +71,7 @@ const SettingManagement = () => {
     }
     const filteredSettings = settings.filter(setting => setting.name.toLowerCase().includes(query.toLowerCase()));
     return (
-        <div>
+        <div className='container'>
             <h1>Setting Management</h1>
             <Button onClick={() => setShowModal(true)}>Add Setting</Button>
             <Form.Control type="text" placeholder="Search" value={query} onChange={handleSearch} />

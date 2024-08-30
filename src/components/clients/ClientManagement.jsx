@@ -154,7 +154,7 @@ const ClientManagement = () => {
 
 
     return (
-        <div className='container col p-5'>
+        <div className='container'>
 
 
 

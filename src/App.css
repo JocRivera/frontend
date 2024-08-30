@@ -8,7 +8,6 @@
 .App {
   display: flex;
   flex-direction: column;
-  height: 100vh;
   width: 100%;
 }
 
@@ -208,13 +207,14 @@ input:checked + .slider:after {
 .container {
   margin-left: 250px;
   transition: margin-left 0.3s ease;
-  margin-top: auto;
   color: inherit; /* Hereda el color del texto por defecto, sin forzar uno específico */
+
 }
 
 /* Estilos específicos para el modal */
 .modal-content {
-  color: black
+  color: 
+  
 }
 
 .modal-header, .modal-footer {
@@ -225,3 +225,5 @@ input:checked + .slider:after {
   color: #000; /* Color de las letras de los inputs */
   background-color: #fff; /* Fondo blanco para los inputs */
 }
+
+
