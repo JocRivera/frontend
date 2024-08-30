@@ -1,0 +1,21 @@
+.divider {
+    height: 2px;
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.842), rgba(0, 0, 0, 0.1));
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    margin: 1rem 0;
+    /* Ajusta el espacio superior e inferior según sea necesario */
+}
+
+/* Estilo para agrandar los botones */
+.custom-button {
+    font-size: 1.2rem;
+    /* Ajusta el tamaño del texto del botón */
+    padding: 0.5rem 1rem;
+    /* Ajusta el espaciado interno del botón */
+}
+
+/* Estilo para agrandar los iconos dentro de los botones */
+.custom-icon {
+    font-size: 1.5rem;
+    /* Ajusta el tamaño del icono */
+}

@@ -6,6 +6,7 @@ import ClientManagement from "./components/clients/ClientManagement";
 import UserTable from "./components/users/UserTable";
 import ProfilePage from "./components/utils/auth/ProfilePage";
 import CabanaManagement from "./components/cabins/CabanaManagement";
+import PlanManagement from "./components/plans/PlanManagement";
 import HomePage from "./components/Homepage";
 import NotFound from "./404";
 import Navbarx from "./layouts/Navbar";
