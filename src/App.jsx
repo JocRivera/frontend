@@ -1,20 +1,20 @@
-import React from 'react';
-import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
+import React from "react";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Sidebar from "./layouts/Sidebar";
 import MainContent from "./components/services/MainContent";
 import ClientManagement from "./components/clients/ClientManagement";
-import UserTable from './components/users/UserTable';
+import UserTable from "./components/users/UserTable";
 import ProfilePage from "./components/utils/auth/ProfilePage";
 import CabanaManagement from "./components/cabins/CabanaManagement";
 import PlanManagement from "./components/plans/PlanManagement";
+import Reservations from './components/pages/Reservations';
 import HomePage from "./components/Homepage";
-import NotFound from './404';
+import NotFound from "./404";
 import Navbarx from "./layouts/Navbar";
 import PrivateRoute from "./components/utils/auth/PrivateRoute";
-import { useAuth } from "./components/utils/auth/AuthContext";
-import Reservations from './components/pages/Reservations';
-import SettingManagement from './components/settings/SettingManagement';
-
+import RoomsManagement from "./components/rooms/RoomsManagement";
+import SettingManagement from './components/settings/SettingManagement'
+import { useAuth } from "./components/utils/auth/AuthContext";  
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 
@@ -28,64 +28,112 @@ function App() {
   const { isAuthenticated, role } = auth;
 
   return (
+
     <BrowserRouter>
       <div className="min-vh-100 min-vw-100 overflow-hidden">
         <Navbarx />
         <div className="row">
-          {isAuthenticated && (role === 'admin' || role === 'employee' || role === 'client') && (
-            <Sidebar className="col-2" />
-          )}
+          {isAuthenticated &&
+            (role === "admin" || role === "employee" || role === "client") && (
+              
+              <Sidebar className="col-2" />
+            )}
           <main className="col">
             <Routes>
               <Route path="/" element={<HomePage />} />
-              <Route path="/profile" element={
-                <PrivateRoute
-                  allowedRoles={['admin', 'employee', 'client']}
-                  element={<ProfilePage />}
-                />
-              } />
-              <Route path="/services" element={
-                <PrivateRoute
-                  allowedRoles={['admin', 'employee']}
-                  element={<MainContent />}
-                />
-              } />
-              <Route path="/clients" element={
-                <PrivateRoute
-                  allowedRoles={['admin']}
-                  element={<ClientManagement />}
-                />
-              } />
-              <Route path="/cabins" element={
-                <PrivateRoute
-                  allowedRoles={['admin', 'employee', 'client']}
-                  element={<CabanaManagement />}
-                />
-              } />
-              <Route path="/users" element={
-                <PrivateRoute
-                  allowedRoles={['admin']}
-                  element={<UserTable />}
-                />
-              } />
-              <Route path="/plans" element={
-                <PrivateRoute
-                  allowedRoles={['admin']}
-                  element={<PlanManagement />}
-                />
-              } />
-              <Route path="/settings" element={
-                <PrivateRoute
-                  allowedRoles={['admin']}
-                  element={<SettingManagement />}
-                />
-              } />
-              {/* //poner la ruta de reservas */}
-              <Route path="/reservations" element={
-                <PrivateRoute
-                  allowedRoles={['admin', 'employee', 'client']}
-                  element={<Reservations />} />
-              } />
+              <Route
+                path="/profile"
+                element={
+                  <PrivateRoute
+                    allowedRoles={["admin", "employee", "client"]}
+                    element={<ProfilePage />}
+                  />
+                }
+              />
+              <Route
+                path="/services"
+                element={
+                  <PrivateRoute
+                    allowedRoles={["admin", "employee"]}
+                    element={<MainContent />}
+                  />
+                }
+              />
+              <Route
+                path="/clients"
+                element={
+                  <PrivateRoute
+                    allowedRoles={["admin"]}
+                    element={<ClientManagement />}
+                  />
+                }
+              />
+              <Route
+                path="/cabins"
+                element={
+                  <PrivateRoute
+                    allowedRoles={["admin", "employee", "client"]}
+                    element={<CabanaManagement />}
+                  />
+                }
+              />
+              <Route
+                path="/users"
+                element={
+                  <PrivateRoute
+                    allowedRoles={["admin"]}
+                    element={<UserTable />}
+                  />
+                }
+              />
+              <Route
+                path="/rooms"
+                element={
+                  <PrivateRoute
+                    allowedRoles={["admin", "employee", "client"]}
+                    element={<RoomsManagement />}
+                  />
+
+                }
+                
+              />
+              <Route
+                path="/plans"
+                element={
+                  <PrivateRoute
+                    allowedRoles={["admin", "employee", "client"]}
+                    element={<  PlanManagement/>}
+                  />
+
+                }
+                
+              />
+              <Route
+                path="/reservations"
+                element={
+                  <PrivateRoute
+                    allowedRoles={["admin", "employee", "client"]}
+                    element={<  Reservations/>}
+                  />
+
+                }
+                
+              />
+               <Route
+                path="/settings"
+                element={
+                  <PrivateRoute
+                    allowedRoles={["admin", "employee", "client"]}
+                    element={<  SettingManagement/>}
+                  />
+
+                }
+                
+              />
+
+
+               
+              {/* Ruta para manejar páginas no encontradas */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
