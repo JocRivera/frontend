@@ -293,7 +293,7 @@ const MainContent = () => {
                         <Form.Group className="mb-3" controlId="formEditStatus">
                             <Form.Check
                                 type="switch"
-                                label="Activo"
+                                label={editService.status ? "Activo" : "Inactivo"}
                                 name="status"
                                 checked={editService.status}
                                 onChange={(e) => setEditService({
