@@ -107,10 +107,22 @@ const SettingManagement = () => {
     const filteredSettings = settings.filter(setting => setting.name.toLowerCase().includes(query.toLowerCase()));
 
     return (
-        <div className='container col p-5'>
-            <h1 className='text-center'>Configuracion roles</h1>
-            <Button onClick={() => setShowModal(true)}>Registrar rol</Button>
-            <Form.Control type="text" placeholder="Search" value={query} onChange={handleSearch} />
+        <div className='container col p-5 mt-3'>
+            <h2 className='text-center'>Configuracion roles</h2>
+            <div className="d-flex justify-content-between align-items-center">
+                <Form className="d-flex mb-3" onSubmit={handleSearch}>
+                    <Form.Control type="search"
+                        placeholder="Buscar..."
+                        className='me-2 w-70'
+                        aria-label='search'
+                        value={query}
+                        onChange={(e) => handleSearch(e)}
+                    />
+                    <Button variant="outline-success" type="submit">Buscar</Button>
+                </Form>
+                <Button className='mb-3' onClick={() => setShowModal(true)}>Añadir rol</Button>
+            </div>
+
             <Table striped bordered hover>
                 <thead>
                     <tr>
@@ -122,25 +134,31 @@ const SettingManagement = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {filteredSettings.map((setting, index) => (
-                        <tr key={setting.id}>
-                            <td>{index + 1}</td>
-                            <td>{setting.name}</td>
-                            <td>{setting.description}</td>
-                            <td>
-                                <Form.Check
-                                    type='switch'
-                                    id={`switch-${setting.id}`}
-                                    checked={setting.status}
-                                    onChange={() => handleSettingStatus(setting.id)}
-                                />
-                            </td>
-                            <td className='d-flex justify-content-center' style={{ gap: '10px' }} >
-                                <Button variant="warning" onClick={() => handleEdit(setting)}> <BsIcons.BsPencilFill style={{ marginRight: '5px' }} /></Button>
-                                <Button variant="danger" onClick={() => handleDelete(setting)}><BsIcons.BsTrash3Fill style={{ marginRight: '5px' }} /></Button>
-                            </td>
+                    {filteredSettings.length > 0 ? (
+                        filteredSettings.map((setting, index) => (
+                            <tr key={setting.id}>
+                                <td>{index + 1}</td>
+                                <td>{setting.name}</td>
+                                <td>{setting.description}</td>
+                                <td>
+                                    <Form.Check
+                                        type='switch'
+                                        id={`switch-${setting.id}`}
+                                        checked={setting.status}
+                                        onChange={() => handleSettingStatus(setting.id)}
+                                    />
+                                </td>
+                                <td className='d-flex justify-content-center' style={{ gap: '10px' }} >
+                                    <Button variant="warning" onClick={() => handleEdit(setting)}> <BsIcons.BsPencilFill style={{ marginRight: '5px' }} /></Button>
+                                    <Button variant="danger" onClick={() => handleDelete(setting)}><BsIcons.BsTrash3Fill style={{ marginRight: '5px' }} /></Button>
+                                </td>
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan="5" className="text-center">No se encontraron servicios</td>
                         </tr>
-                    ))}
+                    )}
                 </tbody>
             </Table>
 
