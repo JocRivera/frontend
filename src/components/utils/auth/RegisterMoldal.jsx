@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { Modal, Form, Button, Row, Col } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
 import './stylesLogin.css';
 
 function RegisterModal({ isOpen, clickModal }) {
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: '',
     idNumber: '',
@@ -58,20 +56,18 @@ function RegisterModal({ isOpen, clickModal }) {
       setErrors({});
       alert('Registro exitoso');
       
-      // Redirigir al homepage con el rol adecuado.
-      const userRole = 'client'; // Suponiendo que este es el rol del usuario registrado. Podrías modificar esto según tu lógica.
-      navigate('/', { state: { role: userRole } });
+      
     }
   };
 
   return (
-    <Modal show={isOpen} onHide={clickModal} size="lg">
+    <Modal show={isOpen} onHide={clickModal} size="lg" style={{ background : 'rgba(0, 0, 0, 0.5)'}}>
       <Modal.Body>
         <Button variant="danger" onClick={clickModal} style={{ float: 'right' }}>X</Button>
         <Modal.Title className="text-center">Bienvenido al Registro</Modal.Title>
         <Row>
           <Col md={6} className="image-col">
-            <img src="/assets/loslagos.png" alt="Logo" className="logo-img" />
+            <img src="/src/assets/losgLagos.png" alt="Logo" className="logo-img"  style={{ width: '100%', height: '60%', objectFit: 'cover' }} />
           </Col>
           <Col md={6} className="form-col">
             <Form onSubmit={handleRegister}>
@@ -144,9 +140,9 @@ function RegisterModal({ isOpen, clickModal }) {
               </Button>
 
               <Form.Group className="mt-3 text-center">
-                <Form.Text>
-                  <a href="#!" className="link-text">¿Ya tienes cuenta?</a>
-                </Form.Text>
+                {/* <Form.Text>
+                  <a href="#!" className="link-text" onClick={() => clickModal()}>¿Ya tienes cuenta?</a>
+                </Form.Text> */}
               </Form.Group>
             </Form>
           </Col>

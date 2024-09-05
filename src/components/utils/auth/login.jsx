@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { Form, Button, Modal, Col, Row, Alert } from 'react-bootstrap';
 import './stylesLogin.css';
-import RegisterModal from './RegisterMoldal';
+import RegisterModal from './RegisterMoldal'; // Asegúrate de que el nombre del archivo coincida
 import RecoveryPassword from './PasswordRecovery';
 
 function LoginSignin({ isOpen, closeLoginModal }) {
@@ -19,8 +19,10 @@ function LoginSignin({ isOpen, closeLoginModal }) {
   const users = [
     { name: "admin", email: 'admin@example.com', password: 'admin123', active: true, rol: "admin" },
     { name: "user", email: 'user@example.com', password: 'user123', active: true, rol: "employee" },
-    { name: "inactive", email: 'inactive@example.com', password: 'inactive123', active: true, rol: "cliente" },
+    { name: "inactive", email: 'inactive@example.com', password: 'inactive123', active: true, rol: "client" },
   ];
+
+  
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -45,8 +47,6 @@ function LoginSignin({ isOpen, closeLoginModal }) {
     }
   };
   
-  
-
   const openRegisterModal = () => setIsRegisterOpen(true);
   const openRecoveryModal = (e) => {
     e.preventDefault();
@@ -65,8 +65,8 @@ function LoginSignin({ isOpen, closeLoginModal }) {
 
   return (
     <>
-      <Modal show={isOpen} onHide={handleCloseLoginModal} centered size="lg">
-        <Modal.Body>
+      <Modal show={isOpen} onHide={handleCloseLoginModal} centered size="lg"  >
+        <Modal.Body   >
           <Button
             variant="danger"
             onClick={handleCloseLoginModal}
@@ -78,14 +78,15 @@ function LoginSignin({ isOpen, closeLoginModal }) {
           <Row>
             <Col md={6} className="image-col">
               <img
-                src="/assets/loslagos.png"
+                src="/src/assets/losgLagos.png"
                 alt="Logo"
                 className="logo-img"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             </Col>
-            <Col md={6} className="form-col">
+            <Col md={6} className="form-col" >
               {error && <Alert variant="danger">{error}</Alert>}
-              <Form onSubmit={handleLogin}>
+              <Form onSubmit={handleLogin}  >
                 <Form.Group className="mb-3" controlId="formBasicEmail">
                   <Form.Label>Correo electrónico</Form.Label>
                   <Form.Control

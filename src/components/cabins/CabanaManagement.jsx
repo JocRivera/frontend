@@ -58,6 +58,46 @@ const CabanaManagement = () => {
     });
   };
 
+
+  const validateField = (name, value) => {
+    switch (name) {
+      case 'nombre':
+        return value.length < 4 ? 'El nombre debe tener al menos 4 caracteres' : '';
+      case 'capacidad':
+        if (!value) return 'Capacidad es obligatoria';
+        if (value < 4 || value > 7) return 'Capacidad debe estar entre 4 y 7';
+        return '';
+      case 'descripcion':
+        return value.length < 6 ? 'Descripción es obligatoria, mínimo 6 caracteres' : '';
+      case 'imagen':
+        return !value ? 'Imagen es obligatoria' : '';
+      case 'comodidades':
+        return value.length === 0 ? 'Debe agregar al menos una comodidad' : '';
+      default:
+        return '';
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    const error = validateField(name, value);
+    setErrors({ ...errors, [name]: error });
+    setFormValues({ ...formValues, [name]: value });
+  };
+  
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    const error = validateField('imagen', file);
+    setErrors({ ...errors, imagen: error });
+    setFormValues({ ...formValues, imagen: file });
+  };
+  
+  const handleComodidadesChange = (newComodidades) => {
+    const error = validateField('comodidades', newComodidades);
+    setErrors({ ...errors, comodidades: error });
+    setFormValues({ ...formValues, comodidades: newComodidades });
+  };
+
   const handleEditCabana = (cabana) => {
     setSelectedCabana(cabana);
     setFormValues({
@@ -87,37 +127,28 @@ const CabanaManagement = () => {
     setShowDeleteAlert(false);
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormValues({ ...formValues, [name]: value });
-  };
-
-  const handleFileChange = (e) => {
-    setFormValues({ ...formValues, imagen: e.target.files[0] });
-  };
-
-  const handleComodidadesChange = (newComodidades) => {
-    setFormValues({ ...formValues, comodidades: newComodidades });
-  };
 
   const filteredCabanaList = cabanaList.filter(cabana =>
     cabana.nombre.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div className='container col p-5'>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <Form.Control
+    <div className='container ' style={ { minHeight: '100vh', paddingTop: '60px' } } >
+      <h1>Lista de Cabañas</h1>
+      <div className="d-flex justify-content-start align-items-center mb-2" style={{ gap: '750px' }}>
+      <Form.Control
+          style={{ maxWidth: '300px', marginRight: '20px' }}
           type="text"
           placeholder="Buscar por nombre"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="me-2"
         />
-      </div>
-      <Button variant="primary" onClick={handleAddCabana}>
+        <Button variant="primary" onClick={handleAddCabana}>
         Añadir Cabaña
       </Button>
+      </div>
+      
 
       <Row>
         {filteredCabanaList.length > 0 ? (

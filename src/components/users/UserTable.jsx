@@ -10,6 +10,7 @@ const UserTable = () => {
     selectedUser: null,
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
 
   const toggleUserModal = (user = null) => {
     setModalState(prevState => ({
@@ -39,22 +40,26 @@ const UserTable = () => {
   );
 
   return (
-    <div className="container">
-      {/* Barra de búsqueda */}
-      <Form className="d-flex mb-3">
+    <div className='container ' style={ { minHeight: '100vh', paddingTop: '60px',   } } >
+
+      <h1>Lista de Usuarios</h1> 
+      <div className="d-flex justify-content-start align-items-center mb-2" style={{ gap: '750px' }}>
+
         <FormControl
           type="search"
-          placeholder="Buscar..."
+          style={{ maxWidth: '300px', marginRight: '20px' }}
+          placeholder="Buscar por Documento"
           className="me-2"
           aria-label="Search"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-      </Form>
 
       <Button variant="primary" className="mb-3" onClick={() => toggleUserModal()}>
         Agregar Usuario
       </Button>
+
+    </div>
 
       <Table striped bordered hover>
         <thead>

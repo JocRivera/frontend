@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import Sidebar from "./layouts/Sidebar";
 import MainContent from "./components/services/MainContent";
 import ClientManagement from "./components/clients/ClientManagement";
@@ -13,31 +13,22 @@ import NotFound from "./404";
 import Navbarx from "./layouts/Navbar";
 import PrivateRoute from "./components/utils/auth/PrivateRoute";
 import RoomsManagement from "./components/rooms/RoomsManagement";
-import SettingManagement from './components/settings/SettingManagement'
+import SettingManagement from './components/settings/SettingManagement';
 import { useAuth } from "./components/utils/auth/AuthContext";  
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 
 function App() {
-  const auth = useAuth();
-
-  if (!auth) {
-    return <div>Error: AuthContext no está disponible.</div>;
-  }
-
-  const { isAuthenticated, role } = auth;
+  const { isAuthenticated, role } = useAuth();
 
   return (
-
     <BrowserRouter>
       <div className="min-vh-100 min-vw-100 overflow-hidden">
         <Navbarx />
         <div className="row">
-          {isAuthenticated &&
-            (role === "admin" || role === "employee" || role === "client") && (
-              
-              <Sidebar className="col-2" />
-            )}
+          {isAuthenticated && (role === 'admin' || role === 'employee') && (
+            <Sidebar className="col-2" />
+          )}
           <main className="col">
             <Routes>
               <Route path="/" element={<HomePage />} />
@@ -50,6 +41,7 @@ function App() {
                   />
                 }
               />
+              {/* Rutas para "admin" y "employee" */}
               <Route
                 path="/services"
                 element={
@@ -93,46 +85,35 @@ function App() {
                     allowedRoles={["admin", "employee", "client"]}
                     element={<RoomsManagement />}
                   />
-
                 }
-                
               />
               <Route
                 path="/plans"
                 element={
                   <PrivateRoute
                     allowedRoles={["admin", "employee", "client"]}
-                    element={<  PlanManagement/>}
+                    element={<PlanManagement />}
                   />
-
                 }
-                
               />
               <Route
                 path="/reservations"
                 element={
                   <PrivateRoute
                     allowedRoles={["admin", "employee", "client"]}
-                    element={<  Reservations/>}
+                    element={<Reservations />}
                   />
-
                 }
-                
               />
-               <Route
+              <Route
                 path="/settings"
                 element={
                   <PrivateRoute
                     allowedRoles={["admin", "employee", "client"]}
-                    element={<  SettingManagement/>}
+                    element={<SettingManagement />}
                   />
-
                 }
-                
               />
-
-
-               
               {/* Ruta para manejar páginas no encontradas */}
               <Route path="*" element={<NotFound />} />
             </Routes>
