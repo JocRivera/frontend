@@ -1,7 +1,7 @@
 import React from 'react';
 import { Form, Row, Col } from 'react-bootstrap';
 
-const ReservationForm = ({ reservation = {}, readOnly }) => {
+const ReservationForm = ({ reservation, onChange }) => {
     return (
         <div>
             <h5>Datos de la Reserva</h5>
@@ -12,8 +12,8 @@ const ReservationForm = ({ reservation = {}, readOnly }) => {
                         <Form.Control
                             type="datetime-local"
                             name="startDate"
-                            value={reservation.startDate ? reservation.startDate.slice(0, 16) : ''}
-                            readOnly={readOnly}
+                            value={reservation.startDate}
+                            onChange={onChange}
                         />
                     </Form.Group>
                 </Col>
@@ -23,8 +23,8 @@ const ReservationForm = ({ reservation = {}, readOnly }) => {
                         <Form.Control
                             type="datetime-local"
                             name="endDate"
-                            value={reservation.endDate ? reservation.endDate.slice(0, 16) : ''}
-                            readOnly={readOnly}
+                            value={reservation.endDate}
+                            onChange={onChange}
                         />
                     </Form.Group>
                 </Col>
@@ -36,10 +36,9 @@ const ReservationForm = ({ reservation = {}, readOnly }) => {
                         <Form.Control
                             as="select"
                             name="status"
-                            value={reservation.status || ''}
-                            readOnly={readOnly}
+                            value={reservation.status}
+                            onChange={onChange}
                         >
-                            <option value="">Selecciona...</option>
                             <option value="Reservado">Reservado</option>
                             <option value="Confirmado">Confirmado</option>
                             <option value="Pendiente">Pendiente</option>
@@ -53,8 +52,8 @@ const ReservationForm = ({ reservation = {}, readOnly }) => {
                         <Form.Control
                             as="select"
                             name="plan"
-                            value={reservation.plan || ''}
-                            readOnly={readOnly}
+                            value={reservation.plan}
+                            onChange={onChange}
                         >
                             <option value="">Selecciona un plan</option>
                             <option value="Pansadia cumpleaños">Pansadia cumpleaños</option>
@@ -72,8 +71,8 @@ const ReservationForm = ({ reservation = {}, readOnly }) => {
                         <Form.Control
                             as="select"
                             name="typeOfDocument"
-                            value={reservation.typeOfDocument || ''}
-                            readOnly={readOnly}
+                            value={reservation.typeOfDocument}
+                            onChange={onChange}
                         >
                             <option value="">Selecciona...</option>
                             <option value="CC">Cédula de Ciudadanía</option>
@@ -88,8 +87,8 @@ const ReservationForm = ({ reservation = {}, readOnly }) => {
                         <Form.Control
                             type="text"
                             name="documentNumber"
-                            value={reservation.documentNumber || ''}
-                            readOnly={readOnly}
+                            value={reservation.documentNumber}
+                            onChange={onChange}
                         />
                     </Form.Group>
                 </Col>
@@ -101,8 +100,8 @@ const ReservationForm = ({ reservation = {}, readOnly }) => {
                         <Form.Control
                             type="text"
                             name="clientName"
-                            value={reservation.clientName || ''}
-                            readOnly={readOnly}
+                            value={reservation.clientName}
+                            onChange={onChange}
                         />
                     </Form.Group>
                 </Col>
