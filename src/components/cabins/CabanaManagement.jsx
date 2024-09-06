@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { Button, Card, Modal, Form, Row, Col } from 'react-bootstrap';
-import TableComodidad from './ComodidadTable'; // Asegúrate de que este componente esté importado correctamente
-import AlertSwitch from './AlertSwitch'; // Importa el nuevo componente de alerta
-import './Cabins.css';
+import React, { useState } from "react";
+import { Button, Card, Modal, Form, Row, Col } from "react-bootstrap";
+import TableComodidad from "./ComodidadTable"; // Asegúrate de que este componente esté importado correctamente
+import AlertSwitch from "./AlertSwitch"; // Importa el nuevo componente de alerta
+import "./Cabins.css";
 
 // Componente para gestionar Cabañas
 const CabanaManagement = () => {
@@ -12,25 +12,28 @@ const CabanaManagement = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false); // Nuevo estado para el alerta de eliminación
   const [formValues, setFormValues] = useState({
-    nombre: '',
-    capacidad: '',
-    estado: 'En servicio',
-    descripcion: '',
+    nombre: "",
+    capacidad: "",
+    estado: "En servicio",
+    descripcion: "",
     comodidades: [],
     imagen: null,
   });
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [errors, setErrors] = useState({});
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formValues.nombre) newErrors.nombre = 'Nombre es obligatorio';
-    if (!formValues.capacidad) newErrors.capacidad = 'Capacidad es obligatoria';
-    if (formValues.capacidad < 4 || formValues.capacidad > 7) newErrors.capacidad = 'Capacidad debe estar entre 4 y 7';
-    if (!formValues.descripcion) newErrors.descripcion = 'Descripción es obligatoria';
-    if (!formValues.imagen) newErrors.imagen = 'Imagen es obligatoria';
-    if (formValues.comodidades.length === 0) newErrors.comodidades = 'Debe agregar al menos una comodidad';
-    
+    if (!formValues.nombre) newErrors.nombre = "Nombre es obligatorio";
+    if (!formValues.capacidad) newErrors.capacidad = "Capacidad es obligatoria";
+    if (formValues.capacidad < 4 || formValues.capacidad > 7)
+      newErrors.capacidad = "Capacidad debe estar entre 4 y 7";
+    if (!formValues.descripcion)
+      newErrors.descripcion = "Descripción es obligatoria";
+    if (!formValues.imagen) newErrors.imagen = "Imagen es obligatoria";
+    if (formValues.comodidades.length === 0)
+      newErrors.comodidades = "Debe agregar al menos una comodidad";
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -39,9 +42,11 @@ const CabanaManagement = () => {
     if (!validateForm()) return;
     if (selectedCabana) {
       // Editar cabaña existente
-      setCabanaList(cabanaList.map((item) =>
-        item.id === formValues.id ? { ...item, ...formValues } : item
-      ));
+      setCabanaList(
+        cabanaList.map((item) =>
+          item.id === formValues.id ? { ...item, ...formValues } : item
+        )
+      );
     } else {
       // Agregar nueva cabaña
       setCabanaList([...cabanaList, { ...formValues, id: Date.now() }]);
@@ -49,10 +54,10 @@ const CabanaManagement = () => {
     setShowCabanaForm(false);
     setSelectedCabana(null); // Resetear cabaña seleccionada
     setFormValues({
-      nombre: '',
-      capacidad: '',
-      estado: 'En servicio',
-      descripcion: '',
+      nombre: "",
+      capacidad: "",
+      estado: "En servicio",
+      descripcion: "",
       comodidades: [],
       imagen: null,
     });
@@ -83,7 +88,7 @@ const CabanaManagement = () => {
   };
 
   const handleDeleteCabana = () => {
-    setCabanaList(cabanaList.filter(u => u.id !== selectedCabana.id));
+    setCabanaList(cabanaList.filter((u) => u.id !== selectedCabana.id));
     setShowDeleteAlert(false);
   };
 
@@ -100,12 +105,12 @@ const CabanaManagement = () => {
     setFormValues({ ...formValues, comodidades: newComodidades });
   };
 
-  const filteredCabanaList = cabanaList.filter(cabana =>
+  const filteredCabanaList = cabanaList.filter((cabana) =>
     cabana.nombre.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div className='container col p-5'>
+    <div className="container col p-5">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <Form.Control
           type="text"
@@ -125,20 +130,41 @@ const CabanaManagement = () => {
             <Col md={4} key={cabana.id} className="mb-3">
               <Card>
                 {cabana.imagen && (
-                  <Card.Img variant="top" src={URL.createObjectURL(cabana.imagen)} />
+                  <Card.Img
+                    variant="top"
+                    src={URL.createObjectURL(cabana.imagen)}
+                  />
                 )}
                 <Card.Body>
                   <Card.Title>{cabana.nombre}</Card.Title>
-                  <Card.Text>Comodidades: {cabana.comodidades.map(c => c.articulos).join(', ')}</Card.Text>
+                  <Card.Text>
+                    Comodidades:{" "}
+                    {cabana.comodidades.map((c) => c.articulos).join(", ")}
+                  </Card.Text>
                   <Card.Text>Capacidad: {cabana.capacidad}</Card.Text>
                   <Card.Text>Estado: {cabana.estado}</Card.Text>
                   <Card.Text>Descripción: {cabana.descripcion}</Card.Text>
-                  <Button variant="info" onClick={() => handleEditCabana(cabana)}>Editar</Button>
-                  <Button variant="primary" onClick={() => handleViewDetails(cabana)}>Ver Detalle</Button>
-                  <Button variant="danger" onClick={() => {
-                    setSelectedCabana(cabana);
-                    setShowDeleteAlert(true);
-                  }}>Eliminar</Button>
+                  <Button
+                    variant="info"
+                    onClick={() => handleEditCabana(cabana)}
+                  >
+                    Editar
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={() => handleViewDetails(cabana)}
+                  >
+                    Ver Detalle
+                  </Button>
+                  <Button
+                    variant="danger"
+                    onClick={() => {
+                      setSelectedCabana(cabana);
+                      setShowDeleteAlert(true);
+                    }}
+                  >
+                    Eliminar
+                  </Button>
                 </Card.Body>
               </Card>
             </Col>
@@ -149,9 +175,15 @@ const CabanaManagement = () => {
       </Row>
 
       {showCabanaForm && (
-        <Modal show={showCabanaForm} onHide={() => setShowCabanaForm(false)} size="lg">
+        <Modal
+          show={showCabanaForm}
+          onHide={() => setShowCabanaForm(false)}
+          size="lg"
+        >
           <Modal.Header closeButton>
-            <Modal.Title>{selectedCabana ? 'Editar Cabaña' : 'Agregar Cabaña'}</Modal.Title>
+            <Modal.Title>
+              {selectedCabana ? "Editar Cabaña" : "Agregar Cabaña"}
+            </Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <Form>
@@ -214,9 +246,7 @@ const CabanaManagement = () => {
                   onUpdateComodidades={handleComodidadesChange}
                 />
                 {errors.comodidades && (
-                  <div className="text-danger">
-                    {errors.comodidades}
-                  </div>
+                  <div className="text-danger">{errors.comodidades}</div>
                 )}
               </Form.Group>
               <Form.Group>
@@ -230,7 +260,7 @@ const CabanaManagement = () => {
                   <img
                     src={URL.createObjectURL(formValues.imagen)}
                     alt="Vista previa"
-                    style={{ width: '100%', marginTop: '10px' }}
+                    style={{ width: "100%", marginTop: "10px" }}
                   />
                 )}
                 <Form.Control.Feedback type="invalid">
@@ -240,7 +270,10 @@ const CabanaManagement = () => {
             </Form>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowCabanaForm(false)}>
+            <Button
+              variant="secondary"
+              onClick={() => setShowCabanaForm(false)}
+            >
               Cancelar
             </Button>
             <Button variant="primary" onClick={handleSaveCabana}>
@@ -251,18 +284,30 @@ const CabanaManagement = () => {
       )}
 
       {showDetailModal && (
-        <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)} size="lg">
+        <Modal
+          show={showDetailModal}
+          onHide={() => setShowDetailModal(false)}
+          size="lg"
+        >
           <Modal.Header closeButton>
             <Modal.Title>Detalles de la Cabaña</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <Card>
               {selectedCabana.imagen && (
-                <Card.Img variant="top" src={URL.createObjectURL(selectedCabana.imagen)} />
+                <Card.Img
+                  variant="top"
+                  src={URL.createObjectURL(selectedCabana.imagen)}
+                />
               )}
               <Card.Body>
                 <Card.Title>{selectedCabana.nombre}</Card.Title>
-                <Card.Text>Comodidades: {selectedCabana.comodidades.map(c => c.articulos).join(', ')}</Card.Text>
+                <Card.Text>
+                  Comodidades:{" "}
+                  {selectedCabana.comodidades
+                    .map((c) => c.articulos)
+                    .join(", ")}
+                </Card.Text>
                 <Card.Text>Capacidad: {selectedCabana.capacidad}</Card.Text>
                 <Card.Text>Estado: {selectedCabana.estado}</Card.Text>
                 <Card.Text>Descripción: {selectedCabana.descripcion}</Card.Text>
@@ -270,7 +315,10 @@ const CabanaManagement = () => {
             </Card>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowDetailModal(false)}>
+            <Button
+              variant="secondary"
+              onClick={() => setShowDetailModal(false)}
+            >
               Cerrar
             </Button>
           </Modal.Footer>

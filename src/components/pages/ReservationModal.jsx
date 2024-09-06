@@ -1,7 +1,7 @@
 import React from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import ReservationForm from './ReservationForm';
-import CompanionsForm from './CompanionsForm';
+import CompanionsForm from './companionsForm';
 import PaymentsForm from './PaymentsForm';
 
 const ReservationModal = ({

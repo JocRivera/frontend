@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
+import React, { useState } from "react";
+import { Modal, Button, Form } from "react-bootstrap";
 
 function RecovyPassword({ show, onHide }) {
-  const [email, setEmail] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [email, setEmail] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordError, setPasswordError] = useState('');
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
-  const validEmails = ['admin@example.com', 'test@test.com'];
+  const validEmails = ["admin@example.com", "test@test.com"];
 
   const handleChange = (e) => {
     setEmail(e.target.value);
@@ -18,23 +18,27 @@ function RecovyPassword({ show, onHide }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (validEmails.includes(email)) {
-      setSuccessMessage('Se ha enviado un correo electrónico para la recuperación de su contraseña.');
-      setErrorMessage('');
-      
+      setSuccessMessage(
+        "Se ha enviado un correo electrónico para la recuperación de su contraseña."
+      );
+      setErrorMessage("");
+
       setTimeout(() => {
         setShowChangePasswordModal(true);
       }, 2000); // Muestra el modal de cambio de contraseña después de 2 segundos
     } else {
-      setErrorMessage('El correo electrónico no está registrado.');
-      setSuccessMessage('');
+      setErrorMessage("El correo electrónico no está registrado.");
+      setSuccessMessage("");
     }
   };
 
   const validatePassword = (password) => {
     // Validación de contraseña robusta
-    return /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,}$/.test(password);
+    return /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,}$/.test(
+      password
+    );
   };
 
   const handleNewPasswordChange = (e) => {
@@ -42,9 +46,11 @@ function RecovyPassword({ show, onHide }) {
     setNewPassword(value);
 
     if (!validatePassword(value)) {
-      setPasswordError('La contraseña debe contener al menos 10 caracteres, una mayúscula, una minúscula, un número y un carácter especial.');
+      setPasswordError(
+        "La contraseña debe contener al menos 10 caracteres, una mayúscula, una minúscula, un número y un carácter especial."
+      );
     } else {
-      setPasswordError('');
+      setPasswordError("");
     }
   };
 
@@ -55,7 +61,7 @@ function RecovyPassword({ show, onHide }) {
   const handlePasswordChangeSubmit = (e) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
-      setPasswordError('Las contraseñas no coinciden.');
+      setPasswordError("Las contraseñas no coinciden.");
       return;
     }
     // Aquí podrías manejar el cambio de contraseña
@@ -67,8 +73,12 @@ function RecovyPassword({ show, onHide }) {
     <>
       <Modal show={show} onHide={onHide} centered size="lg">
         <Modal.Body>
-          <Button variant="danger" onClick={onHide} style={{ float: 'right' }}>X</Button>
-          <Modal.Title className="text-center">Recuperación de Contraseña</Modal.Title>
+          <Button variant="danger" onClick={onHide} style={{ float: "right" }}>
+            X
+          </Button>
+          <Modal.Title className="text-center">
+            Recuperación de Contraseña
+          </Modal.Title>
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3" controlId="formBasicEmail">
               <Form.Label>Email address</Form.Label>
@@ -79,9 +89,7 @@ function RecovyPassword({ show, onHide }) {
                 onChange={handleChange}
                 required
               />
-              <Form.Text className="text-muted">
-                Ingrese su correo
-              </Form.Text>
+              <Form.Text className="text-muted">Ingrese su correo</Form.Text>
             </Form.Group>
             {successMessage && (
               <Form.Text className="text-success d-block mb-3">
@@ -100,10 +108,23 @@ function RecovyPassword({ show, onHide }) {
         </Modal.Body>
       </Modal>
 
-      <Modal show={showChangePasswordModal} onHide={() => setShowChangePasswordModal(false)} centered size="lg">
+      <Modal
+        show={showChangePasswordModal}
+        onHide={() => setShowChangePasswordModal(false)}
+        centered
+        size="lg"
+      >
         <Modal.Body>
-          <Button variant="danger" onClick={() => setShowChangePasswordModal(false)} style={{ float: 'right' }}>X</Button>
-          <Modal.Title className="text-center">Cambio de Contraseña</Modal.Title>
+          <Button
+            variant="danger"
+            onClick={() => setShowChangePasswordModal(false)}
+            style={{ float: "right" }}
+          >
+            X
+          </Button>
+          <Modal.Title className="text-center">
+            Cambio de Contraseña
+          </Modal.Title>
           <Form onSubmit={handlePasswordChangeSubmit}>
             <Form.Group className="mb-3" controlId="formNewPassword">
               <Form.Label>Nueva Contraseña</Form.Label>
@@ -133,7 +154,11 @@ function RecovyPassword({ show, onHide }) {
                 Las contraseñas no coinciden.
               </Form.Control.Feedback>
             </Form.Group>
-            <Button variant="primary" type="submit" disabled={!!passwordError || newPassword !== confirmPassword}>
+            <Button
+              variant="primary"
+              type="submit"
+              disabled={!!passwordError || newPassword !== confirmPassword}
+            >
               Cambiar Contraseña
             </Button>
           </Form>

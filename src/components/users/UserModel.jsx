@@ -33,25 +33,29 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     // Validación de nombre
     if (!formData.nombre || !/^[a-zA-Z\s]+$/.test(formData.nombre)) {
-      newErrors.nombre = "El nombre es obligatorio y debe contener solo letras y espacios.";
+      newErrors.nombre =
+        "El nombre es obligatorio y debe contener solo letras y espacios.";
     }
 
     // Validación de documento
     if (!formData.documento || !/^\d{6,15}$/.test(formData.documento)) {
-      newErrors.documento = "El documento es obligatorio y debe ser un número entre 6 y 15 dígitos.";
+      newErrors.documento =
+        "El documento es obligatorio y debe ser un número entre 6 y 15 dígitos.";
     }
 
     // Validación de email
     if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "El email es obligatorio y debe ser una dirección de correo válida.";
+      newErrors.email =
+        "El email es obligatorio y debe ser una dirección de correo válida.";
     }
 
     // Validación de teléfono
     if (!formData.telefono || !/^\d{10,15}$/.test(formData.telefono)) {
-      newErrors.telefono = "El teléfono es obligatorio y debe ser un número entre 10 y 15 dígitos.";
+      newErrors.telefono =
+        "El teléfono es obligatorio y debe ser un número entre 10 y 15 dígitos.";
     }
 
     // Validación de rol
@@ -88,7 +92,9 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
               onChange={handleInputChange}
               isInvalid={!!errors.nombre}
             />
-            <Form.Control.Feedback type="invalid">{errors.nombre}</Form.Control.Feedback>
+            <Form.Control.Feedback type="invalid">
+              {errors.nombre}
+            </Form.Control.Feedback>
           </Form.Group>
           <Form.Group className="mb-3" controlId="formDocumento">
             <Form.Label>Documento</Form.Label>
@@ -99,7 +105,9 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
               onChange={handleInputChange}
               isInvalid={!!errors.documento}
             />
-            <Form.Control.Feedback type="invalid">{errors.documento}</Form.Control.Feedback>
+            <Form.Control.Feedback type="invalid">
+              {errors.documento}
+            </Form.Control.Feedback>
           </Form.Group>
           <Form.Group className="mb-3" controlId="formEmail">
             <Form.Label>Email</Form.Label>
@@ -110,7 +118,9 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
               onChange={handleInputChange}
               isInvalid={!!errors.email}
             />
-            <Form.Control.Feedback type="invalid">{errors.email}</Form.Control.Feedback>
+            <Form.Control.Feedback type="invalid">
+              {errors.email}
+            </Form.Control.Feedback>
           </Form.Group>
           <Form.Group className="mb-3" controlId="formTelefono">
             <Form.Label>Teléfono</Form.Label>
@@ -121,7 +131,9 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
               onChange={handleInputChange}
               isInvalid={!!errors.telefono}
             />
-            <Form.Control.Feedback type="invalid">{errors.telefono}</Form.Control.Feedback>
+            <Form.Control.Feedback type="invalid">
+              {errors.telefono}
+            </Form.Control.Feedback>
           </Form.Group>
           <Form.Group className="mb-3" controlId="formRol">
             <Form.Label>Rol</Form.Label>
@@ -137,13 +149,19 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
               <option value="empleado">Empleado</option>
               <option value="cliente">Cliente</option>
             </Form.Control>
-            <Form.Control.Feedback type="invalid">{errors.rol}</Form.Control.Feedback>
+            <Form.Control.Feedback type="invalid">
+              {errors.rol}
+            </Form.Control.Feedback>
           </Form.Group>
         </Form>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose}>Cerrar</Button>
-        <Button variant="primary" onClick={handleSubmit}>Guardar</Button>
+        <Button variant="secondary" onClick={handleClose}>
+          Cerrar
+        </Button>
+        <Button variant="primary" onClick={handleSubmit}>
+          Guardar
+        </Button>
       </Modal.Footer>
     </Modal>
   );

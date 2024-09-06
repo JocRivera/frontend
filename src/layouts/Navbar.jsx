@@ -1,9 +1,9 @@
-import React, { useContext, useState } from 'react';
-import { Container, Nav, Navbar, NavDropdown } from 'react-bootstrap';
-import LoginSignin from '../components/utils/auth/login';
-import RegisterModal from '../components/utils/auth/RegisterMoldal';
-import { useAuth } from '../components/utils/auth/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import React, { useContext, useState } from "react";
+import { Container, Nav, Navbar, NavDropdown } from "react-bootstrap";
+import LoginSignin from "../components/utils/auth/login";
+import RegisterModal from "../components/utils/auth/RegisterMoldal";
+import { useAuth } from "../components/utils/auth/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const Navbarx = ({ isSidebarCollapsed }) => {
   const { isAuthenticated, user, logout, role } = useAuth();
@@ -21,7 +21,7 @@ const Navbarx = ({ isSidebarCollapsed }) => {
     <>
       <Navbar
         expand="lg"
-        className={isSidebarCollapsed ? 'collapsed-navbar' : 'expanded-navbar'}
+        className={isSidebarCollapsed ? "collapsed-navbar" : "expanded-navbar"}
       >
         <Container>
           <Navbar.Brand href="/cabins">Bookedge</Navbar.Brand>
@@ -30,7 +30,7 @@ const Navbarx = ({ isSidebarCollapsed }) => {
             <Nav className="ms-auto">
               {isAuthenticated ? (
                 <>
-                  {role === 'cliente' && (
+                  {role === "cliente" && (
                     <>
                       <Nav.Link href="/viewscabins">Cabañas</Nav.Link>
                       <Nav.Link href="/viewsrooms">Habitaciones</Nav.Link>
@@ -38,12 +38,21 @@ const Navbarx = ({ isSidebarCollapsed }) => {
                       <Nav.Link href="/contact">Contáctanos</Nav.Link>
                     </>
                   )}
-                  <NavDropdown title={user?.name || "Mi Cuenta"} id="basic-nav-dropdown">
-                    <NavDropdown.Item onClick={() => navigate('/profile')}>Mi Perfil</NavDropdown.Item>
-                    {role !== 'cliente' && (
-                      <NavDropdown.Item href="/settings">Configuración</NavDropdown.Item>
+                  <NavDropdown
+                    title={user?.name || "Mi Cuenta"}
+                    id="basic-nav-dropdown"
+                  >
+                    <NavDropdown.Item onClick={() => navigate("/profile")}>
+                      Mi Perfil
+                    </NavDropdown.Item>
+                    {role !== "cliente" && (
+                      <NavDropdown.Item href="/settings">
+                        Configuración
+                      </NavDropdown.Item>
                     )}
-                    <NavDropdown.Item onClick={logout}>Cerrar Sesión</NavDropdown.Item>
+                    <NavDropdown.Item onClick={logout}>
+                      Cerrar Sesión
+                    </NavDropdown.Item>
                   </NavDropdown>
                 </>
               ) : (
@@ -52,7 +61,7 @@ const Navbarx = ({ isSidebarCollapsed }) => {
                     type="button"
                     className="btn bg-primary me-2"
                     onClick={openLoginModal}
-                    style={{ fontSize: '14px', padding: '6px 12px' }}
+                    style={{ fontSize: "14px", padding: "6px 12px" }}
                   >
                     Iniciar Sesión
                   </button>
@@ -60,7 +69,7 @@ const Navbarx = ({ isSidebarCollapsed }) => {
                     type="button"
                     className="btn bg-primary"
                     onClick={openRegisterModal}
-                    style={{ fontSize: '14px', padding: '6px 12px' }}
+                    style={{ fontSize: "14px", padding: "6px 12px" }}
                   >
                     Registrarse
                   </button>
@@ -70,8 +79,15 @@ const Navbarx = ({ isSidebarCollapsed }) => {
           </Navbar.Collapse>
         </Container>
       </Navbar>
-      {isLoginOpen && <LoginSignin isOpen={isLoginOpen} closeLoginModal={closeLoginModal} />}
-      {isRegisterOpen && <RegisterModal isOpen={isRegisterOpen} clickModal={closeRegisterModal} />}
+      {isLoginOpen && (
+        <LoginSignin isOpen={isLoginOpen} closeLoginModal={closeLoginModal} />
+      )}
+      {isRegisterOpen && (
+        <RegisterModal
+          isOpen={isRegisterOpen}
+          clickModal={closeRegisterModal}
+        />
+      )}
     </>
   );
 };

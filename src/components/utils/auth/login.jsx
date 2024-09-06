@@ -1,51 +1,67 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from './AuthContext';
-import { Form, Button, Modal, Col, Row, Alert } from 'react-bootstrap';
-import './stylesLogin.css';
-import RegisterModal from './RegisterMoldal';
-import RecoveryPassword from './PasswordRecovery';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "./AuthContext";
+import { Form, Button, Modal, Col, Row, Alert } from "react-bootstrap";
+import "./stylesLogin.css";
+import RegisterModal from "./RegisterMoldal";
+import RecoveryPassword from "./PasswordRecovery";
 
 function LoginSignin({ isOpen, closeLoginModal }) {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isRecoveryOpen, setIsRecoveryOpen] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   const { isAuthenticated, login } = useAuth();
   const navigate = useNavigate();
 
   const users = [
-    { name: "admin", email: 'admin@example.com', password: 'admin123', active: true, rol: "admin" },
-    { name: "user", email: 'user@example.com', password: 'user123', active: true, rol: "employee" },
-    { name: "inactive", email: 'inactive@example.com', password: 'inactive123', active: true, rol: "cliente" },
+    {
+      name: "admin",
+      email: "admin@example.com",
+      password: "admin123",
+      active: true,
+      rol: "admin",
+    },
+    {
+      name: "user",
+      email: "user@example.com",
+      password: "user123",
+      active: true,
+      rol: "employee",
+    },
+    {
+      name: "inactive",
+      email: "inactive@example.com",
+      password: "inactive123",
+      active: true,
+      rol: "cliente",
+    },
   ];
 
   const handleLogin = (e) => {
     e.preventDefault();
-    
+
     const user = users.find(
       (user) => user.email === email && user.password === password
     );
-    
+
     if (!user || !user.active) {
-      setError('Usuario no existe o inactivo');
+      setError("Usuario no existe o inactivo");
     } else {
-      setError('');
+      setError("");
       login(user.rol); // Pasar solo el rol aquí
-  
-      if (user.rol === 'client') {
-        navigate('/'); // Redirige a la página de inicio si es cliente
+
+      if (user.rol === "client") {
+        navigate("/"); // Redirige a la página de inicio si es cliente
       } else {
-        navigate('/cabins'); // Redirige a la página de Cabañas si es admin o empleado
+        navigate("/cabins"); // Redirige a la página de Cabañas si es admin o empleado
       }
-      
+
       handleCloseLoginModal();
     }
   };
-  
-  
 
   const openRegisterModal = () => setIsRegisterOpen(true);
   const openRecoveryModal = (e) => {
@@ -56,10 +72,10 @@ function LoginSignin({ isOpen, closeLoginModal }) {
   const closeRegisterModal = () => setIsRegisterOpen(false);
   const closeRecoveryModal = () => setIsRecoveryOpen(false);
   const handleCloseLoginModal = () => {
-    if (typeof closeLoginModal === 'function') {
+    if (typeof closeLoginModal === "function") {
       closeLoginModal();
     } else {
-      console.error('closeLoginModal no es una función');
+      console.error("closeLoginModal no es una función");
     }
   };
 
@@ -70,18 +86,22 @@ function LoginSignin({ isOpen, closeLoginModal }) {
           <Button
             variant="danger"
             onClick={handleCloseLoginModal}
-            style={{ float: 'right', position: 'absolute', top: 10, right: 10, zIndex: 999 }}
+            style={{
+              float: "right",
+              position: "absolute",
+              top: 10,
+              right: 10,
+              zIndex: 999,
+            }}
           >
             X
           </Button>
-          <Modal.Title className="text-center">Bienvenido al Inicio de Sesión</Modal.Title>
+          <Modal.Title className="text-center">
+            Bienvenido al Inicio de Sesión
+          </Modal.Title>
           <Row>
             <Col md={6} className="image-col">
-              <img
-                src="/assets/loslagos.png"
-                alt="Logo"
-                className="logo-img"
-              />
+              <img src="/assets/loslagos.png" alt="Logo" className="logo-img" />
             </Col>
             <Col md={6} className="form-col">
               {error && <Alert variant="danger">{error}</Alert>}
@@ -110,17 +130,33 @@ function LoginSignin({ isOpen, closeLoginModal }) {
                   />
                 </Form.Group>
 
-                <Button variant="primary" type="submit" className="custom-button">
+                <Button
+                  variant="primary"
+                  type="submit"
+                  className="custom-button"
+                >
                   Ingresar
                 </Button>
 
                 <Form.Group className="mt-3 text-center">
                   <Form.Text>
-                    <a href="#!" className="link-text" onClick={openRecoveryModal}>¿Has olvidado tu contraseña?</a>
+                    <a
+                      href="#!"
+                      className="link-text"
+                      onClick={openRecoveryModal}
+                    >
+                      ¿Has olvidado tu contraseña?
+                    </a>
                   </Form.Text>
                   <br />
                   <Form.Text>
-                    <a href="#!" className="link-text" onClick={openRegisterModal}>Registro</a>
+                    <a
+                      href="#!"
+                      className="link-text"
+                      onClick={openRegisterModal}
+                    >
+                      Registro
+                    </a>
                   </Form.Text>
                 </Form.Group>
               </Form>

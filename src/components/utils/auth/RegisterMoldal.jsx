@@ -1,37 +1,45 @@
-import React, { useState } from 'react';
-import { Modal, Form, Button, Row, Col } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
-import './stylesLogin.css';
+import React, { useState } from "react";
+import { Modal, Form, Button, Row, Col } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
+import "./stylesLogin.css";
 
 function RegisterModal({ isOpen, clickModal }) {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    fullName: '',
-    idNumber: '',
-    birthdate: '',
-    email: '',
-    password: '',
+    fullName: "",
+    idNumber: "",
+    birthdate: "",
+    email: "",
+    password: "",
   });
   const [errors, setErrors] = useState({});
 
   const validateForm = (name, value) => {
     const errorMessages = {
-      fullName: 'El nombre debe tener al menos 8 caracteres.',
-      idNumber: 'El número de identificación debe tener al menos 4 dígitos y no contener letras.',
-      email: 'Por favor, ingrese un email válido.',
-      birthdate: 'Debes tener al menos 18 años para registrarte.',
-      password: 'La contraseña debe contener al menos 10 caracteres, una mayúscula, una minúscula, un número y un carácter especial.',
+      fullName: "El nombre debe tener al menos 8 caracteres.",
+      idNumber:
+        "El número de identificación debe tener al menos 4 dígitos y no contener letras.",
+      email: "Por favor, ingrese un email válido.",
+      birthdate: "Debes tener al menos 18 años para registrarte.",
+      password:
+        "La contraseña debe contener al menos 10 caracteres, una mayúscula, una minúscula, un número y un carácter especial.",
     };
 
     const validations = {
       fullName: value.length >= 8,
       idNumber: /^[0-9]{4,}$/.test(value),
       email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
-      birthdate: value && new Date(value) <= new Date(new Date().setFullYear(new Date().getFullYear() - 18)),
-      password: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,}$/.test(value),
+      birthdate:
+        value &&
+        new Date(value) <=
+          new Date(new Date().setFullYear(new Date().getFullYear() - 18)),
+      password:
+        /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,}$/.test(
+          value
+        ),
     };
 
-    return validations[name] ? '' : errorMessages[name];
+    return validations[name] ? "" : errorMessages[name];
   };
 
   const handleChange = (e) => {
@@ -56,19 +64,27 @@ function RegisterModal({ isOpen, clickModal }) {
       setErrors(formErrors);
     } else {
       setErrors({});
-      alert('Registro exitoso');
-      
+      alert("Registro exitoso");
+
       // Redirigir al homepage con el rol adecuado.
-      const userRole = 'client'; // Suponiendo que este es el rol del usuario registrado. Podrías modificar esto según tu lógica.
-      navigate('/', { state: { role: userRole } });
+      const userRole = "client"; // Suponiendo que este es el rol del usuario registrado. Podrías modificar esto según tu lógica.
+      navigate("/", { state: { role: userRole } });
     }
   };
 
   return (
     <Modal show={isOpen} onHide={clickModal} size="lg">
       <Modal.Body>
-        <Button variant="danger" onClick={clickModal} style={{ float: 'right' }}>X</Button>
-        <Modal.Title className="text-center">Bienvenido al Registro</Modal.Title>
+        <Button
+          variant="danger"
+          onClick={clickModal}
+          style={{ float: "right" }}
+        >
+          X
+        </Button>
+        <Modal.Title className="text-center">
+          Bienvenido al Registro
+        </Modal.Title>
         <Row>
           <Col md={6} className="image-col">
             <img src="/assets/loslagos.png" alt="Logo" className="logo-img" />
@@ -85,7 +101,9 @@ function RegisterModal({ isOpen, clickModal }) {
                   onChange={handleChange}
                   isInvalid={!!errors.fullName}
                 />
-                <Form.Control.Feedback type="invalid">{errors.fullName}</Form.Control.Feedback>
+                <Form.Control.Feedback type="invalid">
+                  {errors.fullName}
+                </Form.Control.Feedback>
               </Form.Group>
 
               <Form.Group className="mb-3">
@@ -98,7 +116,9 @@ function RegisterModal({ isOpen, clickModal }) {
                   onChange={handleChange}
                   isInvalid={!!errors.idNumber}
                 />
-                <Form.Control.Feedback type="invalid">{errors.idNumber}</Form.Control.Feedback>
+                <Form.Control.Feedback type="invalid">
+                  {errors.idNumber}
+                </Form.Control.Feedback>
               </Form.Group>
 
               <Form.Group className="mb-3">
@@ -110,7 +130,9 @@ function RegisterModal({ isOpen, clickModal }) {
                   onChange={handleChange}
                   isInvalid={!!errors.birthdate}
                 />
-                <Form.Control.Feedback type="invalid">{errors.birthdate}</Form.Control.Feedback>
+                <Form.Control.Feedback type="invalid">
+                  {errors.birthdate}
+                </Form.Control.Feedback>
               </Form.Group>
 
               <Form.Group className="mb-3">
@@ -123,7 +145,9 @@ function RegisterModal({ isOpen, clickModal }) {
                   onChange={handleChange}
                   isInvalid={!!errors.email}
                 />
-                <Form.Control.Feedback type="invalid">{errors.email}</Form.Control.Feedback>
+                <Form.Control.Feedback type="invalid">
+                  {errors.email}
+                </Form.Control.Feedback>
               </Form.Group>
 
               <Form.Group className="mb-3">
@@ -136,7 +160,9 @@ function RegisterModal({ isOpen, clickModal }) {
                   onChange={handleChange}
                   isInvalid={!!errors.password}
                 />
-                <Form.Control.Feedback type="invalid">{errors.password}</Form.Control.Feedback>
+                <Form.Control.Feedback type="invalid">
+                  {errors.password}
+                </Form.Control.Feedback>
               </Form.Group>
 
               <Button variant="primary" type="submit" className="custom-button">
@@ -145,7 +171,9 @@ function RegisterModal({ isOpen, clickModal }) {
 
               <Form.Group className="mt-3 text-center">
                 <Form.Text>
-                  <a href="#!" className="link-text">¿Ya tienes cuenta?</a>
+                  <a href="#!" className="link-text">
+                    ¿Ya tienes cuenta?
+                  </a>
                 </Form.Text>
               </Form.Group>
             </Form>
