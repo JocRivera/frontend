@@ -1,10 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, Button, Form, Alert } from 'react-bootstrap';
 
 const PaymentsForm = ({ payments, onAdd, onDelete }) => {
     const [payment, setPayment] = useState({ amount: '', paymentDate: '', status: '', receipt: '' });
     const [errors, setErrors] = useState({});
     const [alert, setAlert] = useState(null);
+    const [receiptUrl, setReceiptUrl] = useState('');
+
+    useEffect(() => {
+        return () => {
+            if (receiptUrl) {
+                URL.revokeObjectURL(receiptUrl);
+            }
+        };
+    }, [receiptUrl]);
 
     const validate = () => {
         const errors = {};
@@ -27,7 +36,14 @@ const PaymentsForm = ({ payments, onAdd, onDelete }) => {
     };
 
     const handleChange = (e) => {
-        setPayment({ ...payment, [e.target.name]: e.target.value });
+        const { name, value, type, files } = e.target;
+        if (type === 'file') {
+            const file = files[0];
+            setReceiptUrl(URL.createObjectURL(file));
+            setPayment({ ...payment, receipt: file });
+        } else {
+            setPayment({ ...payment, [name]: value });
+        }
     };
 
     return (
@@ -54,7 +70,7 @@ const PaymentsForm = ({ payments, onAdd, onDelete }) => {
                             <td>{pay.amount}</td>
                             <td>{pay.paymentDate}</td>
                             <td>{pay.status}</td>
-                            <td>{pay.receipt ? <a href={pay.receipt} target="_blank" rel="noopener noreferrer">Ver Recibo</a> : 'No disponible'}</td>
+                            <td>{pay.receipt ? <a href={URL.createObjectURL(pay.receipt)} target="_blank" rel="noopener noreferrer">Ver Recibo</a> : 'No disponible'}</td>
                             <td>
                                 <Button variant="danger" size="sm" onClick={() => onDelete(pay.id)}>
                                     🗑️
@@ -113,7 +129,7 @@ const PaymentsForm = ({ payments, onAdd, onDelete }) => {
                     <Form.Control
                         type="file"
                         name="receipt"
-                        onChange={(e) => setPayment({ ...payment, receipt: URL.createObjectURL(e.target.files[0]) })}
+                        onChange={handleChange}
                     />
                 </Form.Group>
             </div>
