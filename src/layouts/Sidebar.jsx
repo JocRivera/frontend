@@ -1,84 +1,98 @@
-import React, { useState } from "react";
-import * as Icon from "react-icons/md";
+import React, { useState, useEffect } from "react";
+import { GiWoodCabin, GiBed } from "react-icons/gi";
+import { IoSettingsSharp } from "react-icons/io5";
+import { FaBridgeCircleCheck, FaUsers, FaUsersBetweenLines } from "react-icons/fa";
+import { MdArrowForward, MdArrowBack, MdBeachAccess, MdDashboard, MdRoomService } from "react-icons/md";
 import { NavLink } from "react-router-dom";
-import './Sidebar.css';
 
-export default function Sidebar() {
-  const [isCabinsOpen, setIsCabinsOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true); // Estado para el tema
+const Sidebar = ({ onToggleSidebar }) => {
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
+  const [isDarkTheme, setIsDarkTheme] = useState(false);
 
-  const toggleCabinsMenu = () => {
-    setIsCabinsOpen(!isCabinsOpen);
-  };
+  useEffect(() => {
+    // Aplica el tema oscuro o claro al body según el estado
+    document.body.className = isDarkTheme ? "dark-theme" : "light-theme";
+  }, [isDarkTheme]);
 
   const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
+    setIsDarkTheme(!isDarkTheme);
+  };
+
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed(!isSidebarCollapsed);
+    if (onToggleSidebar) onToggleSidebar(); // Notifica al componente padre si la función está disponible
   };
 
   return (
-    <div className={`sidebar ${isDarkMode ? 'dark' : 'light'} ${isCabinsOpen ? 'expanded' : 'collapsed'}`}>
-      <button className="theme-toggle" onClick={toggleTheme}>
-        {isDarkMode ? '🌙' : '🌞'} {/* Icono de cambio de tema */}
-      </button>
-      <ul className="nav flex-column">
+    <div className={`sidebar ${isSidebarCollapsed ? 'collapsed' : 'expanded'} ${isDarkTheme ? 'dark' : 'light'}`}>
+      <div className="theme-switcher">
+        <label className="switch">
+          <input type="checkbox" checked={isDarkTheme} onChange={toggleTheme} />
+          <span className="slider round"></span>
+        </label>
+      </div>
+      <ul className="nav">
+        {/* Menú de navegación */}
         <li className="nav-item">
           <NavLink to="/" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-            <Icon.MdSpaceDashboard /> <span>Dashboard</span>
+            <MdDashboard size={24} />
+            <span className={`nav-text ${isSidebarCollapsed ? 'hidden' : ''}`}>Dashboard</span>
           </NavLink>
         </li>
         <li className="nav-item">
           <NavLink to="/services" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-            <Icon.MdRoomService /> <span>Servicios</span>
+            <MdRoomService size={24} />
+            <span className={`nav-text ${isSidebarCollapsed ? 'hidden' : ''}`}>Servicios</span>
           </NavLink>
         </li>
-        <li className={`nav-item ${isCabinsOpen ? 'open' : ''}`}>
-          <button
-            className="nav-link dropdown-toggle"
-            onClick={toggleCabinsMenu}
-            aria-expanded={isCabinsOpen}
-          >
-            <Icon.MdHotel /> <span>Habitaciones</span>
-          </button>
-          <ul className="sub-menu">
-            <li className="nav-item">
-              <NavLink to="/rooms" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-                <Icon.MdRoomService /> <span>Habitaciones</span>
-              </NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/cabins" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-                <Icon.MdCabin /> <span>Cabañas</span>
-              </NavLink>
-            </li>
-          </ul>
+        <li className="nav-item">
+          <NavLink to="/cabins" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
+            <GiWoodCabin size={24} />
+            <span className={`nav-text ${isSidebarCollapsed ? 'hidden' : ''}`}>Cabañas</span>
+          </NavLink>
+        </li>
+        <li className="nav-item">
+          <NavLink to="/rooms" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
+            <GiBed size={24} />
+            <span className={`nav-text ${isSidebarCollapsed ? 'hidden' : ''}`}>Habitaciones</span>
+          </NavLink>
         </li>
         <li className="nav-item">
           <NavLink to="/clients" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-            <Icon.MdPeople /> <span>Clientes</span>
+            <FaUsers size={24} />
+            <span className={`nav-text ${isSidebarCollapsed ? 'hidden' : ''}`}>Clientes</span>
           </NavLink>
         </li>
-        <li className="nav-item">
-          <NavLink to="/reservations" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-            <Icon.MdBook /> <span>Reservas</span>
-          </NavLink>
-        </li>
-
         <li className="nav-item">
           <NavLink to="/users" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-            <Icon.MdPeopleOutline /> <span>Usuarios</span>
+            <FaUsersBetweenLines size={24} />
+            <span className={`nav-text ${isSidebarCollapsed ? 'hidden' : ''}`}>Usuarios</span>
           </NavLink>
         </li>
         <li className="nav-item">
           <NavLink to="/plans" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-            <Icon.MdBeachAccess /> <span>Planes</span>
+            <MdBeachAccess size={24} />
+            <span className={`nav-text ${isSidebarCollapsed ? 'hidden' : ''}`}>Planes</span>
+          </NavLink>
+        </li>
+        <li className="nav-item">
+          <NavLink to="/reservations" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
+            <FaBridgeCircleCheck size={24} />
+            <span className={`nav-text ${isSidebarCollapsed ? 'hidden' : ''}`}>Reservas</span>
           </NavLink>
         </li>
         <li className="nav-item">
           <NavLink to="/settings" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-            <Icon.MdSettings /> <span>Configuración</span>
+            <IoSettingsSharp size={24} />
+            <span className={`nav-text ${isSidebarCollapsed ? 'hidden' : ''}`}>Configuración</span>
           </NavLink>
         </li>
       </ul>
+      <button className="sidebar-toggle" onClick={toggleSidebar}>
+        {isSidebarCollapsed ? <MdArrowForward size={24} /> : <MdArrowBack size={24} />}
+      </button>
     </div>
   );
-}
+};
+
+export default Sidebar;

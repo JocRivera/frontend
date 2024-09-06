@@ -1,20 +1,23 @@
+// RoomsManagement.js
 import React, { useState } from 'react';
 import { Button, Card, Modal, Form, Row, Col } from 'react-bootstrap';
-import TableComodidad from './ComodidadTable'; // Asegúrate de que este componente esté importado correctamente
-import AlertSwitch from './AlertSwitch'; // Importa el nuevo componente de alerta
-import './Cabins.css';
+import TableComodidad from '../cabins/ComodidadTable'; // Asegúrate de que este componente esté importado correctamente
+import AlertSwitch from '../cabins/AlertSwitch'; // Importar el componente de alertas
+import '../cabins/Cabins.css'; // Cambiar el nombre del archivo CSS si es necesario
 
-// Componente para gestionar Cabañas
-const CabanaManagement = () => {
-  const [cabanaList, setCabanaList] = useState([]);
-  const [selectedCabana, setSelectedCabana] = useState(null);
-  const [showCabanaForm, setShowCabanaForm] = useState(false);
+// Componente para gestionar Habitaciones
+const RoomsManagement = () => {
+  const [roomList, setRoomList] = useState([]);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [showRoomForm, setShowRoomForm] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [showDeleteAlert, setShowDeleteAlert] = useState(false); // Nuevo estado para el alerta de eliminación
+  const [showAlert, setShowAlert] = useState(false); // Estado para la alerta
+  const [alertType, setAlertType] = useState(''); // Tipo de alerta: 'error' o 'success'
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false); // Estado para confirmar eliminación
   const [formValues, setFormValues] = useState({
     nombre: '',
     capacidad: '',
-    estado: 'En servicio',
+    estado: 'Disponible',
     descripcion: '',
     comodidades: [],
     imagen: null,
@@ -26,7 +29,7 @@ const CabanaManagement = () => {
     const newErrors = {};
     if (!formValues.nombre) newErrors.nombre = 'Nombre es obligatorio';
     if (!formValues.capacidad) newErrors.capacidad = 'Capacidad es obligatoria';
-    if (formValues.capacidad < 4 || formValues.capacidad > 7) newErrors.capacidad = 'Capacidad debe estar entre 4 y 7';
+    if (formValues.capacidad < 1 || formValues.capacidad > 10) newErrors.capacidad = 'Capacidad debe estar entre 1 y 10';
     if (!formValues.descripcion) newErrors.descripcion = 'Descripción es obligatoria';
     if (!formValues.imagen) newErrors.imagen = 'Imagen es obligatoria';
     if (formValues.comodidades.length === 0) newErrors.comodidades = 'Debe agregar al menos una comodidad';
@@ -35,56 +38,55 @@ const CabanaManagement = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSaveCabana = () => {
+  const handleSaveRoom = () => {
     if (!validateForm()) return;
-    if (selectedCabana) {
-      // Editar cabaña existente
-      setCabanaList(cabanaList.map((item) =>
+    if (selectedRoom) {
+      // Editar habitación existente
+      setRoomList(roomList.map((item) =>
         item.id === formValues.id ? { ...item, ...formValues } : item
       ));
+      setAlertType('success');
+      setShowAlert(true);
     } else {
-      // Agregar nueva cabaña
-      setCabanaList([...cabanaList, { ...formValues, id: Date.now() }]);
+      // Agregar nueva habitación
+      setRoomList([...roomList, { ...formValues, id: Date.now() }]);
+      setAlertType('success');
+      setShowAlert(true);
     }
-    setShowCabanaForm(false);
-    setSelectedCabana(null); // Resetear cabaña seleccionada
+    setShowRoomForm(false);
+    setSelectedRoom(null); // Resetear habitación seleccionada
     setFormValues({
       nombre: '',
       capacidad: '',
-      estado: 'En servicio',
+      estado: 'Disponible',
       descripcion: '',
       comodidades: [],
       imagen: null,
     });
   };
 
-  const handleEditCabana = (cabana) => {
-    setSelectedCabana(cabana);
+  const handleEditRoom = (room) => {
+    setSelectedRoom(room);
     setFormValues({
-      nombre: cabana.nombre,
-      capacidad: cabana.capacidad,
-      estado: cabana.estado,
-      descripcion: cabana.descripcion,
-      comodidades: cabana.comodidades,
-      imagen: cabana.imagen,
-      id: cabana.id, // Necesario para identificar la cabaña al editar
+      nombre: room.nombre,
+      capacidad: room.capacidad,
+      estado: room.estado,
+      descripcion: room.descripcion,
+      comodidades: room.comodidades,
+      imagen: room.imagen,
+      id: room.id, // Necesario para identificar la habitación al editar
     });
-    setShowCabanaForm(true);
+    setShowRoomForm(true);
   };
 
-  const handleAddCabana = () => {
-    setSelectedCabana(null);
-    setShowCabanaForm(true);
+  const handleAddRoom = () => {
+    setSelectedRoom(null);
+    setShowRoomForm(true);
   };
 
-  const handleViewDetails = (cabana) => {
-    setSelectedCabana(cabana);
+  const handleViewDetails = (room) => {
+    setSelectedRoom(room);
     setShowDetailModal(true);
-  };
-
-  const handleDeleteCabana = () => {
-    setCabanaList(cabanaList.filter(u => u.id !== selectedCabana.id));
-    setShowDeleteAlert(false);
   };
 
   const handleChange = (e) => {
@@ -100,8 +102,21 @@ const CabanaManagement = () => {
     setFormValues({ ...formValues, comodidades: newComodidades });
   };
 
-  const filteredCabanaList = cabanaList.filter(cabana =>
-    cabana.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+  const handleConfirmDelete = (room) => {
+    setSelectedRoom(room);
+    setShowConfirmDelete(true);
+  };
+
+  const handleDeleteRoom = () => {
+    setRoomList(prevList => prevList.filter(room => room.id !== selectedRoom.id));
+    setAlertType('success');
+    setShowAlert(true);
+    setShowConfirmDelete(false);
+    setSelectedRoom(null);
+  };
+
+  const filteredRoomList = roomList.filter(room =>
+    room.nombre.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -115,43 +130,40 @@ const CabanaManagement = () => {
           className="me-2"
         />
       </div>
-      <Button variant="primary" onClick={handleAddCabana}>
-        Añadir Cabaña
+      <Button variant="primary" onClick={handleAddRoom}>
+        Añadir Habitación
       </Button>
 
       <Row>
-        {filteredCabanaList.length > 0 ? (
-          filteredCabanaList.map((cabana) => (
-            <Col md={4} key={cabana.id} className="mb-3">
+        {filteredRoomList.length > 0 ? (
+          filteredRoomList.map((room) => (
+            <Col md={4} key={room.id} className="mb-3">
               <Card>
-                {cabana.imagen && (
-                  <Card.Img variant="top" src={URL.createObjectURL(cabana.imagen)} />
+                {room.imagen && (
+                  <Card.Img variant="top" src={URL.createObjectURL(room.imagen)} />
                 )}
                 <Card.Body>
-                  <Card.Title>{cabana.nombre}</Card.Title>
-                  <Card.Text>Comodidades: {cabana.comodidades.map(c => c.articulos).join(', ')}</Card.Text>
-                  <Card.Text>Capacidad: {cabana.capacidad}</Card.Text>
-                  <Card.Text>Estado: {cabana.estado}</Card.Text>
-                  <Card.Text>Descripción: {cabana.descripcion}</Card.Text>
-                  <Button variant="info" onClick={() => handleEditCabana(cabana)}>Editar</Button>
-                  <Button variant="primary" onClick={() => handleViewDetails(cabana)}>Ver Detalle</Button>
-                  <Button variant="danger" onClick={() => {
-                    setSelectedCabana(cabana);
-                    setShowDeleteAlert(true);
-                  }}>Eliminar</Button>
+                  <Card.Title>{room.nombre}</Card.Title>
+                  <Card.Text>Comodidades: {room.comodidades.map(c => c.articulos).join(', ')}</Card.Text>
+                  <Card.Text>Capacidad: {room.capacidad}</Card.Text>
+                  <Card.Text>Estado: {room.estado}</Card.Text>
+                  <Card.Text>Descripción: {room.descripcion}</Card.Text>
+                  <Button variant="info" onClick={() => handleEditRoom(room)}>Editar</Button>
+                  <Button variant="primary" onClick={() => handleViewDetails(room)}>Ver Detalle</Button>
+                  <Button variant="danger" onClick={() => handleConfirmDelete(room)}>Eliminar</Button>
                 </Card.Body>
               </Card>
             </Col>
           ))
         ) : (
-          <p>No se encontraron cabañas.</p>
+          <p>No se encontraron habitaciones.</p>
         )}
       </Row>
 
-      {showCabanaForm && (
-        <Modal show={showCabanaForm} onHide={() => setShowCabanaForm(false)} size="lg">
+      {showRoomForm && (
+        <Modal show={showRoomForm} onHide={() => setShowRoomForm(false)} size="lg">
           <Modal.Header closeButton>
-            <Modal.Title>{selectedCabana ? 'Editar Cabaña' : 'Agregar Cabaña'}</Modal.Title>
+            <Modal.Title>{selectedRoom ? 'Editar Habitación' : 'Agregar Habitación'}</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <Form>
@@ -189,9 +201,9 @@ const CabanaManagement = () => {
                   value={formValues.estado}
                   onChange={handleChange}
                 >
-                  <option>En servicio</option>
+                  <option>Disponible</option>
                   <option>En mantenimiento</option>
-                  <option>Fuera de servicio</option>
+                  <option>Reservada</option>
                 </Form.Control>
               </Form.Group>
               <Form.Group>
@@ -240,11 +252,9 @@ const CabanaManagement = () => {
             </Form>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowCabanaForm(false)}>
-              Cancelar
-            </Button>
-            <Button variant="primary" onClick={handleSaveCabana}>
-              Guardar
+            <Button variant="secondary" onClick={() => setShowRoomForm(false)}>Cancelar</Button>
+            <Button variant="primary" onClick={handleSaveRoom}>
+              {selectedRoom ? 'Actualizar' : 'Guardar'}
             </Button>
           </Modal.Footer>
         </Modal>
@@ -253,21 +263,21 @@ const CabanaManagement = () => {
       {showDetailModal && (
         <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)} size="lg">
           <Modal.Header closeButton>
-            <Modal.Title>Detalles de la Cabaña</Modal.Title>
+            <Modal.Title>Detalles de la Habitación</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <Card>
-              {selectedCabana.imagen && (
-                <Card.Img variant="top" src={URL.createObjectURL(selectedCabana.imagen)} />
-              )}
-              <Card.Body>
-                <Card.Title>{selectedCabana.nombre}</Card.Title>
-                <Card.Text>Comodidades: {selectedCabana.comodidades.map(c => c.articulos).join(', ')}</Card.Text>
-                <Card.Text>Capacidad: {selectedCabana.capacidad}</Card.Text>
-                <Card.Text>Estado: {selectedCabana.estado}</Card.Text>
-                <Card.Text>Descripción: {selectedCabana.descripcion}</Card.Text>
-              </Card.Body>
-            </Card>
+            <h4>{selectedRoom?.nombre}</h4>
+            {selectedRoom?.imagen && (
+              <img
+                src={URL.createObjectURL(selectedRoom.imagen)}
+                alt="Imagen de habitación"
+                style={{ width: '100%', marginBottom: '15px' }}
+              />
+            )}
+            <p><strong>Capacidad:</strong> {selectedRoom?.capacidad}</p>
+            <p><strong>Estado:</strong> {selectedRoom?.estado}</p>
+            <p><strong>Descripción:</strong> {selectedRoom?.descripcion}</p>
+            <p><strong>Comodidades:</strong> {selectedRoom?.comodidades.map(c => c.articulos).join(', ')}</p>
           </Modal.Body>
           <Modal.Footer>
             <Button variant="secondary" onClick={() => setShowDetailModal(false)}>
@@ -277,18 +287,31 @@ const CabanaManagement = () => {
         </Modal>
       )}
 
-      {showDeleteAlert && (
+      {showAlert && (
         <AlertSwitch
-          show={showDeleteAlert}
-          handleClose={() => setShowDeleteAlert(false)}
-          title="Eliminar Cabaña"
-          message="¿Estás seguro de que deseas eliminar esta cabaña?"
-          onConfirm={handleDeleteCabana}
-          onCancel={() => setShowDeleteAlert(false)}
+          show={showAlert}
+          handleClose={() => setShowAlert(false)}
+          title={alertType === 'success' ? 'Éxito' : 'Error'}
+          message={alertType === 'success' ? 'Operación realizada con éxito.' : 'Se ha producido un error.'}
+          onConfirm={() => setShowAlert(false)}
         />
       )}
+
+      {/* Modal de confirmación para eliminar habitación */}
+      <Modal show={showConfirmDelete} onHide={() => setShowConfirmDelete(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar Eliminación</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          ¿Estás seguro de que deseas eliminar la habitación {selectedRoom?.nombre}?
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowConfirmDelete(false)}>Cancelar</Button>
+          <Button variant="danger" onClick={handleDeleteRoom}>Eliminar</Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };
 
-export default CabanaManagement;
+export default RoomsManagement;

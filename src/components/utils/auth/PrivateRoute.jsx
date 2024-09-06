@@ -7,14 +7,15 @@ const PrivateRoute = ({ element, allowedRoles }) => {
   
   if (!isAuthenticated) {
     // No está autenticado, redirigir al inicio de sesión
-    return <Navigate to="/" />;
-  }
+    return <Navigate to="/" />;    
+  } 
   
   if (allowedRoles && !allowedRoles.includes(role)) {
-    // No tiene el rol necesario, redirigir a una página de acceso denegado o a inicio
-    return <Navigate to="/not-authorized" />;
+    // No tiene el rol necesario, redirigir a la página de inicio
+    return <Navigate to="/" />;
   }
 
+  // Está autenticado y tiene el rol permitido
   return element;
 };
 

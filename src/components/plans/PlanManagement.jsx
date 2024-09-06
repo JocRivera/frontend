@@ -176,8 +176,8 @@ const PlanManagement = () => {
 
 
     return (
-        <Container className='col p-5'>
-            <Button variant="primary" className="mb-3" onClick={() => setShowAddModal(true)}>
+        <div className="container mt-5">
+            <Button variant="primary" className="mb-3" onClick={() => setShowAddModal(true)} > 
                 Añadir Plan
             </Button>
 
@@ -749,7 +749,7 @@ const PlanManagement = () => {
                     {/* Implementación de modal de alojamientos aquí */}
                 </Modal.Body>
             </Modal>
-        </Container>
+        </div>
     );
 };
 

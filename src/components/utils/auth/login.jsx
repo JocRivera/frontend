@@ -24,20 +24,27 @@ function LoginSignin({ isOpen, closeLoginModal }) {
 
   const handleLogin = (e) => {
     e.preventDefault();
-  
+    
     const user = users.find(
       (user) => user.email === email && user.password === password
     );
-  
+    
     if (!user || !user.active) {
       setError('Usuario no existe o inactivo');
     } else {
       setError('');
       login(user.rol); // Pasar solo el rol aquí
-      navigate('/cabins'); // Redirige a la página de Cabañas
+  
+      if (user.rol === 'client') {
+        navigate('/'); // Redirige a la página de inicio si es cliente
+      } else {
+        navigate('/cabins'); // Redirige a la página de Cabañas si es admin o empleado
+      }
+      
       handleCloseLoginModal();
     }
   };
+  
   
 
   const openRegisterModal = () => setIsRegisterOpen(true);
