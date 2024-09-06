@@ -1,146 +1,125 @@
-import React, { useState } from 'react';
-import { Table, Button, Form, Alert } from 'react-bootstrap';
+import React from 'react';
+import { Form, Row, Col, Button } from 'react-bootstrap';
 
-const CompanionsForm = ({ companions, onAdd, onDelete }) => {
-    const [companion, setCompanion] = useState({ name: '', age: '', docType: '', document: '', eps: '' });
-    const [errors, setErrors] = useState({});
-    const [alert, setAlert] = useState(null);
-
-    const validate = () => {
-        const errors = {};
-        if (!companion.name) errors.name = 'El nombre es obligatorio.';
-        if (!companion.age || companion.age <= 0) errors.age = 'La edad debe ser un número positivo.';
-        if (!companion.docType) errors.docType = 'El tipo de documento es obligatorio.';
-        if (!companion.document) errors.document = 'El documento es obligatorio.';
-        return errors;
-    };
-
-    const handleAdd = () => {
-        const errors = validate();
-        if (Object.keys(errors).length > 0) {
-            setErrors(errors);
-            setAlert({ type: 'danger', message: 'Por favor, corrija los errores en el formulario de acompañantes.' });
-        } else {
-            setErrors({});
-            onAdd(companion);
-            setCompanion({ name: '', age: '', docType: '', document: '', eps: '' });
-            setAlert({ type: 'success', message: 'Acompañante agregado exitosamente.' });
-        }
-    };
+const CompanionsForm = ({ companions = [], onAdd, onDelete }) => {
+    const [companion, setCompanion] = React.useState({
+        id: null,
+        name: '',
+        age: '',
+        typeOfDocument: '',
+        documentNumber: '',
+        birthDate: ''
+    });
 
     const handleChange = (e) => {
         setCompanion({ ...companion, [e.target.name]: e.target.value });
     };
 
+    const handleAdd = () => {
+        if (companion.name && companion.age && companion.typeOfDocument && companion.documentNumber && companion.birthDate) {
+            onAdd(companion);
+            setCompanion({
+                id: null,
+                name: '',
+                age: '',
+                typeOfDocument: '',
+                documentNumber: '',
+                birthDate: ''
+            });
+        }
+    };
+
     return (
-        <div className="mb-3">
-            {alert && (
-                <Alert variant={alert.type} onClose={() => setAlert(null)} dismissible>
-                    {alert.message}
-                </Alert>
-            )}
+        <div>
             <h5>Acompañantes</h5>
-            <Table striped bordered hover size="sm">
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Edad</th>
-                        <th>Tipo de Documento</th>
-                        <th>Documento</th>
-                        <th>EPS</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {companions.map((comp) => (
-                        <tr key={comp.id}>
-                            <td>{comp.name}</td>
-                            <td>{comp.age}</td>
-                            <td>{comp.docType}</td>
-                            <td>{comp.document}</td>
-                            <td>{comp.eps}</td>
-                            <td>
-                                <Button variant="danger" size="sm" onClick={() => onDelete(comp.id)}>
-                                    🗑️
-                                </Button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </Table>
+            <Form>
+                <Row>
+                    <Col md={6}>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Nombre</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="name"
+                                value={companion.name}
+                                onChange={handleChange}
+                            />
+                        </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Edad</Form.Label>
+                            <Form.Control
+                                type="number"
+                                name="age"
+                                value={companion.age}
+                                onChange={handleChange}
+                            />
+                        </Form.Group>
+                    </Col>
+                </Row>
+                <Row>
+                    <Col md={6}>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Tipo de Documento</Form.Label>
+                            <Form.Control
+                                as="select"
+                                name="typeOfDocument"
+                                value={companion.typeOfDocument}
+                                onChange={handleChange}
+                            >
+                                <option value="">Selecciona...</option>
+                                <option value="CC">Cédula de Ciudadanía</option>
+                                <option value="TI">Tarjeta de Identidad</option>
+                                <option value="CE">Cédula de Extrangería</option>
+                            </Form.Control>
+                        </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Número de Documento</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="documentNumber"
+                                value={companion.documentNumber}
+                                onChange={handleChange}
+                            />
+                        </Form.Group>
+                    </Col>
+                </Row>
+                <Row>
+                    <Col md={6}>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Fecha de Nacimiento</Form.Label>
+                            <Form.Control
+                                type="date"
+                                name="birthDate"
+                                value={companion.birthDate}
+                                onChange={handleChange}
+                            />
+                        </Form.Group>
+                    </Col>
+                </Row>
+                <Button variant="primary" onClick={handleAdd}>
+                    Añadir Acompañante
+                </Button>
+            </Form>
 
-            {/* Compactación del formulario */}
-            <div className="d-flex justify-content-between">
-                <Form.Group className="mb-3 me-3">
-                    <Form.Label>Nombre</Form.Label>
-                    <Form.Control
-                        type="text"
-                        name="name"
-                        value={companion.name}
-                        onChange={handleChange}
-                        isInvalid={!!errors.name}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                        {errors.name}
-                    </Form.Control.Feedback>
-                </Form.Group>
-
-                <Form.Group className="mb-3 me-3">
-                    <Form.Label>Edad</Form.Label>
-                    <Form.Control
-                        type="number"
-                        name="age"
-                        value={companion.age}
-                        onChange={handleChange}
-                        isInvalid={!!errors.age}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                        {errors.age}
-                    </Form.Control.Feedback>
-                </Form.Group>
-
-                <Form.Group className="mb-3 me-3">
-                    <Form.Label>Tipo de Documento</Form.Label>
-                    <Form.Control
-                        type="text"
-                        name="docType"
-                        value={companion.docType}
-                        onChange={handleChange}
-                        isInvalid={!!errors.docType}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                        {errors.docType}
-                    </Form.Control.Feedback>
-                </Form.Group>
-
-                <Form.Group className="mb-3 me-3">
-                    <Form.Label>Documento</Form.Label>
-                    <Form.Control
-                        type="text"
-                        name="document"
-                        value={companion.document}
-                        onChange={handleChange}
-                        isInvalid={!!errors.document}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                        {errors.document}
-                    </Form.Control.Feedback>
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                    <Form.Label>EPS</Form.Label>
-                    <Form.Control
-                        type="text"
-                        name="eps"
-                        value={companion.eps}
-                        onChange={handleChange}
-                    />
-                </Form.Group>
-            </div>
-
-            <Button variant="primary" onClick={handleAdd} className="mt-3">
-                Agregar Acompañante
-            </Button>
+            <h6>Lista de Acompañantes</h6>
+            <ul>
+                {companions.map((comp) => (
+                    <li key={comp.id}>
+                        {comp.name}, {comp.age} años - {comp.typeOfDocument} {comp.documentNumber}
+                        <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => onDelete(comp.id)}
+                            className="ms-2"
+                        >
+                            Eliminar
+                        </Button>
+                    </li>
+                ))}
+            </ul>
         </div>
     );
 };
