@@ -6,7 +6,7 @@ import { useAuth } from '../components/utils/auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const Navbarx = ({ isSidebarCollapsed }) => {
-  const { isAuthenticated, user, logout, role } = useAuth();
+X  const { isAuthenticated, user, logout, role } = useAuth();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const navigate = useNavigate();

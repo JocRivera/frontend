@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
+import * as BsIcons from "react-icons/bs";
 import { Button, Modal, Form, Table, FormControl } from 'react-bootstrap';
+import Swal from 'sweetalert2';
+
+let nextId = 1;
+const generateUniqueId = () => {
+    return nextId++;
+};
 
 const MainContent = () => {
     const [showModal, setShowModal] = useState(false);
@@ -44,19 +51,30 @@ const MainContent = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         const validationErrors = validate(newService);
-
-        if (Object.keys(validationErrors).length === 0) {
-            setServices([...services, newService]);
-            setNewService({
-                service: '',
-                description: '',
-                price: '',
-                status: true
-            });
-            setErrors({});
-            setShowModal(false);
-        } else {
+        if (Object.keys(validationErrors).length) {
             setErrors(validationErrors);
+            return;
+        }
+        else {
+            Swal.fire({
+                title: "¿Desea agregar este servicio?",
+                text: "Revisa que todos los campos estén correctos",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Confirmar",
+                cancelButtonText: "Cancelar",
+            }).then((confirm) => {
+                if (confirm.isConfirmed) {
+                    setServices([...services, { ...newService, id: generateUniqueId() }]);
+                    setNewService({
+                        service: '',
+                        description: '',
+                        price: '',
+                        status: true
+                    });
+                    setShowModal(false);
+                }
+            });
         }
     };
 
@@ -110,22 +128,26 @@ const MainContent = () => {
     );
 
     return (
-        <div className='container col p-5'>
+        <div className='container col p-5 mt-3'>
             {/* Barra de búsqueda */}
-            <Form className="d-flex mb-3" onSubmit={handleSearch}>
-                <FormControl
-                    type="search"
-                    placeholder="Buscar..."
-                    className="me-2"
-                    aria-label="Search"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                />
-                <Button variant="outline-success" type="submit">Buscar</Button>
-            </Form>
-            <Button variant="primary" className="mb-3" onClick={() => setShowModal(true)}>
-                Añadir Servicio
-            </Button>
+            <h2 className='text-center'>Servicios</h2>
+            <div className="d-flex justify-content-between align-items-center">
+                <Form className="d-flex mb-3" onSubmit={handleSearch}>
+                    <FormControl
+                        type="search"
+                        placeholder="Buscar..."
+                        className="me-2 w-70"
+                        aria-label="Search"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+
+                    />
+                    <Button variant="outline-success" type="submit">Buscar</Button>
+                </Form>
+                <Button variant="primary" className="mb-3 " onClick={() => setShowModal(true)}>
+                    Añadir Servicio
+                </Button>
+            </div>
             <Table striped bordered hover>
                 <thead>
                     <tr>
@@ -133,6 +155,7 @@ const MainContent = () => {
                         <th>Servicio</th>
                         <th>Descripción</th>
                         <th>Precio</th>
+                        <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -145,9 +168,6 @@ const MainContent = () => {
                                 <td>{service.description}</td>
                                 <td>{service.price}</td>
                                 <td>
-                                    <Button variant="info" onClick={() => handleViewDetails(service)}>Detalles</Button>
-                                    <Button variant="warning" onClick={() => handleEdit(service)} className="ms-2">Editar</Button>
-                                    <Button variant="danger" onClick={() => handleDelete(service)} className="ms-2">Eliminar</Button>
                                     <Form.Check
                                         type="switch"
                                         id={`switch-${service.id}`}
@@ -156,11 +176,16 @@ const MainContent = () => {
                                     />
                                     {/* Mostrar el switch */}
                                 </td>
+                                <td className='d-flex justify-content-center' style={{ gap: '10px' }} >
+                                    <Button variant="info" onClick={() => handleViewDetails(service)}><BsIcons.BsInfoLg style={{ marginRight: '5px' }} /></Button>
+                                    <Button variant="warning" onClick={() => handleEdit(service)} ><BsIcons.BsPencilFill style={{ marginRight: '5px' }} /></Button>
+                                    <Button variant="danger" onClick={() => handleDelete(service)} ><BsIcons.BsTrash3Fill style={{ marginRight: '5px' }} /></Button>
+                                </td>
                             </tr>
                         ))
                     ) : (
                         <tr>
-                            <td colSpan="5" className="text-center">No se encontraron servicios</td>
+                            <td colSpan="6" className="text-center">No se encontraron servicios</td>
                         </tr>
                     )}
                 </tbody>
@@ -293,7 +318,7 @@ const MainContent = () => {
                         <Form.Group className="mb-3" controlId="formEditStatus">
                             <Form.Check
                                 type="switch"
-                                label="Activo"
+                                label={editService.status ? "Activo" : "Inactivo"}
                                 name="status"
                                 checked={editService.status}
                                 onChange={(e) => setEditService({

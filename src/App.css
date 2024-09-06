@@ -169,11 +169,11 @@ body {
   transition: 0.4s;
 }
 
-input:checked + .slider {
+input:checked+.slider {
   background-color: #007bff;
 }
 
-input:checked + .slider:before {
+input:checked+.slider:before {
   transform: translateX(25px);
 }
 
@@ -187,7 +187,7 @@ input:checked + .slider:before {
   transition: 0.4s;
 }
 
-input:checked + .slider:after {
+input:checked+.slider:after {
   content: '🌙';
   left: calc(100% - 30px);
 }
@@ -202,28 +202,33 @@ input:checked + .slider:after {
   z-index: 1001;
   transition: left 0.3s ease, width 0.3s ease, background-color 0.3s ease;
   color: var(--text-color);
+  
 }
 
 .container {
   margin-left: 250px;
   transition: margin-left 0.3s ease;
-  color: inherit; /* Hereda el color del texto por defecto, sin forzar uno específico */
+  color: inherit;
+  /* Hereda el color del texto por defecto, sin forzar uno específico */
 
 }
 
 /* Estilos específicos para el modal */
 .modal-content {
-  color: 
-  
+  background-color: var(--background-color);
+  color: var(--text-color);
 }
 
-.modal-header, .modal-footer {
+.modal-header,
+.modal-footer {
   border-color: var(--text-color);
 }
 
-.modal-body input, .modal-body select, .modal-body textarea {
-  color: #000; /* Color de las letras de los inputs */
-  background-color: #fff; /* Fondo blanco para los inputs */
+.modal-body input,
+.modal-body select,
+.modal-body textarea {
+  color: #000;
+  /* Color de las letras de los inputs */
+  background-color: #fff;
+  /* Fondo blanco para los inputs */
 }
-
-
