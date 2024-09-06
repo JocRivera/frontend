@@ -59,7 +59,7 @@ export default function Sidebar() {
         </li>
         <li className="nav-item">
           <NavLink to="/reservations" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-            <Icon.MdPeople /> <span>Reservas</span>
+            <Icon.MdBook /> <span>Reservas</span>
           </NavLink>
         </li>
 
