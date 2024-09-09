@@ -180,6 +180,59 @@ const SettingManagement = () => {
                             {errors.description && <span style={{ color: 'red' }}>{errors.description}</span>}
                         </Form.Group>
 
+                        <Form.Group>
+                            <Table>
+                                <thead>
+                                    <tr>
+                                        <th>nombre</th>
+                                        <th>acceso</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            Cabañas
+                                        </td>
+                                        <td>
+                                            <Form.Check
+                                            type= 'switch'
+                                            />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            Habitaciones
+                                        </td>
+                                        <td>
+                                            <Form.Check
+                                            type= 'switch'
+                                            />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            Clientes
+                                        </td>
+                                        <td>
+                                            <Form.Check
+                                            type= 'switch'
+                                            />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            Usuarios
+                                        </td>
+                                        <td>
+                                            <Form.Check
+                                            type= 'switch'
+                                            />
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </Table>
+                        </Form.Group>
+
                         <Form.Group className="mb-3" controlId="formStatus">
                             <Form.Check
                                 type='switch'
@@ -193,7 +246,7 @@ const SettingManagement = () => {
                             />
                         </Form.Group>
 
-                        <Button type="submit">Add</Button>
+                        <Button type="submit">Agregar</Button>
                     </Form>
                 </Modal.Body>
             </Modal>
