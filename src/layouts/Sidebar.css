@@ -1,0 +1,61 @@
+/* Estilo general del Sidebar */
+.ant-layout-sider {
+    transition: all 0.3s ease;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    /* Asegúrate de que el Sidebar no tenga un margen o padding extra */
+    margin: 0;
+    padding: 0;
+}
+
+/* Estilo cuando el Sidebar está contraído */
+.ant-layout-sider.ant-layout-sider-collapsed {
+    width: 80px; /* Ajusta el ancho cuando está contraído */
+}
+
+/* Estilo cuando el Sidebar está desplegado */
+.ant-layout-sider {
+    width: 256px; /* Ajusta el ancho cuando está desplegado */
+}
+
+/* Asegúrate de que el contenedor del Layout no tenga margen adicional */
+.ant-layout {
+    margin: 0;
+    padding: 0;
+}
+
+/* Estilo del botón de alternar del Sidebar */
+.menu-toggle {
+    cursor: pointer;
+    position: fixed;
+    top: 10px; /* Ajusta la posición superior si es necesario */
+    left: 10px; /* Ajusta la posición izquierda si es necesario */
+    z-index: 1000; /* Asegúrate de que esté por encima del Sidebar */
+}
+
+/* Estilo de la logo en el Sidebar */
+.logo {
+    height: 32px;
+    background: #fff;
+    margin: 16px;
+    text-align: center;
+    line-height: 32px;
+}
+
+/* Estilo de los elementos del menú */
+.ant-menu-item {
+    margin: 0; /* Quita el margen para los elementos del menú */
+}
+
+/* Ajusta el padding de los elementos del menú */
+.ant-menu-item, .ant-menu-submenu-title {
+    padding-left: 16px; /* Ajusta el padding a la izquierda */
+    padding-right: 16px; /* Ajusta el padding a la derecha */
+}
+
+/* Ajusta el estilo de los elementos activos del menú */
+.ant-menu-item-selected {
+    background-color: #1890ff;
+    color: #fff;
+}

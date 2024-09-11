@@ -130,11 +130,14 @@ const MainContent = () => {
     return (
         <div className='container col p-5 mt-3'>
             {/* Barra de búsqueda */}
+
+            
             <h2 className='text-center'>Servicios</h2>
-            <div className="d-flex justify-content-between align-items-center">
-                <Form className="d-flex mb-3" onSubmit={handleSearch}>
+            <div className= "contenedores">
+                <Form className="d-flex mb-3 " onSubmit={handleSearch}>
                     <FormControl
                         type="search"
+
                         placeholder="Buscar..."
                         className="me-2 w-70"
                         aria-label="Search"

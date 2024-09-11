@@ -6,7 +6,7 @@ import { useAuth } from '../components/utils/auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const Navbarx = ({ isSidebarCollapsed }) => {
-  const { isAuthenticated, user, logout, role } = useAuth();
+ const { isAuthenticated, user, logout, role } = useAuth();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const navigate = useNavigate();
@@ -30,7 +30,7 @@ const Navbarx = ({ isSidebarCollapsed }) => {
             <Nav className="ms-auto">
               {isAuthenticated ? (
                 <>
-                  {role === 'cliente' && (
+                  {role === 'client' && (
                     <>
                       <Nav.Link href="/viewscabins">Cabañas</Nav.Link>
                       <Nav.Link href="/viewsrooms">Habitaciones</Nav.Link>
@@ -40,7 +40,7 @@ const Navbarx = ({ isSidebarCollapsed }) => {
                   )}
                   <NavDropdown title={user?.name || "Mi Cuenta"} id="basic-nav-dropdown">
                     <NavDropdown.Item onClick={() => navigate('/profile')}>Mi Perfil</NavDropdown.Item>
-                    {role !== 'cliente' && (
+                    {role !== 'client' && (
                       <NavDropdown.Item href="/settings">Configuración</NavDropdown.Item>
                     )}
                     <NavDropdown.Item onClick={logout}>Cerrar Sesión</NavDropdown.Item>

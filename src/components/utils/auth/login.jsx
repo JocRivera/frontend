@@ -3,15 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { Form, Button, Modal, Col, Row, Alert } from 'react-bootstrap';
 import './stylesLogin.css';
-import RegisterModal from './RegisterMoldal';
 import RecoveryPassword from './PasswordRecovery';
 
 function LoginSignin({ isOpen, closeLoginModal }) {
-  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isRecoveryOpen, setIsRecoveryOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [emailError, setEmailError] = useState('');
 
   const { isAuthenticated, login } = useAuth();
   const navigate = useNavigate();
@@ -19,8 +18,25 @@ function LoginSignin({ isOpen, closeLoginModal }) {
   const users = [
     { name: "admin", email: 'admin@example.com', password: 'admin123', active: true, rol: "admin" },
     { name: "user", email: 'user@example.com', password: 'user123', active: true, rol: "employee" },
-    { name: "inactive", email: 'inactive@example.com', password: 'inactive123', active: true, rol: "cliente" },
+    { name: "inactive", email: 'inactive@example.com', password: 'inactive123', active: true, rol: "client" },
   ];
+
+  // Expresión regular para validar correo electrónico
+  const validateEmail = (email) => {
+    const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i;
+    return emailRegex.test(email);
+  };
+
+  // Manejo de cambios en el input de correo
+  const handleEmailChange = (e) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+    if (!validateEmail(newEmail)) {
+      setEmailError('Por favor, ingresa un correo electrónico válido');
+    } else {
+      setEmailError('');
+    }
+  };
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -45,15 +61,11 @@ function LoginSignin({ isOpen, closeLoginModal }) {
     }
   };
   
-  
-
-  const openRegisterModal = () => setIsRegisterOpen(true);
   const openRecoveryModal = (e) => {
     e.preventDefault();
     setIsRecoveryOpen(true);
   };
 
-  const closeRegisterModal = () => setIsRegisterOpen(false);
   const closeRecoveryModal = () => setIsRecoveryOpen(false);
   const handleCloseLoginModal = () => {
     if (typeof closeLoginModal === 'function') {
@@ -65,7 +77,7 @@ function LoginSignin({ isOpen, closeLoginModal }) {
 
   return (
     <>
-      <Modal show={isOpen} onHide={handleCloseLoginModal} centered size="lg">
+      <Modal show={isOpen} onHide={handleCloseLoginModal} centered size="lg" >
         <Modal.Body>
           <Button
             variant="danger"
@@ -78,9 +90,10 @@ function LoginSignin({ isOpen, closeLoginModal }) {
           <Row>
             <Col md={6} className="image-col">
               <img
-                src="/assets/loslagos.png"
+                src="/src/assets/losgLagos.png"
                 alt="Logo"
                 className="logo-img"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             </Col>
             <Col md={6} className="form-col">
@@ -93,9 +106,12 @@ function LoginSignin({ isOpen, closeLoginModal }) {
                     placeholder="Ingresa el correo"
                     className="custom-control"
                     value={email}
-                    required
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={handleEmailChange}
+                    isInvalid={!!emailError} // Mostrar el estado inválido
                   />
+                  <Form.Control.Feedback type="invalid">
+                    {emailError}
+                  </Form.Control.Feedback>
                 </Form.Group>
 
                 <Form.Group className="mb-3" controlId="formBasicPassword">
@@ -118,10 +134,6 @@ function LoginSignin({ isOpen, closeLoginModal }) {
                   <Form.Text>
                     <a href="#!" className="link-text" onClick={openRecoveryModal}>¿Has olvidado tu contraseña?</a>
                   </Form.Text>
-                  <br />
-                  <Form.Text>
-                    <a href="#!" className="link-text" onClick={openRegisterModal}>Registro</a>
-                  </Form.Text>
                 </Form.Group>
               </Form>
             </Col>
@@ -129,7 +141,6 @@ function LoginSignin({ isOpen, closeLoginModal }) {
         </Modal.Body>
       </Modal>
 
-      <RegisterModal isOpen={isRegisterOpen} clickModal={closeRegisterModal} />
       <RecoveryPassword show={isRecoveryOpen} onHide={closeRecoveryModal} />
     </>
   );
