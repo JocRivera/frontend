@@ -154,10 +154,9 @@ const ClientManagement = () => {
 
 
     return (
-        <div className='container'>
+        <div className="container col p-5 mt-3" style={{ minHeight: "100vh", marginRight : "850px", marginTop  : "50px"}}>
 
-
-
+        <h1> Lista Clientes</h1>
 
             {/* Barra de búsqueda */}
             <Form.Control

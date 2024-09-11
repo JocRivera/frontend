@@ -105,7 +105,7 @@ const Reservations = () => {
   };
 
   return (
-    <div className="container col p-5 mt-3">
+    <div className="container col p-5 mt-3"  style={{ minHeight: "100vh", marginRight : "850px", marginTop  : "50px"}}>
       {alert && (
         <Alert variant={alert.type} onClose={() => setAlert(null)} dismissible>
           {alert.message}

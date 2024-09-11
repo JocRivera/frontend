@@ -128,12 +128,12 @@ const MainContent = () => {
     );
 
     return (
-        <div className='container col p-5 mt-3'>
+        <div className='container col p-5 mt-3'  style={{ minHeight: "100vh", marginRight : "900px", marginTop  : "50px"}}>
             {/* Barra de búsqueda */}
 
             
             <h2 className='text-center'>Servicios</h2>
-            <div className= "contenedores">
+            <div >
                 <Form className="d-flex mb-3 " onSubmit={handleSearch}>
                     <FormControl
                         type="search"
