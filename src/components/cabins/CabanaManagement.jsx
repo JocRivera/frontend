@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { Button, Card, Modal, Form, Row, Col } from 'react-bootstrap';
-import TableComodidad from './ComodidadTable'; // Asegúrate de que este componente esté importado correctamente
-import AlertSwitch from './AlertSwitch'; // Importa el nuevo componente de alerta
-import './Cabins.css';
+import React, { useState } from "react";
+import { Button, Card, Modal, Form, Row, Col } from "react-bootstrap";
+import TableComodidad from "./ComodidadTable"; // Asegúrate de que este componente esté importado correctamente
+import Swal from "sweetalert2"; // Importa la librería de alertas
+
+import "./Cabins.css";
 
 // Componente para gestionar Cabañas
 const CabanaManagement = () => {
@@ -10,71 +11,105 @@ const CabanaManagement = () => {
   const [selectedCabana, setSelectedCabana] = useState(null);
   const [showCabanaForm, setShowCabanaForm] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [showDeleteAlert, setShowDeleteAlert] = useState(false); // Nuevo estado para el alerta de eliminación
+
   const [formValues, setFormValues] = useState({
-    nombre: '',
-    capacidad: '',
-    estado: 'En servicio',
-    descripcion: '',
+    nombre: "",
+    capacidad: "",
+    estado: "En servicio",
+    descripcion: "",
     comodidades: [],
     imagen: null,
   });
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [errors, setErrors] = useState({});
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formValues.nombre) newErrors.nombre = 'Nombre es obligatorio';
-    if (!formValues.capacidad) newErrors.capacidad = 'Capacidad es obligatoria';
-    if (formValues.capacidad < 4 || formValues.capacidad > 7) newErrors.capacidad = 'Capacidad debe estar entre 4 y 7';
-    if (!formValues.descripcion) newErrors.descripcion = 'Descripción es obligatoria';
-    if (!formValues.imagen) newErrors.imagen = 'Imagen es obligatoria';
-    if (formValues.comodidades.length === 0) newErrors.comodidades = 'Debe agregar al menos una comodidad';
-    
+    if (!formValues.nombre) newErrors.nombre = "Nombre es obligatorio";
+    if (!formValues.capacidad) newErrors.capacidad = "Capacidad es obligatoria";
+    if (formValues.capacidad < 4 || formValues.capacidad > 7)
+      newErrors.capacidad = "Capacidad debe estar entre 4 y 7";
+    if (!formValues.descripcion)
+      newErrors.descripcion = "Descripción es obligatoria";
+    if (!formValues.imagen) newErrors.imagen = "Imagen es obligatoria";
+    if (formValues.comodidades.length === 0)
+      newErrors.comodidades = "Debe agregar al menos una comodidad";
+  
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  
+    // Si hay errores, mostrar la alerta
+    if (Object.keys(newErrors).length > 0) {
+      Swal.fire({
+        title: "Errores en el formulario",
+        html: Object.values(newErrors).join("<br>"), // Muestra todos los errores en líneas separadas
+        icon: "error",
+        confirmButtonText: "Ok",
+      });
+      return false;
+    }
+  
+    return true;
   };
 
   const handleSaveCabana = () => {
     if (!validateForm()) return;
     if (selectedCabana) {
       // Editar cabaña existente
-      setCabanaList(cabanaList.map((item) =>
-        item.id === formValues.id ? { ...item, ...formValues } : item
-      ));
+      setCabanaList(
+        cabanaList.map((item) =>
+          item.id === formValues.id ? { ...item, ...formValues } : item
+        )
+      );
+      Swal.fire({
+        title: "Cabaña editada con éxito",
+        text: "La cabaña ha sido editada con éxito.",
+        icon: "success",
+        timer: 3000,
+        showConfirmButton: false,
+      });
     } else {
       // Agregar nueva cabaña
       setCabanaList([...cabanaList, { ...formValues, id: Date.now() }]);
+      Swal.fire({
+        title: "Cabaña agregada con éxito",
+        text: "La cabaña ha sido agregada con éxito.",
+        icon: "success",
+        timer: 3000,
+        showConfirmButton: false,
+      });
     }
     setShowCabanaForm(false);
     setSelectedCabana(null); // Resetear cabaña seleccionada
     setFormValues({
-      nombre: '',
-      capacidad: '',
-      estado: 'En servicio',
-      descripcion: '',
+      nombre: "",
+      capacidad: "",
+      estado: "En servicio",
+      descripcion: "",
       comodidades: [],
       imagen: null,
     });
   };
 
-
   const validateField = (name, value) => {
     switch (name) {
-      case 'nombre':
-        return value.length < 4 ? 'El nombre debe tener al menos 4 caracteres' : '';
-      case 'capacidad':
-        if (!value) return 'Capacidad es obligatoria';
-        if (value < 4 || value > 7) return 'Capacidad debe estar entre 4 y 7';
-        return '';
-      case 'descripcion':
-        return value.length < 6 ? 'Descripción es obligatoria, mínimo 6 caracteres' : '';
-      case 'imagen':
-        return !value ? 'Imagen es obligatoria' : '';
-      case 'comodidades':
-        return value.length === 0 ? 'Debe agregar al menos una comodidad' : '';
+      case "nombre":
+        return value.length < 4
+          ? "El nombre debe tener al menos 4 caracteres"
+          : "";
+      case "capacidad":
+        if (!value) return "Capacidad es obligatoria";
+        if (value < 4 || value > 7) return "Capacidad debe estar entre 4 y 7";
+        return "";
+      case "descripcion":
+        return value.length < 6
+          ? "Descripción es obligatoria, mínimo 6 caracteres"
+          : "";
+      case "imagen":
+        return !value ? "Imagen es obligatoria" : "";
+      case "comodidades":
+        return value.length === 0 ? "Debe agregar al menos una comodidad" : "";
       default:
-        return '';
+        return "";
     }
   };
 
@@ -84,32 +119,45 @@ const CabanaManagement = () => {
     setErrors({ ...errors, [name]: error });
     setFormValues({ ...formValues, [name]: value });
   };
-  
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    const error = validateField('imagen', file);
+    const error = validateField("imagen", file);
     setErrors({ ...errors, imagen: error });
     setFormValues({ ...formValues, imagen: file });
   };
-  
+
   const handleComodidadesChange = (newComodidades) => {
-    const error = validateField('comodidades', newComodidades);
+    const error = validateField("comodidades", newComodidades);
     setErrors({ ...errors, comodidades: error });
     setFormValues({ ...formValues, comodidades: newComodidades });
   };
 
   const handleEditCabana = (cabana) => {
-    setSelectedCabana(cabana);
-    setFormValues({
-      nombre: cabana.nombre,
-      capacidad: cabana.capacidad,
-      estado: cabana.estado,
-      descripcion: cabana.descripcion,
-      comodidades: cabana.comodidades,
-      imagen: cabana.imagen,
-      id: cabana.id, // Necesario para identificar la cabaña al editar
+    Swal.fire({
+      title: "¿Estás seguro de editar esta cabaña?",
+      text: "Los cambios no podrán ser revertidos.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, editar",
+      cancelButtonText: "Cancelar",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setSelectedCabana(cabana);
+        setFormValues({
+          nombre: cabana.nombre,
+          capacidad: cabana.capacidad,
+          estado: cabana.estado,
+          descripcion: cabana.descripcion,
+          comodidades: cabana.comodidades,
+          imagen: cabana.imagen,
+          id: cabana.id, // Necesario para identificar la cabaña al editar
+        });
+        setShowCabanaForm(true);
+      }
     });
-    setShowCabanaForm(true);
   };
 
   const handleAddCabana = () => {
@@ -122,22 +170,46 @@ const CabanaManagement = () => {
     setShowDetailModal(true);
   };
 
-  const handleDeleteCabana = () => {
-    setCabanaList(cabanaList.filter(u => u.id !== selectedCabana.id));
-    setShowDeleteAlert(false);
+  const handleDeleteCabana = (cabana) => {
+    Swal.fire({
+      title: "¿Estás seguro?",
+      text: "No podrás revertir esta acción.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setCabanaList(cabanaList.filter((u) => u.id !== cabana.id));
+        Swal.fire({
+          title: "Cabaña eliminada con éxito",
+          text: "La cabaña ha sido eliminada con éxito.",
+          icon: "success",
+          timer: 3000,
+          showConfirmButton: false,
+        });
+      }
+    });
   };
 
-
-  const filteredCabanaList = cabanaList.filter(cabana =>
+  const filteredCabanaList = cabanaList.filter((cabana) =>
     cabana.nombre.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div className='container ' style={ { minHeight: '100vh', paddingTop: '60px' } } >
+    <div
+      className="container "
+      style={{ minHeight: "100vh", paddingTop: "60px" }}
+    >
       <h1>Lista de Cabañas</h1>
-      <div className="d-flex justify-content-start align-items-center mb-2" style={{ gap: '750px' }}>
-      <Form.Control
-          style={{ maxWidth: '300px', marginRight: '20px' }}
+      <div
+        className="d-flex justify-content-start align-items-center mb-2"
+        style={{ gap: "750px" }}
+      >
+        <Form.Control
+          style={{ maxWidth: "300px", marginRight: "20px" }}
           type="text"
           placeholder="Buscar por nombre"
           value={searchTerm}
@@ -145,10 +217,9 @@ const CabanaManagement = () => {
           className="me-2"
         />
         <Button variant="primary" onClick={handleAddCabana}>
-        Añadir Cabaña
-      </Button>
+          Añadir Cabaña
+        </Button>
       </div>
-      
 
       <Row>
         {filteredCabanaList.length > 0 ? (
@@ -156,20 +227,38 @@ const CabanaManagement = () => {
             <Col md={4} key={cabana.id} className="mb-3">
               <Card>
                 {cabana.imagen && (
-                  <Card.Img variant="top" src={URL.createObjectURL(cabana.imagen)} />
+                  <Card.Img
+                    variant="top"
+                    src={URL.createObjectURL(cabana.imagen)}
+                  />
                 )}
                 <Card.Body>
                   <Card.Title>{cabana.nombre}</Card.Title>
-                  <Card.Text>Comodidades: {cabana.comodidades.map(c => c.articulos).join(', ')}</Card.Text>
+                  <Card.Text>
+                    Comodidades:{" "}
+                    {cabana.comodidades.map((c) => c.articulos).join(", ")}
+                  </Card.Text>
                   <Card.Text>Capacidad: {cabana.capacidad}</Card.Text>
                   <Card.Text>Estado: {cabana.estado}</Card.Text>
                   <Card.Text>Descripción: {cabana.descripcion}</Card.Text>
-                  <Button variant="info" onClick={() => handleEditCabana(cabana)}>Editar</Button>
-                  <Button variant="primary" onClick={() => handleViewDetails(cabana)}>Ver Detalle</Button>
-                  <Button variant="danger" onClick={() => {
-                    setSelectedCabana(cabana);
-                    setShowDeleteAlert(true);
-                  }}>Eliminar</Button>
+                  <Button
+                    variant="info"
+                    onClick={() => handleEditCabana(cabana)}
+                  >
+                    Editar
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={() => handleViewDetails(cabana)}
+                  >
+                    Ver Detalle
+                  </Button>
+                  <Button
+                    variant="danger"
+                    onClick={() => handleDeleteCabana(cabana)}
+                  >
+                    Eliminar
+                  </Button>
                 </Card.Body>
               </Card>
             </Col>
@@ -180,9 +269,15 @@ const CabanaManagement = () => {
       </Row>
 
       {showCabanaForm && (
-        <Modal show={showCabanaForm} onHide={() => setShowCabanaForm(false)} size="lg">
+        <Modal
+          show={showCabanaForm}
+          onHide={() => setShowCabanaForm(false)}
+          size="lg"
+        >
           <Modal.Header closeButton>
-            <Modal.Title>{selectedCabana ? 'Editar Cabaña' : 'Agregar Cabaña'}</Modal.Title>
+            <Modal.Title>
+              {selectedCabana ? "Editar Cabaña" : "Agregar Cabaña"}
+            </Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <Form>
@@ -245,9 +340,7 @@ const CabanaManagement = () => {
                   onUpdateComodidades={handleComodidadesChange}
                 />
                 {errors.comodidades && (
-                  <div className="text-danger">
-                    {errors.comodidades}
-                  </div>
+                  <div className="text-danger">{errors.comodidades}</div>
                 )}
               </Form.Group>
               <Form.Group>
@@ -261,7 +354,7 @@ const CabanaManagement = () => {
                   <img
                     src={URL.createObjectURL(formValues.imagen)}
                     alt="Vista previa"
-                    style={{ width: '100%', marginTop: '10px' }}
+                    style={{ width: "100%", marginTop: "10px" }}
                   />
                 )}
                 <Form.Control.Feedback type="invalid">
@@ -271,7 +364,10 @@ const CabanaManagement = () => {
             </Form>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowCabanaForm(false)}>
+            <Button
+              variant="secondary"
+              onClick={() => setShowCabanaForm(false)}
+            >
               Cancelar
             </Button>
             <Button variant="primary" onClick={handleSaveCabana}>
@@ -282,18 +378,30 @@ const CabanaManagement = () => {
       )}
 
       {showDetailModal && (
-        <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)} size="lg">
+        <Modal
+          show={showDetailModal}
+          onHide={() => setShowDetailModal(false)}
+          size="lg"
+        >
           <Modal.Header closeButton>
             <Modal.Title>Detalles de la Cabaña</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <Card>
               {selectedCabana.imagen && (
-                <Card.Img variant="top" src={URL.createObjectURL(selectedCabana.imagen)} />
+                <Card.Img
+                  variant="top"
+                  src={URL.createObjectURL(selectedCabana.imagen)}
+                />
               )}
               <Card.Body>
                 <Card.Title>{selectedCabana.nombre}</Card.Title>
-                <Card.Text>Comodidades: {selectedCabana.comodidades.map(c => c.articulos).join(', ')}</Card.Text>
+                <Card.Text>
+                  Comodidades:{" "}
+                  {selectedCabana.comodidades
+                    .map((c) => c.articulos)
+                    .join(", ")}
+                </Card.Text>
                 <Card.Text>Capacidad: {selectedCabana.capacidad}</Card.Text>
                 <Card.Text>Estado: {selectedCabana.estado}</Card.Text>
                 <Card.Text>Descripción: {selectedCabana.descripcion}</Card.Text>
@@ -301,22 +409,14 @@ const CabanaManagement = () => {
             </Card>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowDetailModal(false)}>
+            <Button
+              variant="secondary"
+              onClick={() => setShowDetailModal(false)}
+            >
               Cerrar
             </Button>
           </Modal.Footer>
         </Modal>
-      )}
-
-      {showDeleteAlert && (
-        <AlertSwitch
-          show={showDeleteAlert}
-          handleClose={() => setShowDeleteAlert(false)}
-          title="Eliminar Cabaña"
-          message="¿Estás seguro de que deseas eliminar esta cabaña?"
-          onConfirm={handleDeleteCabana}
-          onCancel={() => setShowDeleteAlert(false)}
-        />
       )}
     </div>
   );

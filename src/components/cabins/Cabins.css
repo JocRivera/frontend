@@ -4,13 +4,7 @@
   height: 100vh;
 }
 
-.sidebar {
-  background-color: #f8f9fa;
-  padding: 1rem;
-  position: sticky; /* Fijo en su lugar */
-  top: 0;
-  height: 100%;
-}
+
 
 .content {
   padding: 1rem;

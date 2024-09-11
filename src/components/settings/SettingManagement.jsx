@@ -109,7 +109,7 @@ const SettingManagement = () => {
     return (
         <div className='container col p-5 mt-3'>
             <h2 className='text-center'>Configuracion roles</h2>
-            <div className="d-flex justify-content-between align-items-center">
+            <div className="d-flex justify-content-between align-items-center  "  style={{ gap: '800px' }}>
                 <Form className="d-flex mb-3" onSubmit={handleSearch}>
                     <Form.Control type="search"
                         placeholder="Buscar..."

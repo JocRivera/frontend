@@ -1,9 +1,8 @@
-// RoomsManagement.js
 import React, { useState } from 'react';
 import { Button, Card, Modal, Form, Row, Col } from 'react-bootstrap';
-import TableComodidad from '../cabins/ComodidadTable'; // Asegúrate de que este componente esté importado correctamente
-import AlertSwitch from '../cabins/AlertSwitch'; // Importar el componente de alertas
-import '../cabins/Cabins.css'; // Cambiar el nombre del archivo CSS si es necesario
+import TableComodidad from '../cabins/ComodidadTable'; 
+import Swal from 'sweetalert2'; 
+import '../cabins/Cabins.css'; 
 
 // Componente para gestionar Habitaciones
 const RoomsManagement = () => {
@@ -11,9 +10,7 @@ const RoomsManagement = () => {
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [showRoomForm, setShowRoomForm] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [showAlert, setShowAlert] = useState(false); // Estado para la alerta
-  const [alertType, setAlertType] = useState(''); // Tipo de alerta: 'error' o 'success'
-  const [showConfirmDelete, setShowConfirmDelete] = useState(false); // Estado para confirmar eliminación
+
   const [formValues, setFormValues] = useState({
     nombre: '',
     capacidad: '',
@@ -25,24 +22,93 @@ const RoomsManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [errors, setErrors] = useState({});
 
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formValues.nombre) newErrors.nombre = "Nombre es obligatorio";
+    if (!formValues.capacidad) newErrors.capacidad = "Capacidad es obligatoria";
+    if (formValues.capacidad < 3 || formValues.capacidad > 7)
+      newErrors.capacidad = "Capacidad debe estar entre 3 y 7";
+    if (!formValues.descripcion)
+      newErrors.descripcion = "Descripción es obligatoria";
+    if (!formValues.imagen) newErrors.imagen = "Imagen es obligatoria";
+    if (formValues.comodidades.length === 0)
+      newErrors.comodidades = "Debe agregar al menos una comodidad";
+
+    setErrors(newErrors);
+
+    // Si hay errores, mostrar la alerta
+    if (Object.keys(newErrors).length > 0) {
+      Swal.fire({
+        title: "Errores en el formulario",
+        html: Object.values(newErrors).join("<br>"), // Muestra todos los errores en líneas separadas
+        icon: "error",
+        confirmButtonText: "Ok",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSaveRoom = () => {
+    if (!validateForm()) return;
+    if (selectedRoom) {
+      // Editar habitación existente
+      setRoomList(
+        roomList.map((item) =>
+          item.id === formValues.id ? { ...item, ...formValues } : item
+        )
+      );
+      Swal.fire({
+        title: "Habitación editada con éxito",
+        text: "La habitación ha sido editada con éxito.",
+        icon: "success",
+        timer: 3000,
+        showConfirmButton: false,
+      });
+    } else {
+      // Agregar nueva habitación
+      setRoomList([...roomList, { ...formValues, id: Date.now() }]);
+      Swal.fire({
+        title: "Habitación agregada con éxito",
+        text: "La habitación ha sido agregada con éxito.",
+        icon: "success",
+        timer: 3000,
+        showConfirmButton: false,
+      });
+    }
+    setShowRoomForm(false);
+    setSelectedRoom(null); // Resetear habitación seleccionada
+    setFormValues({
+      nombre: "",
+      capacidad: "",
+      estado: "Disponible",
+      descripcion: "",
+      comodidades: [],
+      imagen: null,
+    });
+  };
+
   const validateField = (name, value) => {
     switch (name) {
-      case 'nombre':
-        return value.length  < 4 ? 'El nombre debe tener al menos 4 caracteres' : '';
-      case 'capacidad':
-        if (!value) return 'Capacidad es obligatoria';
-        if (value < 4 || value > 7) return 'Capacidad debe estar entre 3 y 7';
-        return '';
-      case 'descripcion':
-       return  value.length <6 ?  'Descripción es obligatoria minimo 6 caracteres' : '';
-        // return '';
-
-      case 'imagen':
-        return !value ? 'Imagen es obligatoria' : '';
-      case 'comodidades':
-        return value.length === 0 ? 'Debe agregar al menos una comodidad' : '';
+      case "nombre":
+        return value.length < 4
+          ? "El nombre debe tener al menos 4 caracteres"
+          : "";
+      case "capacidad":
+        if (!value) return "Capacidad es obligatoria";
+        if (value < 3 || value > 7) return "Capacidad debe estar entre 3 y 7";
+        return "";
+      case "descripcion":
+        return value.length < 6
+          ? "Descripción es obligatoria, mínimo 6 caracteres"
+          : "";
+      case "imagen":
+        return !value ? "Imagen es obligatoria" : "";
+      case "comodidades":
+        return value.length === 0 ? "Debe agregar al menos una comodidad" : "";
       default:
-        return '';
+        return "";
     }
   };
 
@@ -54,67 +120,43 @@ const RoomsManagement = () => {
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    const error = validateField('imagen', file);
+    const file = e.target.files[0]; // Obtener el primer archivo del array de archivos
+    const error = validateField("imagen", file);
     setErrors({ ...errors, imagen: error });
     setFormValues({ ...formValues, imagen: file });
-  };
+  }
 
   const handleComodidadesChange = (newComodidades) => {
-    const error = validateField('comodidades', newComodidades);
+    const error = validateField("comodidades", newComodidades);
     setErrors({ ...errors, comodidades: error });
     setFormValues({ ...formValues, comodidades: newComodidades });
   };
 
-  const validateForm = () => {
-    const newErrors = {};
-    Object.keys(formValues).forEach((key) => {
-      const error = validateField(key, formValues[key]);
-      if (error) newErrors[key] = error;
-    });
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSaveRoom = () => {
-    if (!validateForm()) return;
-    if (selectedRoom) {
-      // Editar habitación existente
-      setRoomList(roomList.map((item) =>
-        item.id === formValues.id ? { ...item, ...formValues } : item
-      ));
-      setAlertType('success');
-      setShowAlert(true);
-    } else {
-      // Agregar nueva habitación
-      setRoomList([...roomList, { ...formValues, id: Date.now() }]);
-      setAlertType('success');
-      setShowAlert(true);
-    }
-    setShowRoomForm(false);
-    setSelectedRoom(null); // Resetear habitación seleccionada
-    setFormValues({
-      nombre: '',
-      capacidad: '',
-      estado: 'Disponible',
-      descripcion: '',
-      comodidades: [],
-      imagen: null,
-    });
-  };
-
   const handleEditRoom = (room) => {
-    setSelectedRoom(room);
-    setFormValues({
-      nombre: room.nombre,
-      capacidad: room.capacidad,
-      estado: room.estado,
-      descripcion: room.descripcion,
-      comodidades: room.comodidades,
-      imagen: room.imagen,
-      id: room.id, // Necesario para identificar la habitación al editar
+    Swal.fire({
+      title: "¿Estás seguro de editar esta habitación?",
+      text: "Los cambios no podrán ser revertidos.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, editar",
+      cancelButtonText: "Cancelar",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setSelectedRoom(room);
+        setFormValues({
+          nombre: room.nombre,
+          capacidad: room.capacidad,
+          estado: room.estado,
+          descripcion: room.descripcion,
+          comodidades: room.comodidades,
+          imagen: room.imagen,
+          id: room.id, // Necesario para identificar la habitación al editar
+        });
+        setShowRoomForm(true);
+      }
     });
-    setShowRoomForm(true);
   };
 
   const handleAddRoom = () => {
@@ -127,42 +169,56 @@ const RoomsManagement = () => {
     setShowDetailModal(true);
   };
 
-  const handleConfirmDelete = (room) => {
-    setSelectedRoom(room);
-    setShowConfirmDelete(true);
+  const handleDeleteRoom = (room) => {
+    Swal.fire({
+      title: "¿Estás seguro?",
+      text: "No podrás revertir esta acción.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setRoomList(roomList.filter((u) => u.id !== room.id));
+        Swal.fire({
+          title: "Habitación eliminada con éxito",
+          text: "La habitación ha sido eliminada con éxito.",
+          icon: "success",
+          timer: 3000,
+          showConfirmButton: false,
+        });
+      }
+    });
   };
 
-  const handleDeleteRoom = () => {
-    setRoomList(prevList => prevList.filter(room => room.id !== selectedRoom.id));
-    setAlertType('success');
-    setShowAlert(true);
-    setShowConfirmDelete(false);
-    setSelectedRoom(null);
-  };
-
-  const filteredRoomList = roomList.filter(room =>
+  const filteredRoomList = roomList.filter((room) =>
     room.nombre.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div className='container ' style={ { minHeight: '100vh', paddingTop: '60px' } } >
+    <div
+      className="container "
+      style={{ minHeight: "100vh", paddingTop: "60px" }}
+    >
       <h1>Lista de Habitaciones</h1>
-      <div className="d-flex justify-content-start align-items-center mb-2" style={{ gap: '750px' }}>
-  <Form.Control 
-    size="sm"
-    style={{ maxWidth: '300px', marginRight: '20px' }}
-    type="text"
-    placeholder="Buscar por nombre"
-    value={searchTerm}
-    onChange={(e) => setSearchTerm(e.target.value)}
-    className="me-2"
-  />
-  <Button variant="primary" onClick={handleAddRoom} style={{left : '10px'}}>
-    Añadir Habitación
-  </Button>
-</div>
-
-     
+      <div
+        className="d-flex justify-content-start align-items-center mb-2"
+        style={{ gap: "750px" }}
+      >
+        <Form.Control
+          style={{ maxWidth: "300px", marginRight: "20px" }}
+          type="text"
+          placeholder="Buscar por nombre"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="me-2"
+        />
+        <Button variant="primary" onClick={handleAddRoom}>
+          Añadir Habitación
+        </Button>
+      </div>
 
       <Row>
         {filteredRoomList.length > 0 ? (
@@ -170,17 +226,38 @@ const RoomsManagement = () => {
             <Col md={4} key={room.id} className="mb-3">
               <Card>
                 {room.imagen && (
-                  <Card.Img variant="top" src={URL.createObjectURL(room.imagen)} />
+                  <Card.Img
+                    variant="top"
+                    src={URL.createObjectURL(room.imagen)}
+                  />
                 )}
                 <Card.Body>
                   <Card.Title>{room.nombre}</Card.Title>
-                  <Card.Text>Comodidades: {room.comodidades.map(c => c.articulos).join(', ')}</Card.Text>
+                  <Card.Text>
+                    Comodidades:{" "}
+                    {room.comodidades.map((c) => c.articulos).join(", ")}
+                  </Card.Text>
                   <Card.Text>Capacidad: {room.capacidad}</Card.Text>
                   <Card.Text>Estado: {room.estado}</Card.Text>
                   <Card.Text>Descripción: {room.descripcion}</Card.Text>
-                  <Button variant="info" onClick={() => handleEditRoom(room)}>Editar</Button>
-                  <Button variant="primary" onClick={() => handleViewDetails(room)}>Ver Detalle</Button>
-                  <Button variant="danger" onClick={() => handleConfirmDelete(room)}>Eliminar</Button>
+                  <Button
+                    variant="info"
+                    onClick={() => handleEditRoom(room)}
+                  >
+                    Editar
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={() => handleViewDetails(room)}
+                  >
+                    Ver Detalle
+                  </Button>
+                  <Button
+                    variant="danger"
+                    onClick={() => handleDeleteRoom(room)}
+                  >
+                    Eliminar
+                  </Button>
                 </Card.Body>
               </Card>
             </Col>
@@ -191,9 +268,15 @@ const RoomsManagement = () => {
       </Row>
 
       {showRoomForm && (
-        <Modal show={showRoomForm} onHide={() => setShowRoomForm(false)} size="lg">
+        <Modal
+          show={showRoomForm}
+          onHide={() => setShowRoomForm(false)}
+          size="lg"
+        >
           <Modal.Header closeButton>
-            <Modal.Title>{selectedRoom ? 'Editar Habitación' : 'Agregar Habitación'}</Modal.Title>
+            <Modal.Title>
+              {selectedRoom ? "Editar Habitación" : "Agregar Habitación"}
+            </Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <Form>
@@ -256,9 +339,7 @@ const RoomsManagement = () => {
                   onUpdateComodidades={handleComodidadesChange}
                 />
                 {errors.comodidades && (
-                  <div className="text-danger">
-                    {errors.comodidades}
-                  </div>
+                  <div className="text-danger">{errors.comodidades}</div>
                 )}
               </Form.Group>
               <Form.Group>
@@ -272,7 +353,7 @@ const RoomsManagement = () => {
                   <img
                     src={URL.createObjectURL(formValues.imagen)}
                     alt="Vista previa"
-                    style={{ width: '100%', marginTop: '10px' }}
+                    style={{ width: "100%", marginTop: "10px" }}
                   />
                 )}
                 <Form.Control.Feedback type="invalid">
@@ -282,7 +363,10 @@ const RoomsManagement = () => {
             </Form>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowRoomForm(false)}>
+            <Button
+              variant="secondary"
+              onClick={() => setShowRoomForm(false)}
+            >
               Cancelar
             </Button>
             <Button variant="primary" onClick={handleSaveRoom}>
@@ -292,54 +376,49 @@ const RoomsManagement = () => {
         </Modal>
       )}
 
-      {selectedRoom && (
-        <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)} size=" sm">
+      {showDetailModal && (
+        <Modal
+          show={showDetailModal}
+          onHide={() => setShowDetailModal(false)}
+          size="lg"
+        >
           <Modal.Header closeButton>
             <Modal.Title>Detalles de la Habitación</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <Card>
               {selectedRoom.imagen && (
-                <Card.Img variant="top" style={{ width: '50%', height: '300px', }} src={URL.createObjectURL(selectedRoom.imagen)} />
-
+                <Card.Img
+                  variant="top"
+                  src={URL.createObjectURL(selectedRoom.imagen)}
+                />
               )}
               <Card.Body>
                 <Card.Title>{selectedRoom.nombre}</Card.Title>
+                <Card.Text>
+                  Comodidades:{" "}
+                  {selectedRoom.comodidades
+                    .map((c) => c.articulos)
+                    .join(", ")}
+                </Card.Text>
                 <Card.Text>Capacidad: {selectedRoom.capacidad}</Card.Text>
                 <Card.Text>Estado: {selectedRoom.estado}</Card.Text>
                 <Card.Text>Descripción: {selectedRoom.descripcion}</Card.Text>
-                <Card.Text>Comodidades: {selectedRoom.comodidades.map(c => c.articulos).join(', ')}</Card.Text>
               </Card.Body>
             </Card>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowDetailModal(false)}>
+            <Button
+              variant="secondary"
+              onClick={() => setShowDetailModal(false)}
+            >
               Cerrar
             </Button>
           </Modal.Footer>
         </Modal>
       )}
-
-      <AlertSwitch showAlert={showAlert} setShowAlert={setShowAlert} alertType={alertType} />
-
-      <Modal show={showConfirmDelete} onHide={() => setShowConfirmDelete(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Confirmar Eliminación</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          ¿Estás seguro de que deseas eliminar la habitación {selectedRoom?.nombre}?
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowConfirmDelete(false)}>
-            Cancelar
-          </Button>
-          <Button variant="danger" onClick={handleDeleteRoom}>
-            Eliminar
-          </Button>
-        </Modal.Footer>
-      </Modal>
     </div>
   );
 };
 
-export default RoomsManagement;
+export default RoomsManagement; 

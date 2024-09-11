@@ -90,6 +90,9 @@ const ProfilePage = () => {
   return (
     <div className='container ' style={{ minHeight: '100vh', paddingTop: '60px' }}>
       <h1>Editar Perfil</h1>
+      <div   className='row  '> 
+
+
       {errors.global && <Alert variant="danger">{errors.global}</Alert>}
       {success && <Alert variant="success">{success}</Alert>}
 
@@ -201,6 +204,8 @@ const ProfilePage = () => {
         </Button>
       </Form>
     </div>
+      </div>
+      
   );
 };
 

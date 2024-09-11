@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { Modal, Form, Button, Row, Col } from 'react-bootstrap';
 import './stylesLogin.css';
+import Swal from 'sweetalert2';
 
 function RegisterModal({ isOpen, clickModal }) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = React.useState({
     fullName: '',
     idNumber: '',
     birthdate: '',
     email: '',
     password: '',
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = React.useState({});
 
   const validateForm = (name, value) => {
     const errorMessages = {
@@ -26,7 +27,7 @@ function RegisterModal({ isOpen, clickModal }) {
       idNumber: /^[0-9]{4,}$/.test(value),
       email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
       birthdate: value && new Date(value) <= new Date(new Date().setFullYear(new Date().getFullYear() - 18)),
-      password: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,}$/.test(value),
+      password: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$%*?&])[A-Za-z\d@$%*?&]{10,}$/.test(value),
     };
 
     return validations[name] ? '' : errorMessages[name];
@@ -40,7 +41,7 @@ function RegisterModal({ isOpen, clickModal }) {
     setErrors((prev) => ({ ...prev, [name]: error }));
   };
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     const formErrors = Object.keys(formData).reduce((acc, field) => {
       const error = validateForm(field, formData[field]);
@@ -52,22 +53,32 @@ function RegisterModal({ isOpen, clickModal }) {
 
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error en el registro',
+        text: 'Por favor, revise los campos.',
+      });
     } else {
       setErrors({});
-      alert('Registro exitoso');
-      
-      
+      Swal.fire({
+        icon: 'success',
+        title: 'Registro exitoso!',
+        text: 'Te has registrado correctamente.',
+      }).then(() => {
+        // Cerrar el modal de registro después de mostrar la alerta
+        clickModal();
+      });
     }
   };
 
   return (
-    <Modal show={isOpen} onHide={clickModal} size="lg" style={{ background : 'rgba(0, 0, 0, 0.5)'}}>
+    <Modal show={isOpen} onHide={clickModal} size="lg" style={{ background: 'rgba(0, 0, 0, 0.5)' }}>
       <Modal.Body>
         <Button variant="danger" onClick={clickModal} style={{ float: 'right' }}>X</Button>
         <Modal.Title className="text-center">Bienvenido al Registro</Modal.Title>
         <Row>
           <Col md={6} className="image-col">
-            <img src="/src/assets/losgLagos.png" alt="Logo" className="logo-img"  style={{ width: '100%', height: '60%', objectFit: 'cover' }} />
+            <img src="/src/assets/losgLagos.png" alt="Logo" className="logo-img" style={{ width: '100%', height: '60%', objectFit: 'cover' }} />
           </Col>
           <Col md={6} className="form-col">
             <Form onSubmit={handleRegister}>
@@ -138,12 +149,6 @@ function RegisterModal({ isOpen, clickModal }) {
               <Button variant="primary" type="submit" className="custom-button">
                 Registrarte
               </Button>
-
-              <Form.Group className="mt-3 text-center">
-                {/* <Form.Text>
-                  <a href="#!" className="link-text" onClick={() => clickModal()}>¿Ya tienes cuenta?</a>
-                </Form.Text> */}
-              </Form.Group>
             </Form>
           </Col>
         </Row>
