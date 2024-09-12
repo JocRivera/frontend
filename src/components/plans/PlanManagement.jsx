@@ -174,10 +174,11 @@ const PlanManagement = () => {
 
   return (
     <div
-      className="container"
+      className="container col p-5 mt-3"
+      style={{ minHeight: "100vh", marginRight : "1550px", marginTop  : "50px"}}
 
      >
-      <h1 className="text-center ">Planes</h1>
+      <h1 className="text-right ">Lista de Planes</h1>
 
       
         <Button
