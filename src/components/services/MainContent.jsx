@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import * as BsIcons from "react-icons/bs";
 import { Button, Modal, Form, Table, FormControl } from 'react-bootstrap';
 import Swal from 'sweetalert2';
+import axios from 'axios';
 
 let nextId = 1;
 const generateUniqueId = () => {
@@ -25,6 +26,17 @@ const MainContent = () => {
     const [errors, setErrors] = useState({});
     const [query, setQuery] = useState(''); // Estado para la búsqueda
 
+    useEffect(() => {
+        const fetchServices = async () => {
+            try {
+                const response = await axios.get('http://localhost:3000/service');
+                setServices(response.data);
+            } catch (error) {
+                console.error("Error al obtener los servicios:", error);
+            }
+        };
+        fetchServices();
+    }, []);
 
     const validate = (values) => {
         const errors = {};
@@ -48,35 +60,50 @@ const MainContent = () => {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+
         const validationErrors = validate(newService);
         if (Object.keys(validationErrors).length) {
             setErrors(validationErrors);
             return;
         }
-        else {
-            Swal.fire({
+
+        try {
+            // Mostrar alerta de confirmación y esperar la respuesta
+            const confirm = await Swal.fire({
                 title: "¿Desea agregar este servicio?",
                 text: "Revisa que todos los campos estén correctos",
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: "Confirmar",
                 cancelButtonText: "Cancelar",
-            }).then((confirm) => {
-                if (confirm.isConfirmed) {
-                    setServices([...services, { ...newService, id: generateUniqueId() }]);
-                    setNewService({
-                        service: '',
-                        description: '',
-                        price: '',
-                        status: true
-                    });
-                    setShowModal(false);
-                }
+            });
+
+            if (confirm.isConfirmed) {
+                // Enviar solicitud POST con axios
+                const response = await axios.post('http://localhost:3000/service', newService);
+
+                // Agregar el nuevo servicio a la lista
+                setServices([...services, { ...newService, id: response.data.id }]);
+                setNewService({
+                    service: '',
+                    description: '',
+                    price: '',
+                    status: true
+                });
+                setShowModal(false);
+            }
+        } catch (error) {
+            console.error("Error al agregar el servicio:", error);
+            Swal.fire({
+                title: "Error",
+                text: "No se pudo agregar el servicio. Inténtelo de nuevo.",
+                icon: "error",
             });
         }
     };
+
 
     const handleViewDetails = (service) => {
         setCurrentService(service);
@@ -128,10 +155,10 @@ const MainContent = () => {
     );
 
     return (
-        <div className='container col p-5 mt-3'  style={{ minHeight: "100vh", marginRight : "900px", marginTop  : "50px"}}>
+        <div className='container col p-5 mt-3' style={{ minHeight: "100vh", marginRight: "900px", marginTop: "50px" }}>
             {/* Barra de búsqueda */}
 
-            
+
             <h2 className='text-center'>Servicios</h2>
             <div >
                 <Form className="d-flex mb-3 " onSubmit={handleSearch}>
