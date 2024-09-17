@@ -4,7 +4,7 @@ import Swal from "sweetalert2";
 
 // Función para generar contraseña aleatoria
 const generatePassword = () => {
-  const length = 7;
+  const length = 10;
   const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+~`|}{[]:;?><,./-=";
   let password = "";
   while (true) {
@@ -102,8 +102,8 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
       case "contraseña":
         newErrors.contraseña =
           !value ||
-          !/^.*(?=.{7,})(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&*()_+~`|}{[$$:;?><,./-=]).*$/.test(value)
-            ? "La contraseña debe tener al menos 7 caracteres, incluyendo mayúsculas, minúsculas y caracteres especiales."
+          !/^.*(?=.{10,})(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&*()_+~`|}{[$$:;?><,./-=]).*$/.test(value)
+            ? "La contraseña debe tener al menos 10 caracteres, incluyendo mayúsculas, minúsculas y caracteres especiales."
             : "";
         // Validar confirmación de contraseña también
         if (formData.confirmarContraseña && value !== formData.confirmarContraseña) {

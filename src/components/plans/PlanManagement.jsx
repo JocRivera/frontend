@@ -179,8 +179,6 @@ const PlanManagement = () => {
 
      >
       <h1 className="text-right ">Lista de Planes</h1>
-
-      
         <Button
           variant="primary"
           className="mb-3"

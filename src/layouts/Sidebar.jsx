@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout, Menu } from 'antd';
 import { FaCalendarDays, FaUsersBetweenLines, FaUsers } from "react-icons/fa6";
 import { Link } from 'react-router-dom';
@@ -22,36 +22,46 @@ const menuItems = [
     { key: '9', icon: <IoSettingsSharp size={24} />, label: <Link to="/settings">Configuración</Link> },
 ];
 
-function Sidebar() {
-    const [collapsed, setCollapsed] = useState(false);
+function Sidebar({ collapsed, setCollapsed }) {
+    const [delayedCollapsed, setDelayedCollapsed] = useState(collapsed);
 
+    // Efecto para sincronizar la actualización del botón después de la transición
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDelayedCollapsed(collapsed);
+        }, 300); // Ajusta este valor para que coincida con la duración de la transición
+        return () => clearTimeout(timer);
+    }, [collapsed]);
+
+    // Función para alternar el colapso
     const toggleSidebar = () => {
         setCollapsed(!collapsed);
     };
 
     return (
-        <Layout >
-            {/* Sidebar */}
+        <Layout>
             <Sider
                 collapsible
                 collapsed={collapsed}
                 onCollapse={setCollapsed}
-                className="sidebar"
+                width={256}
+                collapsedWidth={80}
+                style={{
+                    height: '100vh',
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    overflowY: 'auto',
+                    transition: 'all 0.2s ease', // Transición más suave
+                }}
             >
                 {/* Menú de navegación */}
-                <Menu
-                    theme="dark"
-                    mode="inline"
-                    items={menuItems}
-                />
+                <Menu theme="dark" mode="inline" items={menuItems} />
+                {/* Botón de alternar */}
+                <div className="menu-toggle" onClick={toggleSidebar}>
+                    {delayedCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                </div>
             </Sider>
-            {/* Botón de alternar */}
-            <div className="menu-toggle" onClick={toggleSidebar} style={{
-              color : 'white',
-
-            }}>
-                {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            </div>
         </Layout>
     );
 }
