@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import MainContent from "./components/services/MainContent";
 import ClientManagement from "./components/clients/ClientManagement";
@@ -23,16 +23,36 @@ import "./App.css";
 
 function App() {
   const { isAuthenticated, role } = useAuth();
+  const [collapsed, setCollapsed] = useState(false);
+  const isHomePage = location.pathname === "/";
+  const isContact = location.pathname === "/contact";
+  const isCabin = location.pathname === "/listcabins";
+  const isRoom = location.pathname === "/listrooms";
+  const isPlans = location.pathname === "/viewsplans";
 
   return (
     <BrowserRouter>
       <div className="min-vh-100 min-vw-100 overflow-hidden">
-        <Navbarx />
+        <Navbarx collapsed={collapsed} isHomePage={isHomePage} isContact={isContact} isCabin={isCabin} isRoom={isRoom} isPlans={isPlans}/>
         <div className="d-flex">
-          {isAuthenticated && (role === "admin" || role === "employee") && (
-            <Sidebar />
-          )}
-          <main className={`flex-grow-1 ${isAuthenticated ? "ml-3" : ""}`}>
+          {isAuthenticated &&
+            (role === "admin" || role === "employee") &&
+            !isHomePage && !isContact && !isCabin && !isRoom && !isPlans && (
+              <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+            )}
+
+          {/* Ajusta el margin-left del main content en función del sidebar */}
+          <main
+          className="flex-grow-1"
+          style={{
+            marginLeft: isHomePage ? 0 : isCabin ? 0 : isRoom ? 0 : isPlans ? 0 : isContact ? 0: 
+              (isAuthenticated && (role === "admin" || role === "employee")
+                ? `${collapsed ? "80px" : "256px"}`
+                : 0),
+            transition: "margin-left 0.3s ease",
+            width: isHomePage ? '100%' : isCabin ? '100%' : isContact ? '100%': isRoom ? '100%': isPlans ? '100%': 'auto',
+          }}
+        >
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route
