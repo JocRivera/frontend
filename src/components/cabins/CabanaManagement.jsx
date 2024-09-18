@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Button, Card, Modal, Form, Row, Col } from "react-bootstrap";
 import TableComodidad from "./ComodidadTable"; // Asegúrate de que este componente esté importado correctamente
 import Swal from "sweetalert2"; // Importa la librería de alertas
+import './Cabins.css'
 
 import "./Cabins.css";
 
@@ -199,10 +200,9 @@ const CabanaManagement = () => {
   );
 
   return (
-    <div
-      className="container "
-      style={{ minHeight: "100vh", paddingTop: "60px" }}
-    >
+    <div className="container col p-5 mt-3" style={{ minHeight: "100vh", marginRight : "850px", marginTop  : "50px"}}>
+
+
       <h1>Lista de Cabañas</h1>
       <div
         className="d-flex justify-content-start align-items-center mb-2"

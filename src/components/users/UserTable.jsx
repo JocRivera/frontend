@@ -108,7 +108,9 @@ const UserTable = () => {
   };
 
   return (
-    <div className="container" style={{ minHeight: "100vh", paddingTop: "60px" }}>
+    <div className="container col p-5 mt-3" style={{ minHeight: "100vh", marginRight : "850px", marginTop  : "50px"}}>
+
+
       <h1>Lista de Usuarios</h1>
       <div className="d-flex justify-content-between align-items-center mb-2">
         <Form className="d-flex mb-3" onSubmit={handleSearch}>

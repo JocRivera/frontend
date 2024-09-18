@@ -1,7 +1,7 @@
 import React from 'react';
 import { Container } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import './NotFound.css'; // Importar el archivo CSS
+import '../styles/NotFound.css'; // Importar el archivo CSS
 
 const NotFound = () => {
   const navigate = useNavigate();

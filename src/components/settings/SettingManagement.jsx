@@ -107,7 +107,7 @@ const SettingManagement = () => {
     const filteredSettings = settings.filter(setting => setting.name.toLowerCase().includes(query.toLowerCase()));
 
     return (
-        <div className='container col p-5 mt-3'>
+        <div className='container col p-5 mt-3'  style={{ minHeight: "100vh", marginRight : "850px", marginTop  : "50px"}}>
             <h2 className='text-center'>Configuracion roles</h2>
             <div className="d-flex justify-content-between align-items-center  "  style={{ gap: '800px' }}>
                 <Form className="d-flex mb-3" onSubmit={handleSearch}>
