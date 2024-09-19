@@ -652,7 +652,7 @@ const PlanManagement = () => {
                           <td>{service.price}</td>
                           <td>{service.total}</td>
                           <td>
-                            <FaTrash style={{ cursor: "pointer" }} onClick={() => handleRemoveService(index, true)} />
+                            <FaTrash style={{ cursor: "pointer" }} onClick={() => handleRemoveService(index, false)} />
                           </td>
                         </tr>
                       ))}
@@ -686,7 +686,7 @@ const PlanManagement = () => {
                           <td>{accommodation.price}</td>
                           <td>{accommodation.capacity}</td>
                           <td>
-                            <FaTrash style={{ cursor: "pointer" }} onClick={() => handleRemoveAccommodation(index, true)} />
+                            <FaTrash style={{ cursor: "pointer" }} onClick={() => handleRemoveAccommodation(index, false)} />
                           </td>
                         </tr>
                       ))}
