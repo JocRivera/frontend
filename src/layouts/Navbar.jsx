@@ -21,7 +21,7 @@ const Navbarx = ({ collapsed }) => {
   const isCabin = location.pathname === "/listcabins";
   const isRoom = location.pathname === "/listrooms";
   const isPlans = location.pathname === "/viewsplans";
-  const isMyReservation = location.pathname === "/myreservation";
+  const isMyReservation = location.pathname === "/myreservations";
 
   return (
     <>
