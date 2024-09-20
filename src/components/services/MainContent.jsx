@@ -232,9 +232,9 @@ const MainContent = () => {
                 </thead>
                 <tbody>
                     {filteredServices.length > 0 ? (
-                        filteredServices.map((service) => (
+                        filteredServices.map((service, index) => (
                             <tr key={service._id}>
-                                <td>{service._id}</td>
+                                <td>{index + 1}</td>
                                 <td>{service.service}</td>
                                 <td>{service.description}</td>
                                 <td>{service.price}</td>
