@@ -21,18 +21,19 @@ const Navbarx = ({ collapsed }) => {
   const isCabin = location.pathname === "/listcabins";
   const isRoom = location.pathname === "/listrooms";
   const isPlans = location.pathname === "/viewsplans";
+  const isMyReservation = location.pathname === "/myreservation";
 
   return (
     <>
       <Navbar
-      expand="lg"
-      className={`navbar ${collapsed && !isHomePage && !isContact && !isCabin && !isRoom && !isPlans ? "collapsed-navbar" : "expanded-navbar"}`}
-      style={{
-        transition: "margin-left 0.3s ease",
-        marginLeft: isHomePage || isCabin || isContact || isRoom || isPlans ? "0" : (collapsed ? "80px" : "256px"),
-        width: isHomePage || isCabin || isContact || isRoom || isPlans ? "100%" : "auto"
-      }}
-    >
+        expand="lg"
+        className={`navbar ${collapsed && !isHomePage && !isContact && !isCabin && !isRoom && !isPlans && !isMyReservation ? "collapsed-navbar" : "expanded-navbar"}`}
+        style={{
+          transition: "margin-left 0.3s ease",
+          marginLeft: isHomePage || isCabin || isContact || isRoom || isPlans || isMyReservation ? "0" : (collapsed ? "80px" : "256px"),
+          width: isHomePage || isCabin || isContact || isRoom || isPlans || isMyReservation ? "100%" : "auto"
+        }}
+      >
         <Container>
           {/* Sección Izquierda: Logo */}
           <Navbar.Brand href="/" className="brand">
@@ -47,6 +48,7 @@ const Navbarx = ({ collapsed }) => {
                 <Nav.Link href="/listcabins">Cabañas</Nav.Link>
                 <Nav.Link href="/listrooms">Habitaciones</Nav.Link>
                 <Nav.Link href="/viewsplans">Planes</Nav.Link>
+                <Nav.Link href="/myreservations">Mis reservas</Nav.Link>
               </>
             )}
           </Nav>
