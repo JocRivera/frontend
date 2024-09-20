@@ -168,20 +168,31 @@ const SettingManagement = () => {
 
     const handleSettingStatus = async (_id) => {
         try {
-            const settingToUpdate = settings.find(s => s._id === _id);
-            const updatedStatus = !settingToUpdate.status;
-            await axios.patch(`http://localhost:3000/rol/${_id}`, { status: updatedStatus });
-            const updatedSettings = settings.map(setting =>
-                setting._id === _id ? { ...setting, status: updatedStatus } : setting
-            );
-            setSettings(updatedSettings);
-            Swal.fire({
-                title: "Success!",
-                text: "Status changed successfully!",
-                icon: "success",
-                timer: 2000,
-                showConfirmButton: false,
+            // Mostrar alerta de confirmación y esperar la respuesta
+            const confirm = await Swal.fire({
+                title: "¿Desea cambiar el estado del rol?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Confirmar",
+                cancelButtonText: "Cancelar",
             });
+
+            if (confirm.isConfirmed) {
+                const settingToUpdate = settings.find(s => s._id === _id);
+                const updatedStatus = !settingToUpdate.status;
+                await axios.patch(`http://localhost:3000/rol/${_id}`, { status: updatedStatus });
+                const updatedSettings = settings.map(setting =>
+                    setting._id === _id ? { ...setting, status: updatedStatus } : setting
+                );
+                setSettings(updatedSettings);
+                Swal.fire({
+                    title: "Success!",
+                    text: "Status changed successfully!",
+                    icon: "success",
+                    timer: 2000,
+                    showConfirmButton: false,
+                });
+            }
         } catch (error) {
             console.error('Error updating role status:', error);
             Swal.fire({
