@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Button, Modal, Form, Table } from 'react-bootstrap';
-
+import React, { useState, useEffect } from 'react';
+import { Table, Button, FormControl, Form, Modal } from 'react-bootstrap';
+import Swal from 'sweetalert2';
 
 // Función para generar una contraseña aleatoria
 const generateRandomPassword = (length = 8) => {
@@ -13,20 +13,8 @@ const generateRandomPassword = (length = 8) => {
     return password;
 };
 
-
-// Función para generar un ID autoincrementable simple
-let nextId = 1; // Mantener el valor del ID a nivel de archivo
-const generateUniqueId = () => {
-    return nextId++;
-};
-
-
-const ClientManagement = () => {
-    const [showModal, setShowModal] = useState(false);
-    const [showDetailModal, setShowDetailModal] = useState(false);
-    const [showEditModal, setShowEditModal] = useState(false);
-    const [clients, setClients] = useState([]);
-    const [newClient, setNewClient] = useState({
+const ClientModal = ({ show, handleClose, handleSave, client }) => {
+    const [formData, setFormData] = useState({
         Identification: '',
         Name: '',
         Email: '',
@@ -34,150 +22,380 @@ const ClientManagement = () => {
         Address: '',
         EPS: '',
         Password: '',
-        Status: ''
+        Status: 'Activo' // Valor por defecto
     });
-    const [currentClient, setCurrentClient] = useState(null);
-    const [editClient, setEditClient] = useState({});
     const [errors, setErrors] = useState({});
-    const [searchTerm, setSearchTerm] = useState('');
 
-
-    const validate = (values) => {
-        const errors = {};
-        if (!values.Identification) errors.Identification = 'Identification es requerido';
-        if (!values.Name) errors.Name = 'Name es requerido';
-        if (!values.Email) {
-            errors.Email = 'Email es requerido';
-        } else if (!/\S+@\S+\.\S+/.test(values.Email)) {
-            errors.Email = 'Email inválido';
-        }
-        if (!values.PhoneNumber) errors.PhoneNumber = 'PhoneNumber es requerido';
-        if (!values.Address) errors.Address = 'Address es requerido';
-        if (!values.EPS) errors.EPS = 'EPS es requerido';
-        if (!values.Status) errors.Status = 'Status es requerido';
-
-
-        return errors;
-    };
-
-
-    const handleChange = (e) => {
-        setNewClient({
-            ...newClient,
-            [e.target.name]: e.target.value
-        });
-    };
-
-
-    const handleEditChange = (e) => {
-        setEditClient({
-            ...editClient,
-            [e.target.name]: e.target.value
-        });
-    };
-
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        const validationErrors = validate(newClient);
-
-
-        if (Object.keys(validationErrors).length === 0) {
-            const password = generateRandomPassword();
-            const clientWithId = { ...newClient, Password: password, Id: generateUniqueId() };
-
-
-            setClients([...clients, clientWithId]);
-            setNewClient({
+    useEffect(() => {
+        if (client) {
+            setFormData({
+                ...client,
+                Password: client.Password || ''
+            });
+        } else {
+            const generatedPassword = generateRandomPassword();
+            setFormData({
                 Identification: '',
                 Name: '',
                 Email: '',
                 PhoneNumber: '',
                 Address: '',
                 EPS: '',
-                Password: '',
-                Status: ''
+                Password: generatedPassword,
+                Status: 'Activo' // Valor por defecto
             });
-            setErrors({});
-            setShowModal(false);
+        }
+        setErrors({});
+    }, [client]);
+
+    const handleInputChange = ({ target: { name, value } }) => {
+        setFormData(prev => ({ ...prev, [name]: value }));
+        validateForm(name, value);
+    };
+
+    const validateForm = (name, value) => {
+        const newErrors = { ...errors };
+        switch (name) {
+            case 'Identification':
+                newErrors.Identification = !value || !/^\d{6,15}$/.test(value)
+                    ? 'Debe ser un número entre 6 y 15 dígitos.'
+                    : '';
+                break;
+            case 'Name':
+                newErrors.Name = !value || !/^[a-zA-Z\s]+$/.test(value)
+                    ? 'El nombre debe contener solo letras y espacios.'
+                    : '';
+                break;
+            case 'Email':
+                newErrors.Email = !value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+                    ? 'Debe ser una dirección de correo electrónico válida.'
+                    : '';
+                break;
+            case 'PhoneNumber':
+                newErrors.PhoneNumber = !value || !/^\d{10,15}$/.test(value)
+                    ? 'Debe ser un número entre 10 y 15 dígitos.'
+                    : '';
+                break;
+            case 'Address':
+                newErrors.Address = !value ? 'La dirección es requerida.' : '';
+                break;
+            case 'EPS':
+                newErrors.EPS = !value ? 'EPS es requerido.' : '';
+                break;
+                case 'Status':
+                    newErrors.Status = !value ? 'El estado es requerido.' : '';
+                    break;
+            // case 'Password':
+            //     newErrors.Password = !value || !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(value)
+            //         ? 'La contraseña debe tener al menos 8 caracteres, incluyendo mayúsculas, minúsculas, números y caracteres especiales.'
+            //         : '';
+            //     break;
+            default:
+                break;
+        }
+        setErrors(newErrors);
+    };
+
+    const isFormValid = () => {
+        return Object.values(formData).every(val => val !== '') &&
+               Object.values(errors).every(error => error === '');
+    };
+
+    const handleSubmit = async () => {
+        if (isFormValid()) {
+            await handleSave(formData);
+            Swal.fire({
+                title: 'Éxito',
+                text: client ? 'Cliente actualizado' : 'Cliente agregado',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            }).then(() => {
+                handleClose();
+            });
         } else {
-            setErrors(validationErrors);
+            Swal.fire({
+                title: 'Error',
+                text: 'Por favor, corrija los errores en el formulario',
+                icon: 'error',
+                timer: 2000,
+                showConfirmButton: false
+            });
         }
     };
-
-
-    const handleViewDetails = (client) => {
-        setCurrentClient(client);
-        setShowDetailModal(true);
-    };
-
-
-    const handleDelete = (clientToDelete) => {
-        setClients(clients.filter(client => client.Id !== clientToDelete.Id));
-    };
-
-
-    const handleEdit = (clientToEdit) => {
-        setEditClient(clientToEdit);
-        setShowEditModal(true);
-    };
-
-
-    const handleEditSubmit = (e) => {
-        e.preventDefault();
-        const validationErrors = validate(editClient);
-
-
-        if (Object.keys(validationErrors).length === 0) {
-            const updatedClients = clients.map(client =>
-                client.Id === editClient.Id ? editClient : client
-            );
-            setClients(updatedClients);
-            setEditClient({});
-            setShowEditModal(false);
-        } else {
-            setErrors(validationErrors);
-        }
-    };
-
-
-    const handleSearchChange = (e) => {
-        setSearchTerm(e.target.value);
-    };
-
-
-    // Filtrar clientes según el término de búsqueda
-    const filteredClients = clients.filter(client =>
-        client.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.Email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
 
     return (
-        <div className="container col p-5 mt-3" style={{ minHeight: "100vh", marginRight : "850px", marginTop  : "50px"}}>
+        <Modal show={show} onHide={handleClose}>
+            <Modal.Header closeButton>
+                <Modal.Title>{client ? 'Editar Cliente' : 'Agregar Cliente'}</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <Form>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Identificación</Form.Label>
+                        <Form.Control
+                            type="text"
+                            name="Identification"
+                            value={formData.Identification}
+                            onChange={handleInputChange}
+                            isInvalid={!!errors.Identification}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {errors.Identification}
+                        </Form.Control.Feedback>
+                    </Form.Group>
 
-        <h1> Lista Clientes</h1>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Nombre</Form.Label>
+                        <Form.Control
+                            type="text"
+                            name="Name"
+                            value={formData.Name}
+                            onChange={handleInputChange}
+                            isInvalid={!!errors.Name}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {errors.Name}
+                        </Form.Control.Feedback>
+                    </Form.Group>
 
-            {/* Barra de búsqueda */}
-            <Form.Control
-                type="text"
-                placeholder="Buscar por nombre o email"
-                value={searchTerm}
-                onChange={handleSearchChange}
-                className="mb-3"
-            />
-            <Button variant="primary" className="mb-3" onClick={() => setShowModal(true)}>
-                Añadir Cliente
-            </Button>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Email</Form.Label>
+                        <Form.Control
+                            type="email"
+                            name="Email"
+                            value={formData.Email}
+                            onChange={handleInputChange}
+                            isInvalid={!!errors.Email}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {errors.Email}
+                        </Form.Control.Feedback>
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                        <Form.Label>Teléfono</Form.Label>
+                        <Form.Control
+                            type="text"
+                            name="PhoneNumber"
+                            value={formData.PhoneNumber}
+                            onChange={handleInputChange}
+                            isInvalid={!!errors.PhoneNumber}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {errors.PhoneNumber}
+                        </Form.Control.Feedback>
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                        <Form.Label>Dirección</Form.Label>
+                        <Form.Control
+                            type="text"
+                            name="Address"
+                            value={formData.Address}
+                            onChange={handleInputChange}
+                            isInvalid={!!errors.Address}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {errors.Address}
+                        </Form.Control.Feedback>
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                        <Form.Label>EPS</Form.Label>
+                        <Form.Control
+                            type="text"
+                            name="EPS"
+                            value={formData.EPS}
+                            onChange={handleInputChange}
+                            isInvalid={!!errors.EPS}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {errors.EPS}
+                        </Form.Control.Feedback>
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                        <Form.Label>Estado</Form.Label>
+                        <Form.Select
+                            name="Status"
+                            value={formData.Status}
+                            onChange={handleInputChange}
+                            isInvalid={!!errors.Status}
+                        >
+                            <option value="Activo">Activo</option>
+                            <option value="Inactivo">Inactivo</option>
+                        </Form.Select>
+                        <Form.Control.Feedback type="invalid">
+                            {errors.Status}
+                        </Form.Control.Feedback>
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                        <Form.Label>Contraseña</Form.Label>
+                        <Form.Control
+                            type="password"
+                            name="Password"
+                            value={formData.Password}
+                            readOnly
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {errors.Password}
+                        </Form.Control.Feedback>
+                    </Form.Group>
+                </Form>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant="secondary" onClick={handleClose}>
+                    Cerrar
+                </Button>
+                <Button variant="primary" onClick={handleSubmit}>
+                    Guardar
+                </Button>
+            </Modal.Footer>
+        </Modal>
+    );
+};
+
+const ClientManagement = () => {
+    const [clients, setClients] = useState([]);
+    const [modalState, setModalState] = useState({
+        showClientModal: false,
+        selectedClient: null,
+        isEditing: false,
+    });
+    const [searchTerm, setSearchTerm] = useState('');
+    const [showDetails, setShowDetails] = useState(false);
+    const [selectedClientDetails, setSelectedClientDetails] = useState(null);
+
+    const saveClient = (client) => {
+        setClients((prevClients) =>
+            client.Id
+                ? prevClients.map((c) => (c.Id === client.Id ? { ...c, ...client } : c))
+                : [...prevClients, { ...client, Id: prevClients.length + 1 }]
+        );
+        setModalState((prevState) => ({
+            ...prevState,
+            showClientModal: false,
+            selectedClient: null,
+            isEditing: false,
+        }));
+    };
+
+    const handleDeleteClient = (client) => {
+        Swal.fire({
+            title: 'Confirmar Eliminación',
+            text: `¿Estás seguro de que deseas eliminar al cliente ${client.Name}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Eliminar',
+            cancelButtonText: 'Cancelar',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const updatedClients = clients.filter((c) => c.Id !== client.Id);
+                setClients(updatedClients);
+                Swal.fire(
+                    'Eliminado',
+                    'El cliente ha sido eliminado.',
+                    'success'
+                );
+            }
+        });
+    };
+
+    const filteredClients = clients.filter((client) =>
+        Object.values(client).some(
+            (field) => field.toString().toLowerCase().includes(searchTerm.toLowerCase())
+        )
+    );
+
+    const toggleClientModal = (client = null) => {
+        if (client) {
+            Swal.fire({
+                title: 'Editar Cliente',
+                text: `Vas a editar al cliente ${client.Name}. ¿Deseas continuar?`,
+                icon: 'info',
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, continuar',
+                cancelButtonText: 'Cancelar',
+                showCancelButton: true,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    setModalState((prevState) => ({
+                        ...prevState,
+                        selectedClient: client,
+                        showClientModal: true,
+                        isEditing: true,
+                    }));
+                }
+            });
+        } else {
+            setModalState((prevState) => ({
+                ...prevState,
+                showClientModal: true,
+                isEditing: false,
+            }));
+        }
+    };
+
+    const handleShowDetails = (client) => {
+        setSelectedClientDetails(client);
+        setShowDetails(true);
+    };
+
+    const handleCloseModal = () => {
+        setModalState((prevState) => ({
+            ...prevState,
+            showClientModal: false,
+            selectedClient: null,
+            isEditing: false,
+        }));
+    };
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        // La búsqueda se realiza en tiempo real, así que no es necesario hacer nada aquí
+    };
+
+    return (
+        <div className="container col p-5 mt-3" style={{ minHeight: "100vh", marginRight: "850px", marginTop: "50px" }}>
+            <h1>Lista de Clientes</h1>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+                <Form className="d-flex mb-3" onSubmit={handleSearch}>
+                    <FormControl
+                        type="search"
+                        placeholder="Buscar..."
+                        className="me-2"
+                        aria-label="Search"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <Button variant="outline-success" type="submit">
+                        Buscar
+                    </Button>
+                </Form>
+
+                <Button
+                    variant="primary"
+                    className="mb-3"
+                    onClick={() => toggleClientModal()}
+                >
+                    Agregar Cliente
+                </Button>
+            </div>
+
             <Table striped bordered hover>
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Name</th>
+                        <th>Nombre</th>
                         <th>Email</th>
-                        <th>Identification</th>
-                        <th>PhoneNumber</th>
-                        <th>Action</th>
+                        <th>Identificación</th>
+                        <th>Teléfono</th>
+                        <th>Acción</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -190,235 +408,70 @@ const ClientManagement = () => {
                                 <td>{client.Identification}</td>
                                 <td>{client.PhoneNumber}</td>
                                 <td>
-                                    <Button variant="info" onClick={() => handleViewDetails(client)}>Detalles</Button>
-                                    <Button variant="warning" onClick={() => handleEdit(client)} className="ms-2">Editar</Button>
-                                    <Button variant="danger" onClick={() => handleDelete(client)} className="ms-2">Eliminar</Button>
+                                    <Button
+                                        variant="warning"
+                                        onClick={() => toggleClientModal(client)}
+                                    >
+                                        Editar
+                                    </Button>{' '}
+                                    <Button
+                                        variant="danger"
+                                        onClick={() => handleDeleteClient(client)}
+                                    >
+                                        Eliminar
+                                    </Button>{' '}
+                                    <Button
+                                        variant="info"
+                                        onClick={() => handleShowDetails(client)}
+                                    >
+                                        Detalles
+                                    </Button>
                                 </td>
                             </tr>
                         ))
                     ) : (
                         <tr>
-                            <td colSpan="6" className="text-center">No se encontraron clientes</td>
+                            <td colSpan="6" className="text-center">
+                                No se encontraron clientes
+                            </td>
                         </tr>
                     )}
                 </tbody>
             </Table>
 
+            <ClientModal
+                show={modalState.showClientModal}
+                handleClose={handleCloseModal}
+                client={modalState.selectedClient}
+                handleSave={saveClient}
+            />
 
-            {/* Modal para añadir cliente */}
-            <Modal show={showModal} onHide={() => setShowModal(false)}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Añadir Cliente</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Form onSubmit={handleSubmit}>
-                        <Form.Group className="mb-3" controlId="formIdentification">
-                            <Form.Label>Identification</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="Identification"
-                                value={newClient.Identification}
-                                onChange={handleChange}
-                                isInvalid={!!errors.Identification}
-                            />
-                            <Form.Control.Feedback type="invalid">{errors.Identification}</Form.Control.Feedback>
-                        </Form.Group>
-                        <Form.Group className="mb-3" controlId="formName">
-                            <Form.Label>Name</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="Name"
-                                value={newClient.Name}
-                                onChange={handleChange}
-                                isInvalid={!!errors.Name}
-                            />
-                            <Form.Control.Feedback type="invalid">{errors.Name}</Form.Control.Feedback>
-                        </Form.Group>
-                        <Form.Group className="mb-3" controlId="formEmail">
-                            <Form.Label>Email</Form.Label>
-                            <Form.Control
-                                type="email"
-                                name="Email"
-                                value={newClient.Email}
-                                onChange={handleChange}
-                                isInvalid={!!errors.Email}
-                            />
-                            <Form.Control.Feedback type="invalid">{errors.Email}</Form.Control.Feedback>
-                        </Form.Group>
-                        <Form.Group className="mb-3" controlId="formPhoneNumber">
-                            <Form.Label>PhoneNumber</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="PhoneNumber"
-                                value={newClient.PhoneNumber}
-                                onChange={handleChange}
-                                isInvalid={!!errors.PhoneNumber}
-                            />
-                            <Form.Control.Feedback type="invalid">{errors.PhoneNumber}</Form.Control.Feedback>
-                        </Form.Group>
-                        <Form.Group className="mb-3" controlId="formAddress">
-                            <Form.Label>Address</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="Address"
-                                value={newClient.Address}
-                                onChange={handleChange}
-                                isInvalid={!!errors.Address}
-                            />
-                            <Form.Control.Feedback type="invalid">{errors.Address}</Form.Control.Feedback>
-                        </Form.Group>
-                        <Form.Group className="mb-3" controlId="formEPS">
-                            <Form.Label>EPS</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="EPS"
-                                value={newClient.EPS}
-                                onChange={handleChange}
-                                isInvalid={!!errors.EPS}
-                            />
-                            <Form.Control.Feedback type="invalid">{errors.EPS}</Form.Control.Feedback>
-                        </Form.Group>
-                        <Form.Group className="mb-3" controlId="formStatus">
-                            <Form.Label>Status</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="Status"
-                                value={newClient.Status}
-                                onChange={handleChange}
-                                isInvalid={!!errors.Status}
-                            />
-                            <Form.Control.Feedback type="invalid">{errors.Status}</Form.Control.Feedback>
-                        </Form.Group>
-                        <Button variant="primary" type="submit">
-                            Añadir Cliente
-                        </Button>
-                    </Form>
-                </Modal.Body>
-            </Modal>
-
-
-            {/* Modal para ver detalles del cliente */}
-            <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)}>
+            <Modal show={showDetails} onHide={() => setShowDetails(false)}>
                 <Modal.Header closeButton>
                     <Modal.Title>Detalles del Cliente</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    {currentClient ? (
+                    {selectedClientDetails && (
                         <div>
-                            <p><strong>ID:</strong> {currentClient.Id}</p>
-                            <p><strong>Name:</strong> {currentClient.Name}</p>
-                            <p><strong>Email:</strong> {currentClient.Email}</p>
-                            <p><strong>Identification:</strong> {currentClient.Identification}</p>
-                            <p><strong>PhoneNumber:</strong> {currentClient.PhoneNumber}</p>
-                            <p><strong>Address:</strong> {currentClient.Address}</p>
-                            <p><strong>EPS:</strong> {currentClient.EPS}</p>
-                            <p><strong>Status:</strong> {currentClient.Status}</p>
+                            <p><strong>ID:</strong> {selectedClientDetails.Id}</p>
+                            <p><strong>Nombre:</strong> {selectedClientDetails.Name}</p>
+                            <p><strong>Identificación:</strong> {selectedClientDetails.Identification}</p>
+                            <p><strong>Email:</strong> {selectedClientDetails.Email}</p>
+                            <p><strong>Teléfono:</strong> {selectedClientDetails.PhoneNumber}</p>
+                            <p><strong>Dirección:</strong> {selectedClientDetails.Address}</p>
+                            <p><strong>EPS:</strong> {selectedClientDetails.EPS}</p>
+                            <p><strong>Estado:</strong> {selectedClientDetails.Status}</p>
                         </div>
-                    ) : (
-                        <p>No hay detalles disponibles.</p>
                     )}
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowDetailModal(false)}>
+                    <Button variant="secondary" onClick={() => setShowDetails(false)}>
                         Cerrar
                     </Button>
                 </Modal.Footer>
             </Modal>
-
-
-            {/* Modal para editar cliente */}
-            <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Editar Cliente</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Form onSubmit={handleEditSubmit}>
-                        <Form.Group className="mb-3" controlId="formEditIdentification">
-                            <Form.Label>Identification</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="Identification"
-                                value={editClient.Identification}
-                                onChange={handleEditChange}
-                                isInvalid={!!errors.Identification}
-                            />
-                            <Form.Control.Feedback type="invalid">{errors.Identification}</Form.Control.Feedback>
-                        </Form.Group>
-                        <Form.Group className="mb-3" controlId="formEditName">
-                            <Form.Label>Name</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="Name"
-                                value={editClient.Name}
-                                onChange={handleEditChange}
-                                isInvalid={!!errors.Name}
-                            />
-                            <Form.Control.Feedback type="invalid">{errors.Name}</Form.Control.Feedback>
-                        </Form.Group>
-                        <Form.Group className="mb-3" controlId="formEditEmail">
-                            <Form.Label>Email</Form.Label>
-                            <Form.Control
-                                type="email"
-                                name="Email"
-                                value={editClient.Email}
-                                onChange={handleEditChange}
-                                isInvalid={!!errors.Email}
-                            />
-                            <Form.Control.Feedback type="invalid">{errors.Email}</Form.Control.Feedback>
-                        </Form.Group>
-                        <Form.Group className="mb-3" controlId="formEditPhoneNumber">
-                            <Form.Label>PhoneNumber</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="PhoneNumber"
-                                value={editClient.PhoneNumber}
-                                onChange={handleEditChange}
-                                isInvalid={!!errors.PhoneNumber}
-                            />
-                            <Form.Control.Feedback type="invalid">{errors.PhoneNumber}</Form.Control.Feedback>
-                        </Form.Group>
-                        <Form.Group className="mb-3" controlId="formEditAddress">
-                            <Form.Label>Address</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="Address"
-                                value={editClient.Address}
-                                onChange={handleEditChange}
-                                isInvalid={!!errors.Address}
-                            />
-                            <Form.Control.Feedback type="invalid">{errors.Address}</Form.Control.Feedback>
-                        </Form.Group>
-                        <Form.Group className="mb-3" controlId="formEditEPS">
-                            <Form.Label>EPS</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="EPS"
-                                value={editClient.EPS}
-                                onChange={handleEditChange}
-                                isInvalid={!!errors.EPS}
-                            />
-                            <Form.Control.Feedback type="invalid">{errors.EPS}</Form.Control.Feedback>
-                        </Form.Group>
-                        <Form.Group className="mb-3" controlId="formEditStatus">
-                            <Form.Label>Status</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="Status"
-                                value={editClient.Status}
-                                onChange={handleEditChange}
-                                isInvalid={!!errors.Status}
-                            />
-                            <Form.Control.Feedback type="invalid">{errors.Status}</Form.Control.Feedback>
-                        </Form.Group>
-                        <Button variant="primary" type="submit">
-                            Guardar Cambios
-                        </Button>
-                    </Form>
-                </Modal.Body>
-            </Modal>
         </div>
     );
 };
-
 
 export default ClientManagement;
