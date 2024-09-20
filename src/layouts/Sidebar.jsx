@@ -6,12 +6,12 @@ import { MenuUnfoldOutlined, MenuFoldOutlined } from '@ant-design/icons';
 import { MdDashboard, MdRoomService, MdBeachAccess } from 'react-icons/md';
 import { GiWoodCabin, GiBed } from 'react-icons/gi';
 import { IoSettingsSharp } from 'react-icons/io5';
-import './Sidebar.css'; 
+import './Sidebar.css';
 
 const { Sider } = Layout;
 
 const menuItems = [
-    { key: '1', icon: <MdDashboard size={24} />, label: <Link to="/">Dashboard</Link> },
+    { key: '1', icon: <MdDashboard size={24} />, label: <Link to="/dashboard">Dashboard</Link> },
     { key: '2', icon: <MdRoomService size={24} />, label: <Link to="/services">Servicios</Link> },
     { key: '3', icon: <FaUsers size={24} />, label: <Link to="/users">Usuarios</Link> },
     { key: '4', icon: <FaUsersBetweenLines size={24} />, label: <Link to="/clients">Clientes</Link> },
