@@ -203,7 +203,7 @@ const MainContent = () => {
         <div className='container col p-5 mt-3' style={{ minHeight: "100vh", marginRight: "900px", marginTop: "50px" }}>
             {/* Barra de búsqueda */}
             <h2 className='text-center'>Servicios</h2>
-            <div>
+            <div className="d-flex justify-content-between align-items-center" style={{ gap: '800px' }}>
                 <Form className="d-flex mb-3" onSubmit={handleSearch}>
                     <FormControl
                         type="search"
@@ -216,7 +216,7 @@ const MainContent = () => {
                     <Button variant="outline-success" type="submit">Buscar</Button>
                 </Form>
                 <Button variant="primary" className="mb-3" onClick={() => setShowModal(true)}>
-                    Añadir Servicio
+                    Añadir
                 </Button>
             </div>
             <Table striped bordered hover>

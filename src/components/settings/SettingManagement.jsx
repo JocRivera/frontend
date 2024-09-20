@@ -214,7 +214,7 @@ const SettingManagement = () => {
                     />
                     <Button variant="outline-success" type="submit">Buscar</Button>
                 </Form>
-                <Button className='mb-3' onClick={() => setShowModal(true)}>Añadir rol</Button>
+                <Button className='mb-3' onClick={() => setShowModal(true)}>Añadir</Button>
             </div>
 
             <Table striped bordered hover>
