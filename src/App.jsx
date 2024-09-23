@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import DashboardManagement from "./components/dashboard/DashboardManagement";
 import MainContent from "./components/services/MainContent";
 import ClientManagement from "./components/clients/ClientManagement";
 import UserTable from "./components/users/UserTable";
@@ -17,7 +18,8 @@ import { useAuth } from "./components/utils/auth/AuthContext";
 import Sidebar from "./layouts/Sidebar";
 import Listcabins from "./components/cabins/viwescabins";
 import Listrooms from "./components/rooms/viwesRooms";
-
+//vista cliente
+import Myreservations from "./components/pages/Myreservations.jsx"; 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 
@@ -33,7 +35,7 @@ function App() {
   return (
     <BrowserRouter>
       <div className="min-vh-100 min-vw-100 overflow-hidden">
-        <Navbarx collapsed={collapsed} isHomePage={isHomePage} isContact={isContact} isCabin={isCabin} isRoom={isRoom} isPlans={isPlans}/>
+        <Navbarx collapsed={collapsed} isHomePage={isHomePage} isContact={isContact} isCabin={isCabin} isRoom={isRoom} isPlans={isPlans} />
         <div className="d-flex">
           {isAuthenticated &&
             (role === "admin" || role === "employee") &&
@@ -43,16 +45,16 @@ function App() {
 
           {/* Ajusta el margin-left del main content en función del sidebar */}
           <main
-          className="flex-grow-1"
-          style={{
-            marginLeft: isHomePage ? 0 : isCabin ? 0 : isRoom ? 0 : isPlans ? 0 : isContact ? 0: 
-              (isAuthenticated && (role === "admin" || role === "employee")
-                ? `${collapsed ? "80px" : "256px"}`
-                : 0),
-            transition: "margin-left 0.3s ease",
-            width: isHomePage ? '100%' : isCabin ? '100%' : isContact ? '100%': isRoom ? '100%': isPlans ? '100%': 'auto',
-          }}
-        >
+            className="flex-grow-1"
+            style={{
+              marginLeft: isHomePage ? 0 : isCabin ? 0 : isRoom ? 0 : isPlans ? 0 : isContact ? 0 :
+                (isAuthenticated && (role === "admin" || role === "employee")
+                  ? `${collapsed ? "80px" : "256px"}`
+                  : 0),
+              transition: "margin-left 0.3s ease",
+              width: isHomePage ? '100%' : isCabin ? '100%' : isContact ? '100%' : isRoom ? '100%' : isPlans ? '100%' : 'auto',
+            }}
+          >
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route
@@ -61,6 +63,15 @@ function App() {
                   <PrivateRoute
                     allowedRoles={["admin", "employee", "client"]}
                     element={<ProfilePage />}
+                  />
+                }
+              />
+              <Route
+                path="/dashboard"
+                element={
+                  <PrivateRoute
+                    allowedRoles={["admin", "employee"]}
+                    element={<DashboardManagement />}
                   />
                 }
               />
@@ -138,6 +149,7 @@ function App() {
               />
               <Route path="/listcabins" element={<Listcabins />} />
               <Route path="/listrooms" element={<Listrooms />} />
+              <Route path="/myreservations" element={<Myreservations />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Table, FormControl, Modal, InputGroup, Alert } from 'react-bootstrap';
 import ReservationForm from '../pages/ReservationForm';
-import CompanionsForm from '../pages/companionsForm';
+import CompanionsForm from '../pages/CompanionsForm';
 import PaymentsForm from '../pages/PaymentsForm';
 import 'bootstrap-icons/font/bootstrap-icons.css'; // Import Bootstrap Icons
 
@@ -17,26 +17,26 @@ const Reservations = () => {
     {
       id: 1,
       code: 'R001',
-      startDate: '2024-08-01',
-      endDate: '2024-08-05',
+      startDate: '2024-08-01T12:00',
+      endDate: '2024-08-05T12:00',
       status: 'Reservado',
       typeOfDocument: 'CC',
       documentNumber: '123456789',
       clientName: 'Juan Pérez',
-      companions: [], // Acompañantes
-      payments: [] // Pagos
+      companions: [],
+      payments: []
     },
     {
       id: 2,
       code: 'R002',
-      startDate: '2024-08-10',
-      endDate: '2024-08-12',
+      startDate: '2024-08-10T12:00',
+      endDate: '2024-08-12T12:00',
       status: 'Confirmado',
       typeOfDocument: 'TI',
       documentNumber: '987654321',
       clientName: 'Ana Gómez',
-      companions: [], // Acompañantes
-      payments: [] // Pagos
+      companions: [],
+      payments: []
     }
   ]);
   const [filteredReservations, setFilteredReservations] = useState(reservations);
@@ -97,6 +97,13 @@ const Reservations = () => {
     }
   };
 
+  const handleChangeReservation = (name, value) => {
+    setSelectedReservation(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   const handleCloseModals = () => {
     setShowAddModal(false);
     setShowEditModal(false);
@@ -105,7 +112,7 @@ const Reservations = () => {
   };
 
   return (
-    <div className="container col p-5 mt-3"  style={{ minHeight: "100vh", marginRight : "850px", marginTop  : "50px"}}>
+    <div className="container col p-5 mt-3" style={{ minHeight: "100vh", marginRight: "850px", marginTop: "50px" }}>
       {alert && (
         <Alert variant={alert.type} onClose={() => setAlert(null)} dismissible>
           {alert.message}
@@ -178,117 +185,110 @@ const Reservations = () => {
       {/* Modal para agregar reserva */}
       <Modal show={showAddModal} onHide={handleCloseModals} size="lg">
         <Modal.Header closeButton>
-          <Modal.Title>Registrar Reserva</Modal.Title>
+          <Modal.Title>Agregar Reserva</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <ReservationForm
-            onChange={(e) => {
-              const { name, value } = e.target;
-              setSelectedReservation(prev => ({
-                ...prev,
-                [name]: value
-              }));
-            }}
+            reservation={selectedReservation || {}}
+            onChange={handleChangeReservation}
           />
           <CompanionsForm
             companions={companions}
-            onAdd={companion => setCompanions([...companions, companion])}
-            onDelete={id => setCompanions(companions.filter(comp => comp.id !== id))}
+            onAdd={(companion) => setCompanions([...companions, { ...companion, id: generateId() }])}
+            onDelete={(id) => setCompanions(companions.filter(comp => comp.id !== id))}
           />
           <PaymentsForm
             payments={payments}
-            onAdd={payment => setPayments([...payments, payment])}
-            onDelete={id => setPayments(payments.filter(pay => pay.id !== id))}
+            onAdd={(payment) => setPayments([...payments, { ...payment, id: generateId() }])}
+            onDelete={(id) => setPayments(payments.filter(payment => payment.id !== id))}
           />
-          <Button
-            variant="primary"
-            onClick={() => handleAddReservation(selectedReservation)}
-          >
-            Agregar Reserva
-          </Button>
         </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseModals}>
+            Cancelar
+          </Button>
+          <Button variant="primary" onClick={() => handleAddReservation(selectedReservation)}>
+            Guardar
+          </Button>
+        </Modal.Footer>
       </Modal>
 
       {/* Modal para editar reserva */}
-      <Modal show={showEditModal} onHide={handleCloseModals} size="lg">
+      <Modal show={showEditModal} onHide={handleCloseModals}>
         <Modal.Header closeButton>
           <Modal.Title>Editar Reserva</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {selectedReservation && (
-            <div>
-              <ReservationForm
-                reservation={selectedReservation}
-                onChange={(e) => {
-                  const { name, value } = e.target;
-                  setSelectedReservation(prev => ({
-                    ...prev,
-                    [name]: value
-                  }));
-                }}
-              />
-              <CompanionsForm
-                companions={companions}
-                onAdd={companion => setCompanions([...companions, companion])}
-                onDelete={id => setCompanions(companions.filter(comp => comp.id !== id))}
-              />
-              <PaymentsForm
-                payments={payments}
-                onAdd={payment => setPayments([...payments, payment])}
-                onDelete={id => setPayments(payments.filter(pay => pay.id !== id))}
-              />
-              <Button
-                variant="primary"
-                onClick={handleUpdateReservation}
-              >
-                Actualizar Reserva
-              </Button>
-            </div>
-          )}
+          <ReservationForm
+            reservation={selectedReservation || {}}
+            onChange={handleChangeReservation}
+          />
+          <CompanionsForm
+            companions={companions}
+            onAdd={(companion) => setCompanions([...companions, { ...companion, id: generateId() }])}
+            onDelete={(id) => setCompanions(companions.filter(comp => comp.id !== id))}
+          />
+          <PaymentsForm
+            payments={payments}
+            onAdd={(payment) => setPayments([...payments, { ...payment, id: generateId() }])}
+            onDelete={(id) => setPayments(payments.filter(payment => payment.id !== id))}
+          />
         </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseModals}>
+            Cancelar
+          </Button>
+          <Button variant="primary" onClick={handleUpdateReservation}>
+            Guardar Cambios
+          </Button>
+        </Modal.Footer>
       </Modal>
 
-      {/* Modal para ver detalle de la reserva */}
-      <Modal show={showDetailModal} onHide={handleCloseModals} size="lg">
+      {/* Modal para ver detalles */}
+      <Modal show={showDetailModal} onHide={handleCloseModals}>
         <Modal.Header closeButton>
-          <Modal.Title>Detalles de Reserva</Modal.Title>
+          <Modal.Title>Detalles de la Reserva</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {selectedReservation && (
             <div>
-              <h4>Código: {selectedReservation.code}</h4>
-              <p><strong>Fecha Inicio:</strong> {selectedReservation.startDate}</p>
-              <p><strong>Fecha Fin:</strong> {selectedReservation.endDate}</p>
-              <p><strong>Estado:</strong> {selectedReservation.status}</p>
-              <p><strong>Tipo de Documento:</strong> {selectedReservation.typeOfDocument}</p>
-              <p><strong>Número de Documento:</strong> {selectedReservation.documentNumber}</p>
-              <p><strong>Nombre del Cliente:</strong> {selectedReservation.clientName}</p>
-
+              <h5>Datos de la Reserva</h5>
+              <p>Código: {selectedReservation.code}</p>
+              <p>Fecha de Inicio: {new Date(selectedReservation.startDate).toLocaleString()}</p>
+              <p>Fecha de Fin: {new Date(selectedReservation.endDate).toLocaleString()}</p>
+              <p>Estado: {selectedReservation.status}</p>
+              <p>Tipo Documento: {selectedReservation.typeOfDocument}</p>
+              <p>Número Documento: {selectedReservation.documentNumber}</p>
+              <p>Nombre Cliente: {selectedReservation.clientName}</p>
               <h5>Acompañantes</h5>
               <ul>
-                {companions.map((companion, index) => (
-                  <li key={index}>{companion.name} - {companion.age} años</li>
+                {companions.map(companion => (
+                  <li key={companion.id}>
+                    {companion.name} - {companion.documentNumber}
+                  </li>
                 ))}
               </ul>
-
               <h5>Pagos</h5>
               <ul>
-                {payments.map((payment, index) => (
-                  <li key={index}>
-                    {payment.amount} - {payment.date} - {payment.status}
+                {payments.map(payment => (
+                  <li key={payment.id}>
+                    ${payment.amount} - {payment.date} - {payment.status}
                   </li>
                 ))}
               </ul>
             </div>
           )}
         </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseModals}>
+            Cerrar
+          </Button>
+        </Modal.Footer>
       </Modal>
     </div>
   );
 };
 
-// Función para generar ID único (por simplicidad)
-const generateId = () => '_' + Math.random().toString(36).substr(2, 9);
+const generateId = () => Math.floor(Math.random() * 10000);
 
 export default Reservations;
-

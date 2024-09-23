@@ -1,7 +1,7 @@
 import React from 'react';
-import { Modal, Button } from 'react-bootstrap';
+import { Modal, Button, Form } from 'react-bootstrap';
 import ReservationForm from './ReservationForm';
-import CompanionsForm from './CompanionsForm';
+import CompanionsForm from './companionsForm';
 import PaymentsForm from './PaymentsForm';
 
 const ReservationModal = ({
@@ -14,10 +14,11 @@ const ReservationModal = ({
     payments,
     setPayments,
     mode,
+    onSave,
     onDelete
 }) => {
-    const handleReservationChange = (e) => {
-        setReservation({ ...reservation, [e.target.name]: e.target.value });
+    const handleReservationChange = (name, value) => {
+        setReservation(prev => ({ ...prev, [name]: value }));
     };
 
     const handleAddCompanion = (companion) => {
@@ -37,8 +38,9 @@ const ReservationModal = ({
     };
 
     const handleSave = () => {
-        // Aquí puedes agregar la lógica para guardar la reserva
-        // Por ejemplo, enviar la reserva actualizada a un servidor
+        // Actualiza la reserva con los acompañantes y pagos actuales
+        const updatedReservation = { ...reservation, companions, payments };
+        onSave(updatedReservation); // Pasar la reserva actualizada al componente padre
         onHide();
     };
 
@@ -48,7 +50,7 @@ const ReservationModal = ({
     };
 
     return (
-        <Modal show={show} onHide={onHide} size="lg" centered>
+        <Modal show={show} onHide={onHide} size="xl" centered>
             <Modal.Header closeButton>
                 <Modal.Title>
                     {mode === 'view' ? 'Detalle de la Reserva' : mode === 'edit' ? 'Editar Reserva' : 'Eliminar Reserva'}
@@ -59,13 +61,22 @@ const ReservationModal = ({
                     {mode === 'view' ? (
                         <div>
                             <h5>Detalles de la Reserva</h5>
-                            <p><strong>Código:</strong> {reservation?.code}</p>
-                            <p><strong>Fecha de Inicio:</strong> {reservation?.startDate}</p>
-                            <p><strong>Fecha de Fin:</strong> {reservation?.endDate}</p>
-                            <p><strong>Estado:</strong> {reservation?.status}</p>
-                            <p><strong>Tipo de Documento:</strong> {reservation?.typeOfDocument}</p>
-                            <p><strong>Número del Documento:</strong> {reservation?.documentNumber}</p>
-                            <p><strong>Nombre del Cliente:</strong> {reservation?.clientName}</p>
+                            <dl className="row">
+                                <dt className="col-sm-4">Código:</dt>
+                                <dd className="col-sm-8">{reservation?.code}</dd>
+                                <dt className="col-sm-4">Fecha de Inicio:</dt>
+                                <dd className="col-sm-8">{reservation?.startDate}</dd>
+                                <dt className="col-sm-4">Fecha de Fin:</dt>
+                                <dd className="col-sm-8">{reservation?.endDate}</dd>
+                                <dt className="col-sm-4">Estado:</dt>
+                                <dd className="col-sm-8">{reservation?.status}</dd>
+                                <dt className="col-sm-4">Tipo de Documento:</dt>
+                                <dd className="col-sm-8">{reservation?.typeOfDocument}</dd>
+                                <dt className="col-sm-4">Número del Documento:</dt>
+                                <dd className="col-sm-8">{reservation?.documentNumber}</dd>
+                                <dt className="col-sm-4">Nombre del Cliente:</dt>
+                                <dd className="col-sm-8">{reservation?.clientName}</dd>
+                            </dl>
                             <h6>Acompañantes</h6>
                             <ul>
                                 {companions.map((comp) => (

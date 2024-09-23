@@ -1,26 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import * as BsIcons from "react-icons/bs";
 import { Button, Modal, Form, Table } from 'react-bootstrap';
 import Swal from 'sweetalert2';
-
-let nextId = 1;
-const generateUniqueId = () => {
-    return nextId++;
-};
+import axios from 'axios';
 
 const SettingManagement = () => {
     const [showModal, setShowModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [editSetting, setEditSetting] = useState({ id: '', name: '', description: '', status: true });
+    const [editSetting, setEditSetting] = useState({ id: '', rol: '', description: '', permissions: [], status: true });
     const [settings, setSettings] = useState([]);
-    const [newSetting, setNewSetting] = useState({ name: '', description: '', status: true });
+    const [newSetting, setNewSetting] = useState({ rol: '', description: '', permissions: [], status: true });
     const [query, setQuery] = useState('');
-    const [errors, setErrors] = useState({ name: '', description: '' });
+    const [errors, setErrors] = useState({ rol: '', description: '' });
+    const [permissions, setPermissions] = useState([]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [rolesResponse, permissionsResponse] = await Promise.all([
+                    axios.get('http://localhost:3000/rol'),
+                    axios.get('http://localhost:3000/permission')
+                ]);
+                setSettings(rolesResponse.data);
+                setPermissions(permissionsResponse.data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        };
+        fetchData();
+    }, [newSetting]);
 
     const validate = (values) => {
         const errors = {}
-        if (!values.name) {
-            errors.name = 'Name is required';
+        if (!values.rol) {
+            errors.rol = 'Name is required';
         }
         if (!values.description) {
             errors.description = 'Description is required';
@@ -36,52 +49,88 @@ const SettingManagement = () => {
         setEditSetting({ ...editSetting, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handlePermissionChange = (permissionId, isChecked, isNewSetting = true) => {
+        if (isNewSetting) {
+            setNewSetting(prev => ({
+                ...prev,
+                permissions: isChecked
+                    ? [...prev.permissions, permissionId]
+                    : prev.permissions.filter(id => id !== permissionId)
+            }));
+        } else {
+            setEditSetting(prev => ({
+                ...prev,
+                permissions: isChecked
+                    ? [...prev.permissions, permissionId]
+                    : prev.permissions.filter(id => id !== permissionId)
+            }));
+        }
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const errors = validate(newSetting);
         if (Object.keys(errors).length) {
             setErrors(errors);
             return;
         }
-        else {
-            Swal.fire({
-                title: "¿Desea agregar este rol?",
-                text: "Revisa que todos los campos esten correctos",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonText: "confirmar",
-                cancelButtonText: "cancelar",
-            }).then((confirm) => {
-                if (confirm.isConfirmed) {
-                    setSettings([...settings, { ...newSetting, id: generateUniqueId() }]);
-                    setNewSetting({ name: '', description: '', status: true });
-                    setShowModal(false);
-                    Swal.fire({
 
-                        title: "Good job!",
-                        text: "You clicked the button!",
-                        icon: "success",
-                        timer: 2000,
-                        showConfirmButton: false,
-                    })
-                }
-                else {
-                    setShowModal(false);
-                }
-            })
+        try {
+            const response = await axios.post('http://localhost:3000/rol', newSetting);
+            setSettings([...settings, response.data]);
+            setNewSetting({ rol: '', description: '', permissions: [], status: true });
+            setShowModal(false);
+            Swal.fire({
+                title: "Success!",
+                text: "New role added successfully!",
+                icon: "success",
+                timer: 2000,
+                showConfirmButton: false,
+            });
+        } catch (error) {
+            console.error('Error adding new role:', error);
+            Swal.fire({
+                title: "Error!",
+                text: "Failed to add new role.",
+                icon: "error",
+                timer: 2000,
+                showConfirmButton: false,
+            });
         }
     };
 
-    const handleEditSubmit = (e) => {
+    const handleEditSubmit = async (e) => {
         e.preventDefault();
         const errors = validate(editSetting);
         if (Object.keys(errors).length) {
             setErrors(errors);
             return;
         }
-        const updatedSettings = settings.map(setting => setting.id === editSetting.id ? editSetting : setting);
-        setSettings(updatedSettings);
-        setShowEditModal(false);
+
+        try {
+            await axios.put(`http://localhost:3000/rol/${editSetting._id}`, editSetting);
+            const updatedSettings = settings.map(setting =>
+                setting._id === editSetting._id ? editSetting : setting
+            );
+            setSettings(updatedSettings);
+            setShowEditModal(false);
+            Swal.fire({
+                title: "Success!",
+                text: "Role updated successfully!",
+                icon: "success",
+                timer: 2000,
+                showConfirmButton: false,
+            });
+        } catch (error) {
+            console.error('Error updating role:', error);
+            Swal.fire({
+                title: "Error!",
+                text: "Failed to update role.",
+                icon: "error",
+                timer: 2000,
+                showConfirmButton: false,
+            });
+        }
     };
 
     const handleEdit = (setting) => {
@@ -89,45 +138,101 @@ const SettingManagement = () => {
         setShowEditModal(true);
     };
 
-    const handleDelete = (setting) => {
-        const updatedSettings = settings.filter(s => s.id !== setting.id);
-        setSettings(updatedSettings);
+    const handleDelete = async (setting) => {
+        try {
+            await axios.delete(`http://localhost:3000/rol/${setting._id}`);
+            const updatedSettings = settings.filter(s => s._id !== setting._id);
+            setSettings(updatedSettings);
+            Swal.fire({
+                title: "Success!",
+                text: "Role deleted successfully!",
+                icon: "success",
+                timer: 2000,
+                showConfirmButton: false,
+            });
+        } catch (error) {
+            console.error('Error deleting role:', error);
+            Swal.fire({
+                title: "Error!",
+                text: "Failed to delete role.",
+                icon: "error",
+                timer: 2000,
+                showConfirmButton: false,
+            });
+        }
     };
 
     const handleSearch = (e) => {
         setQuery(e.target.value);
     };
 
-    const handleSettingStatus = (id) => {
-        const updatedSettings = settings.map(setting =>
-            setting.id === id ? { ...setting, status: !setting.status } : setting);
-        setSettings(updatedSettings);
+    const handleSettingStatus = async (_id) => {
+        try {
+            // Mostrar alerta de confirmación y esperar la respuesta
+            const confirm = await Swal.fire({
+                title: "¿Desea cambiar el estado del rol?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Confirmar",
+                cancelButtonText: "Cancelar",
+            });
+
+            if (confirm.isConfirmed) {
+                const settingToUpdate = settings.find(s => s._id === _id);
+                const updatedStatus = !settingToUpdate.status;
+                await axios.patch(`http://localhost:3000/rol/${_id}`, { status: updatedStatus });
+                const updatedSettings = settings.map(setting =>
+                    setting._id === _id ? { ...setting, status: updatedStatus } : setting
+                );
+                setSettings(updatedSettings);
+                Swal.fire({
+                    title: "Success!",
+                    text: "Status changed successfully!",
+                    icon: "success",
+                    timer: 2000,
+                    showConfirmButton: false,
+                });
+            }
+        } catch (error) {
+            console.error('Error updating role status:', error);
+            Swal.fire({
+                title: "Error!",
+                text: "Failed to update role status.",
+                icon: "error",
+                timer: 2000,
+                showConfirmButton: false,
+            });
+        }
     };
 
-    const filteredSettings = settings.filter(setting => setting.name.toLowerCase().includes(query.toLowerCase()));
+    const filteredSettings = settings.filter(setting =>
+        setting && setting.rol && typeof setting.rol === 'string' &&
+        setting.rol.toLowerCase().includes(query.toLowerCase())
+    );;
 
     return (
-        <div className='container col p-5 mt-3'  style={{ minHeight: "100vh", marginRight : "850px", marginTop  : "50px"}}>
+        <div className='container col p-5 mt-3' style={{ minHeight: "100vh", marginRight: "850px", marginTop: "50px" }}>
             <h2 className='text-center'>Configuracion roles</h2>
-            <div className="d-flex justify-content-between align-items-center  "  style={{ gap: '800px' }}>
-                <Form className="d-flex mb-3" onSubmit={handleSearch}>
-                    <Form.Control type="search"
+            <div className="d-flex justify-content-between align-items-center" style={{ gap: '800px' }}>
+                <Form className="d-flex mb-3" onSubmit={(e) => e.preventDefault()}>
+                    <Form.Control
+                        type="search"
                         placeholder="Buscar..."
                         className='me-2 w-70'
                         aria-label='search'
                         value={query}
-                        onChange={(e) => handleSearch(e)}
+                        onChange={handleSearch}
                     />
                     <Button variant="outline-success" type="submit">Buscar</Button>
                 </Form>
-                <Button className='mb-3' onClick={() => setShowModal(true)}>Añadir rol</Button>
+                <Button className='mb-3' onClick={() => setShowModal(true)}>Añadir</Button>
             </div>
 
             <Table striped bordered hover>
                 <thead>
                     <tr>
                         <th>Id</th>
-                        <th>Name</th>
+                        <th>Rol</th>
                         <th>Description</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -136,27 +241,27 @@ const SettingManagement = () => {
                 <tbody>
                     {filteredSettings.length > 0 ? (
                         filteredSettings.map((setting, index) => (
-                            <tr key={setting.id}>
+                            <tr key={setting._id}>
                                 <td>{index + 1}</td>
-                                <td>{setting.name}</td>
+                                <td>{setting.rol}</td>
                                 <td>{setting.description}</td>
                                 <td>
                                     <Form.Check
                                         type='switch'
-                                        id={`switch-${setting.id}`}
+                                        id={`switch-${setting._id}`}
                                         checked={setting.status}
-                                        onChange={() => handleSettingStatus(setting.id)}
+                                        onChange={() => handleSettingStatus(setting._id)}
                                     />
                                 </td>
                                 <td className='d-flex justify-content-center' style={{ gap: '10px' }} >
-                                    <Button variant="warning" onClick={() => handleEdit(setting)}> <BsIcons.BsPencilFill style={{ marginRight: '5px' }} /></Button>
+                                    <Button variant="warning" onClick={() => handleEdit(setting)}><BsIcons.BsPencilFill style={{ marginRight: '5px' }} /></Button>
                                     <Button variant="danger" onClick={() => handleDelete(setting)}><BsIcons.BsTrash3Fill style={{ marginRight: '5px' }} /></Button>
                                 </td>
                             </tr>
                         ))
                     ) : (
                         <tr>
-                            <td colSpan="5" className="text-center">No se encontraron servicios</td>
+                            <td colSpan="5" className="text-center">No se encontraron roles</td>
                         </tr>
                     )}
                 </tbody>
@@ -170,9 +275,9 @@ const SettingManagement = () => {
                 <Modal.Body>
                     <Form onSubmit={handleSubmit}>
                         <Form.Group>
-                            <Form.Label>Name</Form.Label>
-                            <Form.Control type="text" name="name" value={newSetting.name} onChange={handleChange} />
-                            {errors.name && <span style={{ color: 'red' }}>{errors.name}</span>}
+                            <Form.Label>Rol</Form.Label>
+                            <Form.Control type="text" name="rol" value={newSetting.rol} onChange={handleChange} />
+                            {errors.rol && <span style={{ color: 'red' }}>{errors.rol}</span>}
                         </Form.Group>
                         <Form.Group>
                             <Form.Label>Description</Form.Label>
@@ -181,54 +286,27 @@ const SettingManagement = () => {
                         </Form.Group>
 
                         <Form.Group>
+                            <Form.Label>Permissions</Form.Label>
                             <Table>
                                 <thead>
                                     <tr>
-                                        <th>nombre</th>
-                                        <th>acceso</th>
+                                        <th>Name</th>
+                                        <th>Access</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td>
-                                            Cabañas
-                                        </td>
-                                        <td>
-                                            <Form.Check
-                                            type= 'switch'
-                                            />
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            Habitaciones
-                                        </td>
-                                        <td>
-                                            <Form.Check
-                                            type= 'switch'
-                                            />
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            Clientes
-                                        </td>
-                                        <td>
-                                            <Form.Check
-                                            type= 'switch'
-                                            />
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            Usuarios
-                                        </td>
-                                        <td>
-                                            <Form.Check
-                                            type= 'switch'
-                                            />
-                                        </td>
-                                    </tr>
+                                    {permissions.map((permission) => (
+                                        <tr key={permission._id}>
+                                            <td>{permission.name}</td>
+                                            <td>
+                                                <Form.Check
+                                                    type='switch'
+                                                    checked={newSetting.permissions.includes(permission._id)}
+                                                    onChange={(e) => handlePermissionChange(permission._id, e.target.checked)}
+                                                />
+                                            </td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </Table>
                         </Form.Group>
@@ -254,24 +332,51 @@ const SettingManagement = () => {
             {/* Modal for Editing a Setting */}
             <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Edit Setting</Modal.Title>
+                    <Modal.Title>Edit Role</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Form onSubmit={handleEditSubmit}>
                         <Form.Group>
-                            <Form.Label>Name</Form.Label>
-                            <Form.Control type="text" name="name" value={editSetting.name} onChange={handleEditChange} />
-                            {errors.name && <span style={{ color: 'red' }}>{errors.name}</span>}
+                            <Form.Label>Rol</Form.Label>
+                            <Form.Control type="text" name="rol" value={editSetting.rol} onChange={handleEditChange} />
+                            {errors.rol && <span style={{ color: 'red' }}>{errors.rol}</span>}
                         </Form.Group>
                         <Form.Group>
                             <Form.Label>Description</Form.Label>
                             <Form.Control type="text" name="description" value={editSetting.description} onChange={handleEditChange} />
                             {errors.description && <span style={{ color: 'red' }}>{errors.description}</span>}
                         </Form.Group>
+
+                        <Form.Group>
+                            <Form.Label>Permissions</Form.Label>
+                            <Table>
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Access</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {permissions.map((permission) => (
+                                        <tr key={permission._id}>
+                                            <td>{permission.name}</td>
+                                            <td>
+                                                <Form.Check
+                                                    type='switch'
+                                                    checked={editSetting.permissions.includes(permission._id)}
+                                                    onChange={(e) => handlePermissionChange(permission._id, e.target.checked, false)}
+                                                />
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </Table>
+                        </Form.Group>
+
                         <Form.Group className="mb-3" controlId="formStatus">
                             <Form.Check
                                 type='switch'
-                                label={editSetting.status ? "Activo" : "Inacivo"}
+                                label={editSetting.status ? "Activo" : "Inactivo"}
                                 name="status"
                                 checked={editSetting.status}
                                 onChange={(e) => setEditSetting({
@@ -286,7 +391,6 @@ const SettingManagement = () => {
             </Modal>
         </div>
     );
-
 }
 
 export default SettingManagement;
