@@ -12,6 +12,7 @@ import {
 import { FaUpload, FaTrash, FaEdit, FaClipboardList } from "react-icons/fa";
 import Swal from "sweetalert2";
 import "../../../styles/PlanStyle.css";
+import { parseISO, startOfDay, isBefore } from 'date-fns';
 
 // Función para generar un ID autoincrementable simple
 let nextId = 1;
@@ -34,34 +35,61 @@ const alojamientosQuemados = [
 ];
 
 const PlanManagement = () => {
+  const [plans, setPlans] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showServicesModal, setShowServicesModal] = useState(false);
   const [showAccommodationsModal, setShowAccommodationsModal] = useState(false);
-  const [selectedService, setSelectedService] = useState(null);
-  const [serviceQuantity, setServiceQuantity] = useState(1);
-  const [selectedAccommodation, setSelectedAccommodation] = useState(null);
-  const [plans, setPlans] = useState([]);
   const [newPlan, setNewPlan] = useState({
     name: "",
     description: "",
     startDate: "",
     endDate: "",
-    price: "",
-    salePrice: "",
     capacity: "",
     status: "disponible",
     image: null,
+    price: 0,
+    salePrice: 0,
     services: [],
     accommodations: [],
   });
-  const [editPlan, setEditPlan] = useState({});
+  const [editPlan, setEditPlan] = useState(null);
+  const [selectedService, setSelectedService] = useState(null);
+  const [selectedAccommodation, setSelectedAccommodation] = useState(null);
+  const [serviceQuantity, setServiceQuantity] = useState(1);
+  const [accommodationQuantity, setAccommodationQuantity] = useState(1);
   const [errors, setErrors] = useState({});
   const [touchedFields, setTouchedFields] = useState({});
+
+  const [showEditServiceModal, setShowEditServiceModal] = useState(false);
+  const [showEditAccommodationModal, setShowEditAccommodationModal] = useState(false);
+  const [editingServiceIndex, setEditingServiceIndex] = useState(null);
+  const [editingAccommodationIndex, setEditingAccommodationIndex] = useState(null);
+  const [editingService, setEditingService] = useState(null);
+  const [editingAccommodation, setEditingAccommodation] = useState(null);
+  const [services, setServices] = useState([
+    { id: 1, name: "Service 1", price: 100 },
+    { id: 2, name: "Service 2", price: 200 },
+    { id: 3, name: "Service 3", price: 300 },
+  ]);
+  const [accommodations, setAccommodations] = useState([
+    { id: 1, name: "Accommodation 1", type: "Hotel", price: 500 },
+    { id: 2, name: "Accommodation 2", type: "Hostel", price: 300 },
+    { id: 3, name: "Accommodation 3", type: "Apartment", price: 700 },
+  ]);
+
   const [searchTerm, setSearchTerm] = useState("");
 
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [detailsPlan, setDetailsPlan] = useState({});
+  const calculateTotal = (items) => {
+    return items.reduce((total, item) => total + (item.subtotal || 0), 0);
+  };
+  const updatePlanPrice = (plan) => {
+    const servicesTotal = calculateTotal(plan.services);
+    const accommodationsTotal = calculateTotal(plan.accommodations);
+    return servicesTotal + accommodationsTotal;
+  };
 
   useEffect(() => {
     if (showAddModal) {
@@ -86,19 +114,45 @@ const PlanManagement = () => {
 
   const validate = (values) => {
     const errors = {};
+    // const today = new Date();
+    // today.setHours(0, 0, 0, 0); // Set time to beginning of the day for accurate comparison
+
     if (!values.name) errors.name = "El nombre es requerido";
     if (!values.description) errors.description = "La descripción es requerida";
-    if (!values.startDate) errors.startDate = "La fecha de inicio es requerida";
-    if (!values.endDate) errors.endDate = "La fecha de fin es requerida";
-    if (!values.price) errors.price = "El precio es requerido";
-    if (!values.salePrice) errors.salePrice = "El precio de venta es requerido";
-    if (!values.capacity) errors.capacity = "La capacidad es requerida";
-    if (values.capacity && (parseInt(values.capacity) < 1 || parseInt(values.capacity) > 50)) {
-      errors.capacity = "La capacidad debe estar entre 1 y 50";
+
+    if (!values.startDate) {
+      errors.startDate = "La fecha de inicio es requerida";
+    } else {
+      const startDate = startOfDay(parseISO(values.startDate));
+      const today = startOfDay(new Date());
+      if (isBefore(startDate, today)) {
+        errors.startDate = "La fecha de inicio no puede ser anterior a hoy";
+      }
     }
+
+    if (!values.endDate) errors.endDate = "La fecha de fin es requerida";
+
+    if (!values.price) {
+      errors.price = "El precio es requerido";
+    } else if (isNaN(values.price) || Number(values.price) <= 0) {
+      errors.price = "El precio debe ser un número positivo";
+    }
+
+    if (!values.salePrice) {
+      errors.salePrice = "El precio de venta es requerido";
+    } else if (isNaN(values.salePrice) || Number(values.salePrice) <= 0) {
+      errors.salePrice = "El precio de venta debe ser un número valido";
+    }
+
+    if (!values.capacity) {
+      errors.capacity = "La capacidad es requerida";
+    } else if (isNaN(values.capacity) || parseInt(values.capacity) < 1 || parseInt(values.capacity) > 50) {
+      errors.capacity = "La capacidad debe ser un número entre 1 y 50";
+    }
+
     if (!values.image) errors.image = "La imagen es requerida";
-    // if (values.services.length === 0) errors.services = "Debe agregar al menos un servicio";
-    // if (values.accommodations.length === 0) errors.accommodations = "Debe agregar al menos un alojamiento";
+    if (values.services.length === 0) errors.services = "Debe agregar al menos un servicio";
+
     return errors;
   };
 
@@ -107,18 +161,26 @@ const PlanManagement = () => {
       const newService = {
         ...selectedService,
         quantity: serviceQuantity,
-        total: selectedService.price * serviceQuantity,
+        subtotal: selectedService.price * serviceQuantity,
       };
       if (showAddModal) {
-        setNewPlan((prevPlan) => ({
-          ...prevPlan,
-          services: [...prevPlan.services, newService],
-        }));
+        setNewPlan((prevPlan) => {
+          const updatedPlan = {
+            ...prevPlan,
+            services: [...prevPlan.services, newService],
+          };
+          updatedPlan.price = updatePlanPrice(updatedPlan);
+          return updatedPlan;
+        });
       } else if (showEditModal) {
-        setEditPlan((prevPlan) => ({
-          ...prevPlan,
-          services: [...prevPlan.services, newService],
-        }));
+        setEditPlan((prevPlan) => {
+          const updatedPlan = {
+            ...prevPlan,
+            services: [...prevPlan.services, newService],
+          };
+          updatedPlan.price = updatePlanPrice(updatedPlan);
+          return updatedPlan;
+        });
       }
       setShowServicesModal(false);
       setSelectedService(null);
@@ -127,63 +189,181 @@ const PlanManagement = () => {
   };
 
   const handleAddAccommodation = () => {
-    if (selectedAccommodation) {
+    if (selectedAccommodation && accommodationQuantity > 0) {
+      const newAccommodation = {
+        ...selectedAccommodation,
+        quantity: accommodationQuantity,
+        subtotal: selectedAccommodation.price * accommodationQuantity,
+      };
       if (showAddModal) {
-        setNewPlan((prevPlan) => ({
-          ...prevPlan,
-          accommodations: [...prevPlan.accommodations, selectedAccommodation],
-        }));
+        setNewPlan((prevPlan) => {
+          const updatedPlan = {
+            ...prevPlan,
+            accommodations: [...prevPlan.accommodations, newAccommodation],
+          };
+          updatedPlan.price = updatePlanPrice(updatedPlan);
+          return updatedPlan;
+        });
       } else if (showEditModal) {
-        setEditPlan((prevPlan) => ({
-          ...prevPlan,
-          accommodations: [...prevPlan.accommodations, selectedAccommodation],
-        }));
+        setEditPlan((prevPlan) => {
+          const updatedPlan = {
+            ...prevPlan,
+            accommodations: [...prevPlan.accommodations, newAccommodation],
+          };
+          updatedPlan.price = updatePlanPrice(updatedPlan);
+          return updatedPlan;
+        });
       }
       setShowAccommodationsModal(false);
       setSelectedAccommodation(null);
+      setAccommodationQuantity(1);
     }
   };
 
+  const handleEditService = (index, isEditMode = false) => {
+    const service = isEditMode ? editPlan.services[index] : newPlan.services[index];
+    setEditingService({ ...service });
+    setEditingServiceIndex(index);
+    setShowEditServiceModal(true);
+  };
+
+  const handleEditAccommodation = (index, isEditMode = false) => {
+    const accommodation = isEditMode ? editPlan.accommodations[index] : newPlan.accommodations[index];
+    setEditingAccommodation({ ...accommodation });
+    setEditingAccommodationIndex(index);
+    setShowEditAccommodationModal(true);
+  };
+  const handleSaveEditedService = (isEditMode = false) => {
+    if (editingService) {
+      const updatedService = {
+        ...editingService,
+        subtotal: editingService.price * editingService.quantity,
+      };
+      if (isEditMode) {
+        setEditPlan((prevPlan) => {
+          const updatedServices = [...prevPlan.services];
+          updatedServices[editingServiceIndex] = updatedService;
+          const updatedPlan = {
+            ...prevPlan,
+            services: updatedServices,
+          };
+          updatedPlan.price = updatePlanPrice(updatedPlan);
+          return updatedPlan;
+        });
+      } else {
+        setNewPlan((prevPlan) => {
+          const updatedServices = [...prevPlan.services];
+          updatedServices[editingServiceIndex] = updatedService;
+          const updatedPlan = {
+            ...prevPlan,
+            services: updatedServices,
+          };
+          updatedPlan.price = updatePlanPrice(updatedPlan);
+          return updatedPlan;
+        });
+      }
+      setShowEditServiceModal(false);
+      setEditingService(null);
+      setEditingServiceIndex(null);
+    }
+  };
+
+  const handleSaveEditedAccommodation = (isEditMode = false) => {
+    if (editingAccommodation) {
+      const updatedAccommodation = {
+        ...editingAccommodation,
+        subtotal: editingAccommodation.price * editingAccommodation.quantity,
+      };
+      if (isEditMode) {
+        setEditPlan((prevPlan) => {
+          const updatedAccommodations = [...prevPlan.accommodations];
+          updatedAccommodations[editingAccommodationIndex] = updatedAccommodation;
+          const updatedPlan = {
+            ...prevPlan,
+            accommodations: updatedAccommodations,
+          };
+          updatedPlan.price = updatePlanPrice(updatedPlan);
+          return updatedPlan;
+        });
+      } else {
+        setNewPlan((prevPlan) => {
+          const updatedAccommodations = [...prevPlan.accommodations];
+          updatedAccommodations[editingAccommodationIndex] = updatedAccommodation;
+          const updatedPlan = {
+            ...prevPlan,
+            accommodations: updatedAccommodations,
+          };
+          updatedPlan.price = updatePlanPrice(updatedPlan);
+          return updatedPlan;
+        });
+      }
+      setShowEditAccommodationModal(false);
+      setEditingAccommodation(null);
+      setEditingAccommodationIndex(null);
+    }
+  };
   const handleRemoveService = (index, isEditMode = false) => {
     if (isEditMode) {
-      setEditPlan((prevPlan) => ({
-        ...prevPlan,
-        services: prevPlan.services.filter((_, i) => i !== index),
-      }));
+      setEditPlan((prevPlan) => {
+        const updatedServices = prevPlan.services.filter((_, i) => i !== index);
+        const updatedPlan = {
+          ...prevPlan,
+          services: updatedServices,
+        };
+        updatedPlan.price = updatePlanPrice(updatedPlan);
+        return updatedPlan;
+      });
     } else {
-      setNewPlan((prevPlan) => ({
-        ...prevPlan,
-        services: prevPlan.services.filter((_, i) => i !== index),
-      }));
+      setNewPlan((prevPlan) => {
+        const updatedServices = prevPlan.services.filter((_, i) => i !== index);
+        const updatedPlan = {
+          ...prevPlan,
+          services: updatedServices,
+        };
+        updatedPlan.price = updatePlanPrice(updatedPlan);
+        return updatedPlan;
+      });
     }
   };
 
   const handleRemoveAccommodation = (index, isEditMode = false) => {
     if (isEditMode) {
-      setEditPlan((prevPlan) => ({
-        ...prevPlan,
-        accommodations: prevPlan.accommodations.filter((_, i) => i !== index),
-      }));
+      setEditPlan((prevPlan) => {
+        const updatedAccommodations = prevPlan.accommodations.filter((_, i) => i !== index);
+        const updatedPlan = {
+          ...prevPlan,
+          accommodations: updatedAccommodations,
+        };
+        updatedPlan.price = updatePlanPrice(updatedPlan);
+        return updatedPlan;
+      });
     } else {
-      setNewPlan((prevPlan) => ({
-        ...prevPlan,
-        accommodations: prevPlan.accommodations.filter((_, i) => i !== index),
-      }));
+      setNewPlan((prevPlan) => {
+        const updatedAccommodations = prevPlan.accommodations.filter((_, i) => i !== index);
+        const updatedPlan = {
+          ...prevPlan,
+          accommodations: updatedAccommodations,
+        };
+        updatedPlan.price = updatePlanPrice(updatedPlan);
+        return updatedPlan;
+      });
     }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setNewPlan((prevPlan) => ({
-      ...prevPlan,
-      [name]: value,
-    }));
+    setNewPlan((prevPlan) => {
+      const updatedPlan = { ...prevPlan, [name]: value };
+      if (name !== 'price') {
+        updatedPlan.price = updatePlanPrice(updatedPlan);
+      }
+      return updatedPlan;
+    });
     setTouchedFields((prevFields) => ({
       ...prevFields,
       [name]: true,
     }));
   };
-  //assd
 
   const handleBlur = (e) => {
     const { name } = e.target;
@@ -202,14 +382,17 @@ const PlanManagement = () => {
       return acc;
     }, {});
     setErrors(touchedErrors);
-  }, [newPlan, touchedFields]);
+  }, [newPlan, touchedFields, editPlan]);
 
   const handleEditChange = (e) => {
     const { name, value } = e.target;
-    setEditPlan((prevPlan) => ({
-      ...prevPlan,
-      [name]: value,
-    }));
+    setEditPlan((prevPlan) => {
+      const updatedPlan = { ...prevPlan, [name]: value };
+      if (name !== 'price') {
+        updatedPlan.price = updatePlanPrice(updatedPlan);
+      }
+      return updatedPlan;
+    });
   };
 
   const handleImageChange = (e) => {
@@ -291,29 +474,42 @@ const PlanManagement = () => {
 
   const handleEditSubmit = (e) => {
     e.preventDefault();
-    const validationErrors = validate(editPlan);
-    if (Object.keys(validationErrors).length === 0) {
-      setPlans((prevPlans) =>
-        prevPlans.map((plan) => (plan.id === editPlan.id ? editPlan : plan))
-      );
-      Swal.fire({
-        title: "Plan editado con éxito",
-        text: "El plan ha sido editado correctamente.",
-        icon: "success",
-        timer: 3000,
-        showConfirmButton: false,
-      });
-      setEditPlan({});
-      setShowEditModal(false);
-    } else {
-      setErrors(validationErrors);
-      Swal.fire({
-        title: "Errores en el formulario",
-        html: Object.values(validationErrors).join("<br>"),
-        icon: "error",
-        confirmButtonText: "Ok",
-      });
-    }
+    Swal.fire({
+      title: "¿Estás seguro de editar este plan?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Si, editar",
+      cancelButtonText: "Cancelar",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const validationErrors = validate(editPlan);
+        if (Object.keys(validationErrors).length === 0) {
+          setPlans((prevPlans) =>
+            prevPlans.map((plan) => (plan.id === editPlan.id ? editPlan : plan))
+          );
+          Swal.fire({
+            title: "Plan editado con éxito",
+            text: "El plan ha sido editado correctamente.",
+            icon: "success",
+            timer: 3000,
+            showConfirmButton: false,
+          });
+          setEditPlan({});
+          setShowEditModal(false);
+        } else {
+          setErrors(validationErrors);
+          Swal.fire({
+            title: "Errores en el formulario",
+            html: Object.values(validationErrors).join("<br>"),
+            icon: "error",
+            confirmButtonText: "Ok",
+          });
+        }
+      }
+    })
+
   };
 
   // const handleViewDetails = (plan) => {
@@ -464,7 +660,7 @@ const PlanManagement = () => {
             </Col>
           ))
         ) : (
-          <p>No se encontraron cabañas.</p>
+          <p>No se encontraron planes.</p>
         )}
       </Row>
       {/* Modal para añadir plan */}
@@ -488,7 +684,6 @@ const PlanManagement = () => {
                     name="name"
                     value={newPlan.name}
                     onChange={handleChange}
-                    onBlur={handleBlur}
                     isInvalid={!!errors.name && touchedFields.name}
                   />
                   <Form.Control.Feedback type="invalid">
@@ -502,7 +697,6 @@ const PlanManagement = () => {
                     name="description"
                     value={newPlan.description}
                     onChange={handleChange}
-                    onBlur={handleBlur}
                     isInvalid={!!errors.description && touchedFields.description}
                   />
                   <Form.Control.Feedback type="invalid">
@@ -516,7 +710,6 @@ const PlanManagement = () => {
                     name="startDate"
                     value={newPlan.startDate}
                     onChange={handleChange}
-                    onBlur={handleBlur}
                     isInvalid={!!errors.startDate && touchedFields.startDate}
                   />
                   <Form.Control.Feedback type="invalid">
@@ -530,7 +723,6 @@ const PlanManagement = () => {
                     name="endDate"
                     value={newPlan.endDate}
                     onChange={handleChange}
-                    onBlur={handleBlur}
                     isInvalid={!!errors.endDate && touchedFields.endDate}
                   />
                   <Form.Control.Feedback type="invalid">
@@ -544,7 +736,6 @@ const PlanManagement = () => {
                     name="capacity"
                     value={newPlan.capacity}
                     onChange={handleChange}
-                    onBlur={handleBlur}
                     isInvalid={!!errors.capacity && touchedFields.capacity}
                   />
                   <Form.Control.Feedback type="invalid">
@@ -607,13 +798,8 @@ const PlanManagement = () => {
                     type="text"
                     name="price"
                     value={newPlan.price}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    isInvalid={!!errors.price && touchedFields.price}
+                    readOnly
                   />
-                  <Form.Control.Feedback type="invalid">
-                    {errors.price}
-                  </Form.Control.Feedback>
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="formSalePrice">
                   <Form.Label>Precio de Venta</Form.Label>
@@ -622,7 +808,6 @@ const PlanManagement = () => {
                     name="salePrice"
                     value={newPlan.salePrice}
                     onChange={handleChange}
-                    onBlur={handleBlur}
                     isInvalid={!!errors.salePrice && touchedFields.salePrice}
                   />
                   <Form.Control.Feedback type="invalid">
@@ -640,7 +825,7 @@ const PlanManagement = () => {
                         <th>Nombre</th>
                         <th>Cantidad</th>
                         <th>Precio</th>
-                        <th>Total</th>
+                        <th>Subtotal</th>
                         <th>Acciones</th>
                       </tr>
                     </thead>
@@ -650,13 +835,21 @@ const PlanManagement = () => {
                           <td>{service.name}</td>
                           <td>{service.quantity}</td>
                           <td>{service.price}</td>
-                          <td>{service.total}</td>
+                          <td>{service.subtotal}</td>
                           <td>
-                            <FaTrash style={{ cursor: "pointer" }} onClick={() => handleRemoveService(index, false)} />
+                            <FaEdit style={{ cursor: "pointer", marginRight: "10px" }} onClick={() => handleEditService(index)} />
+                            <FaTrash style={{ cursor: "pointer" }} onClick={() => handleRemoveService(index)} />
                           </td>
                         </tr>
                       ))}
                     </tbody>
+                    <tfoot>
+                      <tr>
+                        <td colSpan="3" className="text-right"><strong>Total:</strong></td>
+                        <td><strong>{calculateTotal(newPlan.services)}</strong></td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
                   </Table>
                 </div>
                 <Button
@@ -673,8 +866,9 @@ const PlanManagement = () => {
                       <tr>
                         <th>Nombre</th>
                         <th>Tipo</th>
+                        <th>Cantidad</th>
                         <th>Precio</th>
-                        <th>Capacidad</th>
+                        <th>Subtotal</th>
                         <th>Acciones</th>
                       </tr>
                     </thead>
@@ -683,14 +877,23 @@ const PlanManagement = () => {
                         <tr key={index}>
                           <td>{accommodation.name}</td>
                           <td>{accommodation.type}</td>
+                          <td>{accommodation.quantity}</td>
                           <td>{accommodation.price}</td>
-                          <td>{accommodation.capacity}</td>
+                          <td>{accommodation.subtotal}</td>
                           <td>
-                            <FaTrash style={{ cursor: "pointer" }} onClick={() => handleRemoveAccommodation(index, false)} />
+                            <FaEdit style={{ cursor: "pointer", marginRight: "10px" }} onClick={() => handleEditAccommodation(index)} />
+                            <FaTrash style={{ cursor: "pointer" }} onClick={() => handleRemoveAccommodation(index)} />
                           </td>
                         </tr>
                       ))}
                     </tbody>
+                    <tfoot>
+                      <tr>
+                        <td colSpan="4" className="text-right"><strong>Total:</strong></td>
+                        <td><strong>{calculateTotal(newPlan.accommodations)}</strong></td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
                   </Table>
                 </div>
                 <Button
@@ -712,12 +915,12 @@ const PlanManagement = () => {
       {/* Modal para editar plan */}
       <Modal
         show={showEditModal}
-        onHide={() => setShowAddModal(false)}
+        onHide={() => setShowEditModal(false)}
         size="xl"
         style={{ overflowY: 'auto' }}
       >
         <Modal.Header closeButton>
-          <Modal.Title>Añadir Plan</Modal.Title>
+          <Modal.Title>Editar Plan</Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ maxHeight: 'calc(100vh - 210px)', overflowY: 'auto', minHeight: '750px' }}>
           <Form onSubmit={handleEditSubmit}>
@@ -728,7 +931,7 @@ const PlanManagement = () => {
                   <Form.Control
                     type="text"
                     name="name"
-                    value={editPlan.name || ""}
+                    value={editPlan?.name || ""}
                     onChange={handleEditChange}
                     isInvalid={!!errors.name}
                   />
@@ -741,7 +944,7 @@ const PlanManagement = () => {
                   <Form.Control
                     type="text"
                     name="description"
-                    value={editPlan.description || ""}
+                    value={editPlan?.description || ""}
                     onChange={handleEditChange}
                     isInvalid={!!errors.description}
                   />
@@ -754,7 +957,7 @@ const PlanManagement = () => {
                   <Form.Control
                     type="date"
                     name="startDate"
-                    value={editPlan.startDate || ""}
+                    value={editPlan?.startDate || ""}
                     onChange={handleEditChange}
                     isInvalid={!!errors.startDate}
                   />
@@ -767,7 +970,7 @@ const PlanManagement = () => {
                   <Form.Control
                     type="date"
                     name="endDate"
-                    value={editPlan.endDate || ""}
+                    value={editPlan?.endDate || ""}
                     onChange={handleEditChange}
                     isInvalid={!!errors.endDate}
                   />
@@ -780,7 +983,7 @@ const PlanManagement = () => {
                   <Form.Control
                     type="text"
                     name="capacity"
-                    value={editPlan.capacity || ""}
+                    value={editPlan?.capacity || ""}
                     onChange={handleEditChange}
                     isInvalid={!!errors.capacity}
                   />
@@ -793,7 +996,7 @@ const PlanManagement = () => {
                   <Form.Control
                     as="select"
                     name="status"
-                    value={editPlan.status || "disponible"}
+                    value={editPlan?.status || "disponible"}
                     onChange={handleEditChange}
                   >
                     <option value="disponible">Disponible</option>
@@ -813,7 +1016,7 @@ const PlanManagement = () => {
                       border: "1px solid #ddd",
                     }}
                   >
-                    {editPlan.image ? (
+                    {editPlan && editPlan.image ? (
                       <img
                         src={editPlan.image}
                         alt="Imagen"
@@ -843,20 +1046,16 @@ const PlanManagement = () => {
                   <Form.Control
                     type="text"
                     name="price"
-                    value={editPlan.price || ""}
-                    onChange={handleEditChange}
-                    isInvalid={!!errors.price}
+                    value={editPlan?.price || ""}
+                    readOnly
                   />
-                  <Form.Control.Feedback type="invalid">
-                    {errors.price}
-                  </Form.Control.Feedback>
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="formSalePrice">
                   <Form.Label>Precio de Venta</Form.Label>
                   <Form.Control
                     type="text"
                     name="salePrice"
-                    value={editPlan.salePrice || ""}
+                    value={editPlan?.salePrice || ""}
                     onChange={handleEditChange}
                     isInvalid={!!errors.salePrice}
                   />
@@ -869,29 +1068,38 @@ const PlanManagement = () => {
             <Row>
               <Col md={6}>
                 <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                  <h5>Servicios en el plan</h5>
                   <Table bordered>
                     <thead>
                       <tr>
                         <th>Nombre</th>
                         <th>Cantidad</th>
                         <th>Precio</th>
-                        <th>Total</th>
+                        <th>Subtotal</th>
                         <th>Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {editPlan.services?.map((service, index) => (
+                      {editPlan?.services?.map((service, index) => (
                         <tr key={index}>
                           <td>{service.name}</td>
                           <td>{service.quantity}</td>
                           <td>{service.price}</td>
-                          <td>{service.total}</td>
+                          <td>{service.subtotal}</td>
                           <td>
+                            <FaEdit style={{ cursor: "pointer", marginRight: "10px" }} onClick={() => handleEditService(index, true)} />
                             <FaTrash style={{ cursor: "pointer" }} onClick={() => handleRemoveService(index, true)} />
                           </td>
                         </tr>
                       ))}
                     </tbody>
+                    <tfoot>
+                      <tr>
+                        <td colSpan="3" className="text-right"><strong>Total:</strong></td>
+                        <td><strong>{calculateTotal(editPlan?.services || [])}</strong></td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
                   </Table>
                 </div>
                 <Button
@@ -903,29 +1111,40 @@ const PlanManagement = () => {
               </Col>
               <Col md={6}>
                 <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                  <h5>Alojamientos en el plan</h5>
                   <Table bordered>
                     <thead>
                       <tr>
                         <th>Nombre</th>
                         <th>Tipo</th>
+                        <th>Cantidad</th>
                         <th>Precio</th>
-                        <th>Capacidad</th>
+                        <th>Subtotal</th>
                         <th>Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {editPlan.accommodations?.map((accommodation, index) => (
+                      {editPlan?.accommodations?.map((accommodation, index) => (
                         <tr key={index}>
                           <td>{accommodation.name}</td>
                           <td>{accommodation.type}</td>
+                          <td>{accommodation.quantity}</td>
                           <td>{accommodation.price}</td>
-                          <td>{accommodation.capacity}</td>
+                          <td>{accommodation.subtotal}</td>
                           <td>
+                            <FaEdit style={{ cursor: "pointer", marginRight: "10px" }} onClick={() => handleEditAccommodation(index, true)} />
                             <FaTrash style={{ cursor: "pointer" }} onClick={() => handleRemoveAccommodation(index, true)} />
                           </td>
                         </tr>
                       ))}
                     </tbody>
+                    <tfoot>
+                      <tr>
+                        <td colSpan="4" className="text-right"><strong>Total:</strong></td>
+                        <td><strong>{calculateTotal(editPlan?.accommodations || [])}</strong></td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
                   </Table>
                 </div>
                 <Button
@@ -942,6 +1161,196 @@ const PlanManagement = () => {
             </Button>
           </Form>
         </Modal.Body>
+      </Modal>
+
+      {/* Modal para editar servicio */}
+      <Modal show={showEditServiceModal} onHide={() => setShowEditServiceModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Editar Servicio</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {editingService && (
+            <Form>
+              <Form.Group className="mb-3">
+                <Form.Label>Nombre</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={editingService.name}
+                  readOnly
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Cantidad</Form.Label>
+                <Form.Control
+                  type="number"
+                  value={editingService.quantity}
+                  onChange={(e) => setEditingService({ ...editingService, quantity: parseInt(e.target.value) })}
+                  min="1"
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Precio</Form.Label>
+                <Form.Control
+                  type="number"
+                  value={editingService.price}
+                  onChange={(e) => setEditingService({ ...editingService, price: parseFloat(e.target.value) })}
+                  min="0"
+                />
+              </Form.Group>
+            </Form>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowEditServiceModal(false)}>
+            Cancelar
+          </Button>
+          <Button variant="primary" onClick={() => handleSaveEditedService(showEditModal)}>
+            Guardar Cambios
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Modal para editar alojamiento */}
+      <Modal show={showEditAccommodationModal} onHide={() => setShowEditAccommodationModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Editar Alojamiento</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {editingAccommodation && (
+            <Form>
+              <Form.Group className="mb-3">
+                <Form.Label>Nombre</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={editingAccommodation.name}
+                  readOnly
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Tipo</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={editingAccommodation.type}
+                  readOnly
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Cantidad</Form.Label>
+                <Form.Control
+                  type="number"
+                  value={editingAccommodation.quantity}
+                  onChange={(e) => setEditingAccommodation({ ...editingAccommodation, quantity: parseInt(e.target.value) })}
+                  min="1"
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Precio</Form.Label>
+                <Form.Control
+                  type="number"
+                  value={editingAccommodation.price}
+                  onChange={(e) => setEditingAccommodation({ ...editingAccommodation, price: parseFloat(e.target.value) })}
+                  min="0"
+                />
+              </Form.Group>
+            </Form>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowEditAccommodationModal(false)}>
+            Cancelar
+          </Button>
+          <Button variant="primary" onClick={() => handleSaveEditedAccommodation(showEditModal)}>
+            Guardar Cambios
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Modal para añadir servicio */}
+      <Modal show={showServicesModal} onHide={() => setShowServicesModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Añadir Servicio</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Servicio</Form.Label>
+              <Form.Control
+                as="select"
+                value={selectedService ? selectedService.id : ""}
+                onChange={(e) => {
+                  const service = services.find(s => s.id === parseInt(e.target.value));
+                  setSelectedService(service);
+                }}
+              >
+                <option value="">Seleccione un servicio</option>
+                {services.map(service => (
+                  <option key={service.id} value={service.id}>{service.name}</option>
+                ))}
+              </Form.Control>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Cantidad</Form.Label>
+              <Form.Control
+                type="number"
+                value={serviceQuantity}
+                onChange={(e) => setServiceQuantity(parseInt(e.target.value))}
+                min="1"
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowServicesModal(false)}>
+            Cancelar
+          </Button>
+          <Button variant="primary" onClick={handleAddService}>
+            Añadir
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Modal para añadir alojamiento */}
+      <Modal show={showAccommodationsModal} onHide={() => setShowAccommodationsModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Añadir Alojamiento</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Alojamiento</Form.Label>
+              <Form.Control
+                as="select"
+                value={selectedAccommodation ? selectedAccommodation.id : ""}
+                onChange={(e) => {
+                  const accommodation = accommodations.find(a => a.id === parseInt(e.target.value));
+                  setSelectedAccommodation(accommodation);
+                }}
+              >
+                <option value="">Seleccione un alojamiento</option>
+                {accommodations.map(accommodation => (
+                  <option key={accommodation.id} value={accommodation.id}>{accommodation.name}</option>
+                ))}
+              </Form.Control>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Cantidad</Form.Label>
+              <Form.Control
+                type="number"
+                value={accommodationQuantity}
+                onChange={(e) => setAccommodationQuantity(parseInt(e.target.value))}
+                min="1"
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowAccommodationsModal(false)}>
+            Cancelar
+          </Button>
+          <Button variant="primary" onClick={handleAddAccommodation}>
+            Añadir
+          </Button>
+        </Modal.Footer>
       </Modal>
       {/* Modal para detalles del plan */}
       <Modal
@@ -1114,90 +1523,7 @@ const PlanManagement = () => {
         </Modal.Footer>
       </Modal>
 
-      {/* Modal para añadir servicio */}
-      <Modal
-        show={showServicesModal}
-        onHide={() => setShowServicesModal(false)}
-        size="lg"
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Añadir Servicio</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group className="mb-3">
-              <Form.Label>Seleccionar Servicio</Form.Label>
-              <Form.Control
-                as="select"
-                value={selectedService ? selectedService.id : ""}
-                onChange={(e) => setSelectedService(serviciosQuemados.find(s => s.id === parseInt(e.target.value)))}
-              >
-                <option value="">Seleccione un servicio</option>
-                {serviciosQuemados.map((service) => (
-                  <option key={service.id} value={service.id}>
-                    {service.name} - ${service.price}
-                  </option>
-                ))}
-              </Form.Control>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Cantidad</Form.Label>
-              <Form.Control
-                type="number"
-                value={serviceQuantity}
-                onChange={(e) => setServiceQuantity(parseInt(e.target.value))}
-                min="1"
-              />
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowServicesModal(false)}>
-            Cancelar
-          </Button>
-          <Button variant="primary" onClick={handleAddService}>
-            Añadir Servicio
-          </Button>
-        </Modal.Footer>
-      </Modal>
 
-      {/* Modal para añadir alojamiento */}
-      <Modal
-        show={showAccommodationsModal}
-        onHide={() => setShowAccommodationsModal(false)}
-        size="lg"
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Añadir Alojamiento</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group className="mb-3">
-              <Form.Label>Seleccionar Alojamiento</Form.Label>
-              <Form.Control
-                as="select"
-                value={selectedAccommodation ? selectedAccommodation.id : ""}
-                onChange={(e) => setSelectedAccommodation(alojamientosQuemados.find(a => a.id === parseInt(e.target.value)))}
-              >
-                <option value="">Seleccione un alojamiento</option>
-                {alojamientosQuemados.map((accommodation) => (
-                  <option key={accommodation.id} value={accommodation.id}>
-                    {accommodation.name} - ${accommodation.price} - Capacidad: {accommodation.capacity}
-                  </option>
-                ))}
-              </Form.Control>
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowAccommodationsModal(false)}>
-            Cancelar
-          </Button>
-          <Button variant="primary" onClick={handleAddAccommodation}>
-            Añadir Alojamiento
-          </Button>
-        </Modal.Footer>
-      </Modal>
     </div>
   );
 };
