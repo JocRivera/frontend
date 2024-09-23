@@ -66,6 +66,9 @@ const ClientModal = ({ show, handleClose, handleSave, client }) => {
                     ? 'El nombre debe contener solo letras y espacios.'
                     : '';
                 break;
+            case 'DocumentType':
+                newErrors.DocumentType = !value ? 'El tipo de documento es requerido.' : '';
+                break;
             case 'Email':
                 newErrors.Email = !value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
                     ? 'Debe ser una dirección de correo electrónico válida.'
@@ -82,9 +85,9 @@ const ClientModal = ({ show, handleClose, handleSave, client }) => {
             case 'EPS':
                 newErrors.EPS = !value ? 'EPS es requerido.' : '';
                 break;
-                case 'Status':
-                    newErrors.Status = !value ? 'El estado es requerido.' : '';
-                    break;
+            case 'Status':
+                newErrors.Status = !value ? 'El estado es requerido.' : '';
+                break;
             // case 'Password':
             //     newErrors.Password = !value || !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(value)
             //         ? 'La contraseña debe tener al menos 8 caracteres, incluyendo mayúsculas, minúsculas, números y caracteres especiales.'
@@ -98,30 +101,69 @@ const ClientModal = ({ show, handleClose, handleSave, client }) => {
 
     const isFormValid = () => {
         return Object.values(formData).every(val => val !== '') &&
-               Object.values(errors).every(error => error === '');
+            Object.values(errors).every(error => error === '');
     };
 
     const handleSubmit = async () => {
-        if (isFormValid()) {
-            await handleSave(formData);
+        if (client) {
             Swal.fire({
-                title: 'Éxito',
-                text: client ? 'Cliente actualizado' : 'Cliente agregado',
-                icon: 'success',
-                timer: 2000,
-                showConfirmButton: false
-            }).then(() => {
-                handleClose();
-            });
+                title: 'Editar Cliente',
+                text: `Vas a editar al cliente ${client.Name}. ¿Deseas continuar?`,
+                icon: 'info',
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, continuar',
+                cancelButtonText: 'Cancelar',
+                showCancelButton: true,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (isFormValid()) {
+                        handleSave(formData);
+                        Swal.fire({
+                            title: 'Éxito',
+                            text: 'Cliente actualizado',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            handleClose();
+                        });
+
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Por favor, corrija los errores en el formulario',
+                            icon: 'error',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    }
+                }
+            }
+            )
         } else {
-            Swal.fire({
-                title: 'Error',
-                text: 'Por favor, corrija los errores en el formulario',
-                icon: 'error',
-                timer: 2000,
-                showConfirmButton: false
-            });
+            if (isFormValid()) {
+                await handleSave(formData);
+                Swal.fire({
+                    title: 'Éxito',
+                    text: 'Cliente agregado',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    handleClose();
+                });
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Por favor, corrija los errores en el formulario',
+                    icon: 'error',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
         }
+
     };
 
     return (
@@ -130,6 +172,26 @@ const ClientModal = ({ show, handleClose, handleSave, client }) => {
                 <Modal.Title>{client ? 'Editar Cliente' : 'Agregar Cliente'}</Modal.Title>
             </Modal.Header>
             <Modal.Body>
+                <Form.Group className="mb-3">
+                    <Form.Label>Tipo de Documento</Form.Label>
+                    <Form.Select
+                        name="DocumentType"
+                        value={formData.DocumentType}
+                        onChange={handleInputChange}
+                        isInvalid={!!errors.DocumentType}
+                    >
+                        <option value="">Seleccione un tipo de documento</option>
+                        <option value="Tarjeta de identidad">Tarjeta de identidad</option>
+                        <option value="Cédula de ciudadanía">Cédula de ciudadanía</option>
+                        <option value="Cédula de extranjería">Cédula de extranjería</option>
+                        <option value="Pasaporte">Pasaporte</option>
+                        <option value="Registro civil">Registro civil</option>
+                        <option value="Carné diplomático">Carné diplomático</option>
+                    </Form.Select>
+                    <Form.Control.Feedback type="invalid">
+                        {errors.DocumentType}
+                    </Form.Control.Feedback>
+                </Form.Group>
                 <Form>
                     <Form.Group className="mb-3">
                         <Form.Label>Identificación</Form.Label>
@@ -243,6 +305,7 @@ const ClientModal = ({ show, handleClose, handleSave, client }) => {
                             {errors.Password}
                         </Form.Control.Feedback>
                     </Form.Group>
+                    <Form.Group className='mb-3'>{client ? <Form.Label><Button variant='tertiary'>Enviar correo de recuperación</Button></Form.Label> : null}</Form.Group>
                 </Form>
             </Modal.Body>
             <Modal.Footer>
@@ -268,6 +331,8 @@ const ClientManagement = () => {
     const [showDetails, setShowDetails] = useState(false);
     const [selectedClientDetails, setSelectedClientDetails] = useState(null);
 
+
+    
     const saveClient = (client) => {
         setClients((prevClients) =>
             client.Id
@@ -280,6 +345,29 @@ const ClientManagement = () => {
             selectedClient: null,
             isEditing: false,
         }));
+    };
+    const toggleClientStatus = (client) => {
+        const newStatus = client.Status === 'Activo' ? 'Inactivo' : 'Activo';
+        Swal.fire({
+            title: 'Confirmar cambio de estado',
+            text: `¿Estás seguro de que deseas cambiar el estado del cliente ${client.Name} a ${newStatus}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, cambiar',
+            cancelButtonText: 'Cancelar',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const updatedClient = { ...client, Status: newStatus };
+                setClients(clients.map(c => c.Id === client.Id ? updatedClient : c));
+                Swal.fire(
+                    'Estado cambiado',
+                    `El estado del cliente ha sido cambiado a ${newStatus}.`,
+                    'success'
+                );
+            }
+        });
     };
 
     const handleDeleteClient = (client) => {
@@ -313,25 +401,12 @@ const ClientManagement = () => {
 
     const toggleClientModal = (client = null) => {
         if (client) {
-            Swal.fire({
-                title: 'Editar Cliente',
-                text: `Vas a editar al cliente ${client.Name}. ¿Deseas continuar?`,
-                icon: 'info',
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Sí, continuar',
-                cancelButtonText: 'Cancelar',
-                showCancelButton: true,
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    setModalState((prevState) => ({
-                        ...prevState,
-                        selectedClient: client,
-                        showClientModal: true,
-                        isEditing: true,
-                    }));
-                }
-            });
+            setModalState((prevState) => ({
+                ...prevState,
+                selectedClient: client,
+                showClientModal: true,
+                isEditing: true,
+            }));
         } else {
             setModalState((prevState) => ({
                 ...prevState,
@@ -395,6 +470,7 @@ const ClientManagement = () => {
                         <th>Email</th>
                         <th>Identificación</th>
                         <th>Teléfono</th>
+                        <th>Estado</th>
                         <th>Acción</th>
                     </tr>
                 </thead>
@@ -407,6 +483,15 @@ const ClientManagement = () => {
                                 <td>{client.Email}</td>
                                 <td>{client.Identification}</td>
                                 <td>{client.PhoneNumber}</td>
+                                <td>
+                                    <Form.Check
+                                        type="switch"
+                                        id={`status-switch-${client.Id}`}
+                                        checked={client.Status === 'Activo'}
+                                        onChange={() => toggleClientStatus(client)}
+                                        label={client.Status}
+                                    />
+                                </td>
                                 <td>
                                     <Button
                                         variant="warning"
@@ -425,13 +510,18 @@ const ClientManagement = () => {
                                         onClick={() => handleShowDetails(client)}
                                     >
                                         Detalles
+                                    </Button>{' '}
+                                    <Button
+                                        variant="success"
+                                    >
+                                        Ir a reservas
                                     </Button>
                                 </td>
                             </tr>
                         ))
                     ) : (
                         <tr>
-                            <td colSpan="6" className="text-center">
+                            <td colSpan="7" className="text-center">
                                 No se encontraron clientes
                             </td>
                         </tr>
@@ -455,6 +545,7 @@ const ClientManagement = () => {
                         <div>
                             <p><strong>ID:</strong> {selectedClientDetails.Id}</p>
                             <p><strong>Nombre:</strong> {selectedClientDetails.Name}</p>
+                            <p><strong>Tipo de Documento:</strong> {selectedClientDetails.DocumentType}</p>
                             <p><strong>Identificación:</strong> {selectedClientDetails.Identification}</p>
                             <p><strong>Email:</strong> {selectedClientDetails.Email}</p>
                             <p><strong>Teléfono:</strong> {selectedClientDetails.PhoneNumber}</p>
