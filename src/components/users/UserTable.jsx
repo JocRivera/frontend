@@ -40,21 +40,13 @@ const UserTable = () => {
     },
   ];
 
-  const handleChangeEstado = (user) => {
-    const nuevoEstado = user.estado === "activo" ? "inactivo" : "activo";
-    const updatedUsers = users.map((u) =>
-      u.id === user.id ? { ...u, estado: nuevoEstado } : u
-    );
-    setUsers(updatedUsers);
-  };
   const [users, setUsers] = useState(initialUsers);
-
   const [modalState, setModalState] = useState({
     showUserModal: false,
     selectedUser: null,
     isEditing: false,
   });
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [showDetails, setShowDetails] = useState(false);
   const [selectedUserDetails, setSelectedUserDetails] = useState(null);
 
@@ -93,21 +85,50 @@ const UserTable = () => {
       );
     }
   };
+
+  const handleChangeEstado = (user) => {
+    const newStatus = user.estado === "activo" ? "inactivo" : "activo";
+    Swal.fire({
+      title: 'Confirmar cambio de estado',
+      text: `¿Estás seguro de que deseas cambiar el estado del usuario ${user.nombre} a ${newStatus}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sí, cambiar',
+      cancelButtonText: 'Cancelar',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const updatedUser = { ...user, estado: newStatus };
+        setUsers(users.map(u => u.id === user.id ? updatedUser : u));
+        Swal.fire(
+          'Estado cambiado',
+          `El estado del usuario ha sido cambiado a ${newStatus}.`,
+          'success'
+        );
+      }
+    });
+  };
+
   const handleDeleteUser = (user) => {
     Swal.fire({
-      title: "Confirmar Eliminación",
+      title: 'Confirmar Eliminación',
       text: `¿Estás seguro de que deseas eliminar al usuario ${user.nombre}?`,
-      icon: "warning",
+      icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Eliminar",
-      cancelButtonText: "Cancelar",
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Eliminar',
+      cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
         const updatedUsers = users.filter((u) => u.id !== user.id);
         setUsers(updatedUsers);
-        Swal.fire("Eliminado", "El usuario ha sido eliminado.", "success");
+        Swal.fire(
+          'Eliminado',
+          'El usuario ha sido eliminado.',
+          'success'
+        );
       }
     });
   };
@@ -161,6 +182,19 @@ const UserTable = () => {
     e.preventDefault();
   };
 
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [usuariosPorPagina, setUsuariosPorPagina] = useState(10);
+
+  const indiceUltimoUsuario = paginaActual * usuariosPorPagina;
+  const indicePrimerUsuario = indiceUltimoUsuario - usuariosPorPagina;
+  const usuariosPaginados = filteredUsers.slice(indicePrimerUsuario, indiceUltimoUsuario);
+
+  const numeroDePaginas = Math.ceil(filteredUsers.length / usuariosPorPagina);
+
+  const cambiarPagina = (numeroDePagina) => {
+    setPaginaActual(numeroDePagina);
+  };
+
   return (
     <div
       className="container col p-5 mt-3"
@@ -202,12 +236,13 @@ const UserTable = () => {
             <th>Email</th>
             <th>Teléfono</th>
             <th>Rol</th>
+            <th>Estado</th>
             <th>Acción</th>
           </tr>
         </thead>
         <tbody>
-          {filteredUsers.length > 0 ? (
-            filteredUsers.map((user) => (
+          {usuariosPaginados.length > 0 ? (
+            usuariosPaginados.map((user) => (
               <tr key={user.id}>
                 <td>{user.id}</td>
                 <td>{user.nombre}</td>
@@ -217,6 +252,16 @@ const UserTable = () => {
                 <td>{user.email}</td>
                 <td>{user.telefono}</td>
                 <td>{user.rol}</td>
+                <td>
+                  <Form.Check
+                    type="switch"
+                    id={`estado-${user.id}`}
+                    name="estado"
+                    checked={user.estado === "activo"}
+                    onChange={() => handleChangeEstado(user)}
+                    label={user.estado}
+                  />
+                </td>
                 <td
                   className="d-flex justify-content-center"
                   style={{ gap: "10px" }}
@@ -239,18 +284,6 @@ const UserTable = () => {
                   >
                     <BsIcons.BsTrash3Fill style={{ marginRight: "5px" }} />
                   </Button>
-                  <Form.Check
-                    type="switch"
-                    id={`estado-${user.id}`}
-                    name="estado"
-                    checked={user.estado === "activo"}
-                    onChange={() => handleChangeEstado(user)}
-                    className={
-                      user.estado === "activo"
-                        ? "switch-active"
-                        : "switch-inactive"
-                    }
-                  />
                 </td>
               </tr>
             ))
@@ -263,6 +296,18 @@ const UserTable = () => {
           )}
         </tbody>
       </Table>
+
+      <div className="d-flex justify-content-center">
+        {[...Array(numeroDePaginas).keys()].map((numeroDePagina) => (
+          <Button
+            key={numeroDePagina}
+            onClick={() => cambiarPagina(numeroDePagina + 1)}
+            className={paginaActual === numeroDePagina + 1 ? "active" : ""}
+          >
+            {numeroDePagina + 1}
+          </Button>
+        ))}
+      </div>
 
       <UserModal
         show={modalState.showUserModal}

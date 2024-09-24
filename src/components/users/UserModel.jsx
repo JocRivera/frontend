@@ -13,6 +13,7 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
     rol: "empleado", // Rol por defecto
     contraseña: "",
     confirmarContraseña: "",
+    estado: "activo", // Estado por defecto
   });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false); // Estado para mostrar/ocultar contraseña
@@ -24,6 +25,7 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
         ...user,
         contraseña: user.contraseña || "",
         confirmarContraseña: user.contraseña || "",
+        estado: user.estado || "activo",
       });
     } else {
       setFormData({
@@ -35,6 +37,7 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
         rol: "empleado", // Rol por defecto
         contraseña: "",
         confirmarContraseña: "",
+        estado: "activo", // Estado por defecto
       });
     }
     setErrors({});
@@ -101,6 +104,12 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
         newErrors.confirmarContraseña =
           value !== formData.contraseña ? "Las contraseñas no coinciden." : "";
         break;
+      case "estado":
+        newErrors.estado =
+          !value || (value !== "activo" && value !== "inactivo")
+            ? "Selecciona un estado válido."
+            : "";
+        break;
       default:
         break;
     }
@@ -120,6 +129,19 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
     if (isFormValid()) {
       await handleSave(formData); // Llamar a la función handleSave con el parámetro formData
       handleClose(); // Cerrar el modal después de guardar
+      // Resetear el formulario a sus valores por defecto
+      setFormData({
+        nombre: "",
+        documento: "",
+        tipoDocumento: "CC",
+        email: "",
+        telefono: "",
+        rol: "empleado",
+        contraseña: "",
+        confirmarContraseña: "",
+        estado: "activo",
+      });
+      setErrors({});
     } else {
       Swal.fire({
         title: "Error",
@@ -225,6 +247,26 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
             </Form.Select>
             <Form.Control.Feedback type="invalid">
               {errors.rol}
+            </Form.Control.Feedback>
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Estado</Form.Label>
+            <Form.Check
+              type="switch"
+              id="estado-switch"
+              name="estado"
+              checked={formData.estado === "activo"}
+              onChange={() =>
+                setFormData((prev) => ({
+                  ...prev,
+                  estado: prev.estado === "activo" ? "inactivo" : "activo",
+                }))
+              }
+              label={formData.estado}
+            />
+            <Form.Control.Feedback type="invalid">
+              {errors.estado}
             </Form.Control.Feedback>
           </Form.Group>
 
