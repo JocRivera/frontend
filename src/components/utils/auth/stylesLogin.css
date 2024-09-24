@@ -1,95 +1,117 @@
-
 /* Ajusta el modal para que tenga el mismo tamaño que el header */
 .custom-modal .modal-dialog {
-    width: 100%;
-    max-width: 650px; /* Ajusta el ancho máximo según sea necesario */
-    margin: 0 auto; /* Centra el modal */
-    height: 70vh;
-  }
-  
-  .custom-modal .modal-content {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    border-radius: 0.5rem; /* Bordes redondeados más sutiles */
-    
-  }
-    
-  .custom-modal .modal-body {
-    display: flex;
-    flex-direction: row;
-    height: calc(100% - 56px); /* Ajusta la altura para el contenido principal */
-    padding: 0;
-  }
-  
-  .image-col {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    position: relative;
-  }
-  
-  .logo-img {
-    width: 100%;
-    height: 50%;
-    object-fit: cover; /* Ajusta la imagen para cubrir el contenedor sin distorsión */
-  }
-  
-  .form-col {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 2rem; /* Espacio interno ajustado para el formulario */
-    background-color: #ffffff; /* Fondo blanco para el formulario */
-    border-left: 1px solid #dee2e6; /* Línea delgada a la izquierda del formulario */
-  }
-  
-  .custom-control {
-    font-size: 1rem;
-    padding: 0.75rem;
-    border-radius: 0.375rem;
-  }
-  
-  .custom-button {
-    width: 100%;
-    padding: 0.75rem;
-    font-size: 1.125rem;
-    border-radius: 0.375rem;
-    margin-top: 1rem;
-  }
-  
-  .link-text {
-    color: #007bff;
-    text-decoration: none;
-  }
-  
-  .link-text:hover {
-    text-decoration: underline;
-  }
-  
-  @media (max-width: 768px) {
-    .custom-modal .modal-dialog {
+  width: 100%;
+  max-width: 650px; /* Ajusta el ancho máximo según sea necesario */
+  margin: 0 auto; /* Centra el modal */
+  height: 70vh;
+}
+
+.custom-modal .modal-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: 0.5rem; /* Bordes redondeados más sutiles */
+}
+
+.custom-modal .modal-body {
+  display: flex;
+  flex-direction: row;
+  height: calc(100% - 56px); /* Ajusta la altura para el contenido principal */
+  padding: 0;
+}
+
+.image-col {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.logo-img {
+  width: 100%;
+  height: 50%;
+  object-fit: cover; /* Ajusta la imagen para cubrir el contenedor sin distorsión */
+}
+
+.form-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2rem; /* Espacio interno ajustado para el formulario */
+  background-color: #ffffff; /* Fondo blanco para el formulario */
+  border-left: 1px solid #dee2e6; /* Línea delgada a la izquierda del formulario */
+}
+
+.custom-control {
+  font-size: 1rem;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+}
+
+.custom-button {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1.125rem;
+  border-radius: 0.375rem;
+  margin-top: 1rem;
+}
+
+.link-text {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.link-text:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .custom-modal .modal-dialog {
       width: 100%;
       max-width: 100%;
       height: 100vh; /* Ajusta la altura del modal para pantallas pequeñas */
-    }
-  
-    .custom-modal .modal-body {
+  }
+
+  .custom-modal .modal-body {
       flex-direction: column;
-    }
-  
-    .image-col, .form-col {
+  }
+
+  .image-col, .form-col {
       flex: 1 1 auto;
       width: 100%;
-    }
-  
-    .logo-img {
-      height: auto;
-    }
   }
-  
-  /* En tu archivo CSS (por ejemplo, Navbar.css) */
 
+  .logo-img {
+      height: auto;
+  }
+}
+
+/* Mejoras en los form-control */
+.form-control:focus {
+  border-color: #007bff; /* Color azul en el foco */
+  box-shadow: none; /* Sin sombras */
+  -webkit-box-shadow: none; /* Compatibilidad con navegadores antiguos */
+}
+
+.form-control.is-invalid:focus {
+  border-color: #dc3545; /* Rojo para entradas inválidas */
+  box-shadow: none;
+  -webkit-box-shadow: none;
+}
+
+/* Icono para la visibilidad de la contraseña */
+.password-visibility-toggle i {
+  color: #000; /* Negro para el ícono */
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+/* Ajustes para mensajes de error */
+.invalid-feedback {
+  font-size: 0.85rem; /* Tamaño más pequeño */
+  color: #dc3545; /* Rojo claro */
+  margin-top: 0.25rem;
+}
