@@ -69,6 +69,14 @@ const Reservations = () => {
       const response = await axios.post('http://localhost:4000/api/reservations', newReservation);
       console.log('Response:', response);
       setReservations([...reservations, response.data]);
+      setNewReservation({
+        estado: '',
+        tipoDocumento: '',
+        documento: '',
+        nombreCliente: '',
+        companions: [],
+        payments: []
+      });
       setFilteredReservations([...reservations, response.data]);
       setShowAddModal(false);
       Swal.fire({
@@ -160,10 +168,7 @@ const Reservations = () => {
 
   const handleChangeReservation = (name, value) => {
     if (showAddModal) {
-      setNewReservation(prev => ({
-        ...prev,
-        [name]: value
-      }));
+      setNewReservation({ ...newReservation, [name]: value });
     } else {
       setSelectedReservation(prev => ({
         ...prev,
