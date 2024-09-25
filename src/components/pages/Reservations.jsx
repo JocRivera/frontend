@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Table, FormControl, Modal, InputGroup } from 'react-bootstrap';
 import Swal from 'sweetalert2'; // Importar SweetAlert2
 import ReservationForm from '../pages/ReservationForm';
@@ -6,6 +6,7 @@ import CompanionsForm from '../pages/companionsForm';
 import PaymentsForm from '../pages/PaymentsForm';
 import { utils, writeFile } from 'xlsx'; // Importar funciones de xlsx
 import 'bootstrap-icons/font/bootstrap-icons.css'; // Import Bootstrap Icons
+import axios from 'axios';
 
 const Reservations = () => {
   const [showAddModal, setShowAddModal] = useState(false);
@@ -13,55 +14,78 @@ const Reservations = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
 
   const [selectedReservation, setSelectedReservation] = useState(null);
-  const [companions, setCompanions] = useState([]);
-  const [payments, setPayments] = useState([]);
 
   const [reservations, setReservations] = useState([]);
-  const [newReservation, setNewReservations] = useState({
-      code: '',
-      startDate: '',
-      endDate: '',
-      status: '',
-      typeOfDocument: '',
-      documentNumber: '',
-      clientName: '',
-      companions: [],
-      payments: []
-  })
+  const [companions, setCompanions] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [newReservation, setNewReservation] = useState({
+    estado: '',
+    tipoDocumento: '',
+    documento: '',
+    nombreCliente: '',
+    companions: [],
+    payments: []
+  });
   const [filteredReservations, setFilteredReservations] = useState(reservations);
   const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    const fetchReservations = async () => {
+      const [reservationsResponse, companionsResponse, paymentsResponse] = await Promise.all([
+        axios.get('http://localhost:4000/api/reservations'),
+        axios.get('http://localhost:4000/api/companions'),
+        axios.get('http://localhost:4000/api/payments')
+      ]);
+      setReservations(reservationsResponse.data);
+      setFilteredReservations(reservationsResponse.data);
+      setCompanions(companionsResponse.data);
+      setPayments(paymentsResponse.data);
+      console.log("get success");
+    };
+    fetchReservations();
+  }, [newReservation]);
 
   const handleSearch = (e) => {
     const term = e.target.value.toLowerCase();
     setSearchTerm(term);
     const filtered = reservations.filter(res =>
-      res.clientName.toLowerCase().includes(term) ||
-      res.code.toLowerCase().includes(term)
+      res.nombreCliente.toLowerCase().includes(term) ||
+      res.documento.toLowerCase().includes(term)
     );
     setFilteredReservations(filtered);
   };
 
-  const handleAddReservation = async (newReservation) => {
-    if (!newReservation.clientName || !newReservation.startDate || !newReservation.endDate) {
+  const handleAddReservation = async () => {
+    if (!newReservation.nombreCliente || !newReservation.tipoDocumento || !newReservation.documento) {
       Swal.fire({
         icon: 'error',
-        title: 'Error',
+        title: 'Error reserva incompleta',
         text: 'Por favor, completa todos los campos obligatorios.'
       });
       return;
     }
 
-    const response = await axios.post('http://localhost:4000/reservationsBookEdge')
-    setReservations([...reservations, response.data]);
-    setNewSer
-    setFilteredReservations([...filteredReservations, response.data]);
-    setShowAddModal(false);
-    Swal.fire({
-      icon: 'success',
-      title: '¡Éxito!',
-      text: 'Reserva agregada exitosamente.'
-    });
-  };
+    try {
+      const response = await axios.post('http://localhost:4000/api/reservations', newReservation);
+      console.log('Response:', response);
+      setReservations([...reservations, response.data]);
+      setFilteredReservations([...reservations, response.data]);
+      setShowAddModal(false);
+      Swal.fire({
+        icon: 'success',
+        title: '¡Éxito!',
+        text: 'Reserva registrada exitosamente.'
+      });
+    }
+    catch (error) {
+      console.error(error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al registrar la reserva',
+        text: 'Ha ocurrido un error al registrar la reserva. Por favor, intenta de nuevo.'
+      });
+    }
+  }
 
   const handleEditReservation = (updatedReservation) => {
     const updatedReservations = reservations.map(res => res.id === updatedReservation.id ? updatedReservation : res);
@@ -125,7 +149,7 @@ const Reservations = () => {
           });
           return;
         }
-        
+
         if (selectedReservation) {
           const updatedReservation = { ...selectedReservation, companions, payments };
           handleEditReservation(updatedReservation);
@@ -135,10 +159,17 @@ const Reservations = () => {
   };
 
   const handleChangeReservation = (name, value) => {
-    setSelectedReservation(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    if (showAddModal) {
+      setNewReservation(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    } else {
+      setSelectedReservation(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleCloseModals = () => {
@@ -191,18 +222,18 @@ const Reservations = () => {
         </thead>
         <tbody>
           {filteredReservations.map((reservation) => (
-            <tr key={reservation.id}>
-              <td>{reservation.code}</td>
-              <td>{reservation.clientName}</td>
-              <td>{reservation.typeOfDocument}</td>
-              <td>{reservation.documentNumber}</td>
+            <tr key={reservation._id}>
+              <td>{reservation._id}</td>
+              <td>{reservation.nombreCliente}</td>
+              <td>{reservation.tipoDocumento}</td>
+              <td>{reservation.documento}</td>
               <td>{reservation.startDate}</td>
               <td>{reservation.endDate}</td>
-              <td>{reservation.status}</td>
+              <td>{reservation.estado}</td>
               <td>
                 <Button variant="info" onClick={() => handleDetail(reservation)}>Ver Detalle</Button>
                 <Button variant="warning" onClick={() => handleEdit(reservation)}>Editar</Button>
-                <Button variant="danger" onClick={() => handleDeleteReservation(reservation.id)}>Eliminar</Button>
+                <Button variant="danger" onClick={() => handleDeleteReservation(reservation._id)}>Eliminar</Button>
               </td>
             </tr>
           ))}
@@ -234,9 +265,9 @@ const Reservations = () => {
           <Button variant="secondary" onClick={handleCloseModals}>
             Cancelar
           </Button>
-          <Button variant="primary" onClick={() => handleAddReservation(selectedReservation)}>
+          <Button variant="primary" onClick={handleAddReservation}>
             Guardar Reserva
-            </Button>
+          </Button>
         </Modal.Footer>
       </Modal>
 
@@ -252,56 +283,40 @@ const Reservations = () => {
           />
           <CompanionsForm
             companions={companions}
-            
             onAdd={(companion) => setCompanions([...companions, { ...companion, id: generateId() }])}
-
             onDelete={(id) => setCompanions(companions.filter(comp => comp.id !== id))}
           />
           <PaymentsForm
-
             payments={payments}
-
             onAdd={(payment) => setPayments([...payments, { ...payment, id: generateId() }])}
-
             onDelete={(id) => setPayments(payments.filter(pmt => pmt.id !== id))}
           />
         </Modal.Body>
-
         <Modal.Footer>
           <Button variant="secondary" onClick={handleCloseModals}>
-
             Cancelar
-
           </Button>
-
           <Button variant="primary" onClick={handleUpdateReservation}>
-
             Actualizar Reserva
-
           </Button>
-
         </Modal.Footer>
-
       </Modal>
 
+      {/* Modal para ver detalles de la reserva */}
       <Modal show={showDetailModal} onHide={handleCloseModals} size="lg">
-
         <Modal.Header closeButton>
-
           <Modal.Title>Detalles de la Reserva</Modal.Title>
-
         </Modal.Header>
-
         <Modal.Body>
           {selectedReservation && (
             <>
-              <h5>Código: {selectedReservation.code}</h5>
-              <h5>Nombre del Cliente: {selectedReservation.clientName}</h5>
-              <h5>Tipo de Documento: {selectedReservation.typeOfDocument}</h5>
-              <h5>Número de Documento: {selectedReservation.documentNumber}</h5>
+              <h5>Código: {selectedReservation.documento}</h5>
+              <h5>Nombre del Cliente: {selectedReservation.nombreCliente}</h5>
+              <h5>Tipo de Documento: {selectedReservation.tipoDocumento}</h5>
+              <h5>Número de Documento: {selectedReservation.documento}</h5>
               <h5>Fecha Inicio: {selectedReservation.startDate}</h5>
               <h5>Fecha Fin: {selectedReservation.endDate}</h5>
-              <h5>Estado: {selectedReservation.status}</h5>
+              <h5>Estado: {selectedReservation.estado}</h5>
 
               <h6>Acompañantes:</h6>
               <ul>
@@ -323,9 +338,6 @@ const Reservations = () => {
           <Button variant="secondary" onClick={handleCloseModals}>
             Cerrar
           </Button>
-
-
-
         </Modal.Footer>
       </Modal>
     </div>
