@@ -252,18 +252,24 @@ const Reservations = () => {
           />
           <CompanionsForm
             companions={companions}
+            
             onAdd={(companion) => setCompanions([...companions, { ...companion, id: generateId() }])}
+
             onDelete={(id) => setCompanions(companions.filter(comp => comp.id !== id))}
           />
           <PaymentsForm
+
             payments={payments}
+
             onAdd={(payment) => setPayments([...payments, { ...payment, id: generateId() }])}
+
             onDelete={(id) => setPayments(payments.filter(pmt => pmt.id !== id))}
           />
         </Modal.Body>
+
         <Modal.Footer>
           <Button variant="secondary" onClick={handleCloseModals}>
-            
+
             Cancelar
 
           </Button>
