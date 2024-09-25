@@ -44,19 +44,19 @@ const ReservationForm = ({ reservation = {}, onChange, onRegisterClient }) => {
                     errorMsg = 'Selecciona un plan.';
                 }
                 break;
-            case 'typeOfDocument':
+            case 'tipoDocumento':
                 if (!value) {
                     errorMsg = 'Selecciona un tipo de documento.';
                 }
                 break;
-            case 'documentNumber':
+            case 'documento':
                 if (!value) {
                     errorMsg = 'El número del documento es obligatorio.';
                 } else if (!/^\d+$/.test(value)) {
                     errorMsg = 'El número del documento solo puede contener números.';
                 }
                 break;
-            case 'clientName':
+            case 'nombreCliente':
                 if (!value) {
                     errorMsg = 'El nombre del cliente es obligatorio.';
                 } else if (/\d/.test(value)) {
@@ -122,18 +122,20 @@ const ReservationForm = ({ reservation = {}, onChange, onRegisterClient }) => {
                             <Form.Label>Estado</Form.Label>
                             <Form.Control
                                 as="select"
-                                name="status"
-                                defaultValue={reservation.status || ''}
+                                name="estado"
+                                defaultValue={reservation.estado || ''}
                                 onChange={handleChange}
-                                isInvalid={!!errors.status}
+                                isInvalid={!!errors.estado}
                             >
                                 <option value="">Selecciona...</option>
                                 <option value="Reservado">Reservado</option>
+                                <option value="Completo">Completo</option>
                                 <option value="Confirmado">Confirmado</option>
+                                <option value="En ejecucion">En ejecucion</option>
                                 <option value="Pendiente">Pendiente</option>
                                 <option value="Anulado">Anulado</option>
                             </Form.Control>
-                            <Form.Control.Feedback type="invalid">{errors.status}</Form.Control.Feedback>
+                            <Form.Control.Feedback type="invalid">{errors.estado}</Form.Control.Feedback>
                         </Form.Group>
                     </Col>
                     <Col md={6}>
@@ -147,10 +149,10 @@ const ReservationForm = ({ reservation = {}, onChange, onRegisterClient }) => {
                                 isInvalid={!!errors.plan}
                             >
                                 <option value="">Selecciona un plan</option>
-                                <option value="Pansadia cumpleaños">Pansadia cumpleaños</option>
+                                <option value="Plan cumpleaños">Plan cumpleaños</option>
                                 <option value="Plan romántico">Plan romántico</option>
                                 <option value="Plan alojamiento">Plan alojamiento</option>
-                                <option value="Plan día de sol">Plan día de sol</option>
+                                <option value="Plan dia de sol">Plan día de sol</option>
                             </Form.Control>
                             <Form.Control.Feedback type="invalid">{errors.plan}</Form.Control.Feedback>
                         </Form.Group>
@@ -162,17 +164,17 @@ const ReservationForm = ({ reservation = {}, onChange, onRegisterClient }) => {
                             <Form.Label>Tipo de Documento</Form.Label>
                             <Form.Control
                                 as="select"
-                                name="typeOfDocument"
-                                defaultValue={reservation.typeOfDocument || ''}
+                                name="tipoDocumento"
+                                defaultValue={reservation.tipoDocumento || ''}
                                 onChange={handleChange}
-                                isInvalid={!!errors.typeOfDocument}
+                                isInvalid={!!errors.tipoDocumento}
                             >
                                 <option value="">Selecciona...</option>
                                 <option value="CC">Cédula de Ciudadanía</option>
                                 <option value="TI">Tarjeta de Identidad</option>
                                 <option value="CE">Cédula de Extranjería</option>
                             </Form.Control>
-                            <Form.Control.Feedback type="invalid">{errors.typeOfDocument}</Form.Control.Feedback>
+                            <Form.Control.Feedback type="invalid">{errors.tipoDocumento}</Form.Control.Feedback>
                         </Form.Group>
                     </Col>
                     <Col md={6}>
@@ -180,12 +182,12 @@ const ReservationForm = ({ reservation = {}, onChange, onRegisterClient }) => {
                             <Form.Label>Número del Documento</Form.Label>
                             <Form.Control
                                 type="text"
-                                name="documentNumber"
-                                defaultValue={reservation.documentNumber || ''}
+                                name="documento"
+                                defaultValue={reservation.documento || ''}
                                 onChange={handleChange}
-                                isInvalid={!!errors.documentNumber}
+                                isInvalid={!!errors.documento}
                             />
-                            <Form.Control.Feedback type="invalid">{errors.documentNumber}</Form.Control.Feedback>
+                            <Form.Control.Feedback type="invalid">{errors.documento}</Form.Control.Feedback>
                         </Form.Group>
                     </Col>
                 </Row>
@@ -195,12 +197,12 @@ const ReservationForm = ({ reservation = {}, onChange, onRegisterClient }) => {
                             <Form.Label>Nombre del Cliente</Form.Label>
                             <Form.Control
                                 type="text"
-                                name="clientName"
-                                defaultValue={reservation.clientName || ''}
+                                name="nombreCliente"
+                                defaultValue={reservation.nombreCliente || ''}
                                 onChange={handleChange}
-                                isInvalid={!!errors.clientName}
+                                isInvalid={!!errors.nombreCliente}
                             />
-                            <Form.Control.Feedback type="invalid">{errors.clientName}</Form.Control.Feedback>
+                            <Form.Control.Feedback type="invalid">{errors.nombreCliente}</Form.Control.Feedback>
                         </Form.Group>
                     </Col>
                     <Col md={6}>

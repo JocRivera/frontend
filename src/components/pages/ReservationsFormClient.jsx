@@ -1,270 +1,390 @@
-import React, { useState } from 'react';
-import { Button, Form, Modal, Table } from 'react-bootstrap';
+import React from 'react';
+import { Form, Row, Col, Button, Tab, Tabs } from 'react-bootstrap';
+import { FaExclamationCircle } from 'react-icons/fa';
 import Swal from 'sweetalert2';
-import 'bootstrap-icons/font/bootstrap-icons.css';
 
-const ReservationsFormClient = () => {
-  const [reservation, setReservation] = useState({
-    code: '',
-    startDate: '',
-    endDate: '',
-    status: 'Reservado',
-    typeOfDocument: '',
-    documentNumber: '',
-    clientName: '',
-  });
+const ReservationsFormClients = ({ reservation = {}, onSave }) => {
+    const [formData, setFormData] = React.useState({
+        id: null,
+        customerName: '',
+        customerAge: '',
+        customerTypeOfDocument: '',
+        customerDocumentNumber: '',
+        customerBirthDate: '',
+        paymentAmount: '',
+        paymentDate: '',
+        paymentState: '',
+        companions: [],
+        companionName: '',
+        companionAge: '',
+        companionTypeOfDocument: '',
+        companionDocumentNumber: '',
+        companionBirthDate: ''
+    });
 
-  const [companions, setCompanions] = useState([]);
-  const [payments, setPayments] = useState([]);
-  const [companion, setCompanion] = useState({ name: '', age: '', document: '' });
-  const [payment, setPayment] = useState({ amount: '', date: '', status: 'Pendiente' });
-  const [showDetailModal, setShowDetailModal] = useState(false);
+    const [errorMessages, setErrorMessages] = React.useState({});
 
-  const handleReservationChange = (e) => {
-    const { name, value } = e.target;
-    setReservation((prev) => ({ ...prev, [name]: value }));
-  };
+    React.useEffect(() => {
+        if (reservation) {
+            setFormData(reservation);
+        }
+    }, [reservation]);
 
-  const handleCompanionChange = (e) => {
-    const { name, value } = e.target;
-    setCompanion((prev) => ({ ...prev, [name]: value }));
-  };
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prevState) => ({ ...prevState, [name]: value }));
 
-  const handlePaymentChange = (e) => {
-    const { name, value } = e.target;
-    setPayment((prev) => ({ ...prev, [name]: value }));
-  };
+        if (name === 'customerBirthDate') {
+            const birthDate = new Date(value);
+            const calculatedAge = new Date().getFullYear() - birthDate.getFullYear();
+            setFormData((prevState) => ({
+                ...prevState,
+                customerAge: calculatedAge >= 0 ? calculatedAge : ''
+            }));
+        } else if (name === 'companionBirthDate') {
+            const birthDate = new Date(value);
+            const calculatedAge = new Date().getFullYear() - birthDate.getFullYear();
+            setFormData((prevState) => ({
+                ...prevState,
+                companionAge: calculatedAge >= 0 ? calculatedAge : ''
+            }));
+        }
 
-  const addCompanion = () => {
-    setCompanions((prev) => [...prev, companion]);
-    setCompanion({ name: '', age: '', document: '' }); // Resetear el formulario de acompañante
-  };
+        validateField(name, value);
+    };
 
-  const addPayment = () => {
-    setPayments((prev) => [...prev, payment]);
-    setPayment({ amount: '', date: '', status: 'Pendiente' }); // Resetear el formulario de pago
-  };
+    const validateField = (name, value) => {
+        let errorMsg = '';
+        const today = new Date().toISOString().split('T')[0];
 
-  const handleDeleteCompanion = (index) => {
-    const newCompanions = companions.filter((_, i) => i !== index);
-    setCompanions(newCompanions);
-  };
+        switch (name) {
+            // Validaciones para el cliente
+            case 'customerName':
+                if (!value) errorMsg = 'El nombre del cliente es obligatorio.';
+                else if (/\d/.test(value)) errorMsg = 'El nombre no puede contener números.';
+                break;
+            case 'customerTypeOfDocument':
+                if (!value) errorMsg = 'Debes seleccionar un tipo de documento.';
+                break;
+            case 'customerDocumentNumber':
+                if (!/^[a-zA-Z0-9]+$/.test(value) || value.trim() === '') errorMsg = 'El número de documento debe ser alfanumérico y no puede estar vacío.';
+                break;
+            case 'customerBirthDate':
+                if (!value) errorMsg = 'Debes seleccionar una fecha de nacimiento.';
+                else if (value > today) errorMsg = 'La fecha de nacimiento no puede ser posterior a hoy.';
+                break;
+            // Validaciones para el pago
+            case 'paymentAmount':
+                if (!value) errorMsg = 'El monto del pago es obligatorio.';
+                break;
+            case 'paymentDate':
+                if (!value) errorMsg = 'La fecha de pago es obligatoria.';
+                else if (value > today) errorMsg = 'La fecha de pago no puede ser posterior a hoy.';
+                break;
+            case 'paymentState':
+                if (!value) errorMsg = 'Debes seleccionar un estado para el pago.';
+                break;
+            // Validaciones para el acompañante
+            case 'companionName':
+                if (!value) errorMsg = 'El nombre del acompañante es obligatorio.';
+                else if (/\d/.test(value)) errorMsg = 'El nombre no puede contener números.';
+                break;
+            case 'companionTypeOfDocument':
+                if (!value) errorMsg = 'Debes seleccionar un tipo de documento para el acompañante.';
+                break;
+            case 'companionDocumentNumber':
+                if (!/^[a-zA-Z0-9]+$/.test(value) || value.trim() === '') errorMsg = 'El número de documento debe ser alfanumérico y no puede estar vacío.';
+                break;
+            case 'companionBirthDate':
+                if (!value) errorMsg = 'Debes seleccionar una fecha de nacimiento para el acompañante.';
+                else if (value > today) errorMsg = 'La fecha de nacimiento del acompañante no puede ser posterior a hoy.';
+                break;
+            default:
+                break;
+        }
 
-  const handleDeletePayment = (index) => {
-    const newPayments = payments.filter((_, i) => i !== index);
-    setPayments(newPayments);
-  };
+        setErrorMessages((prevState) => ({ ...prevState, [name]: errorMsg }));
+    };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    Swal.fire('Reserva registrada', 'Los detalles de la reserva se han guardado con éxito.', 'success');
-    // Aquí puedes agregar la lógica para guardar la reserva
-  };
+    const handleSave = () => {
+        if (Object.values(errorMessages).some((msg) => msg !== '') || !formData.customerName) return;
 
-  const handleCloseDetailModal = () => {
-    setShowDetailModal(false);
-  };
+        onSave(formData);
+        setFormData({
+            id: null,
+            customerName: '',
+            customerAge: '',
+            customerTypeOfDocument: '',
+            customerDocumentNumber: '',
+            customerBirthDate: '',
+            paymentAmount: '',
+            paymentDate: '',
+            paymentState: '',
+            companions: [],
+            companionName: '',
+            companionAge: '',
+            companionTypeOfDocument: '',
+            companionDocumentNumber: '',
+            companionBirthDate: ''
+        });
+        setErrorMessages({});
+        Swal.fire('Éxito', 'Reserva guardada correctamente', 'success');
+    };
 
-  return (
-    <div className="container mt-5">
-      <h2>Formulario de Reserva</h2>
-      <Form onSubmit={handleSubmit}>
-        <Form.Group controlId="formCode">
-          <Form.Label>Código de Reserva</Form.Label>
-          <Form.Control
-            type="text"
-            name="code"
-            value={reservation.code}
-            onChange={handleReservationChange}
-            required
-          />
-        </Form.Group>
+    const addCompanion = () => {
+        if (!formData.companionName || !formData.companionTypeOfDocument || !formData.companionDocumentNumber) {
+            Swal.fire('Error', 'Completa todos los campos del acompañante.', 'error');
+            return;
+        }
 
-        <Form.Group controlId="formStartDate">
-          <Form.Label>Fecha de Inicio</Form.Label>
-          <Form.Control
-            type="datetime-local"
-            name="startDate"
-            value={reservation.startDate}
-            onChange={handleReservationChange}
-            required
-          />
-        </Form.Group>
+        const newCompanion = {
+            name: formData.companionName,
+            age: formData.companionAge,
+            typeOfDocument: formData.companionTypeOfDocument,
+            documentNumber: formData.companionDocumentNumber,
+            birthDate: formData.companionBirthDate
+        };
 
-        <Form.Group controlId="formEndDate">
-          <Form.Label>Fecha de Fin</Form.Label>
-          <Form.Control
-            type="datetime-local"
-            name="endDate"
-            value={reservation.endDate}
-            onChange={handleReservationChange}
-            required
-          />
-        </Form.Group>
+        setFormData((prevState) => ({
+            ...prevState,
+            companions: [...prevState.companions, newCompanion],
+            companionName: '',
+            companionAge: '',
+            companionTypeOfDocument: '',
+            companionDocumentNumber: '',
+            companionBirthDate: ''
+        }));
+        setErrorMessages({});
+    };
 
-        <Form.Group controlId="formClientName">
-          <Form.Label>Nombre del Cliente</Form.Label>
-          <Form.Control
-            type="text"
-            name="clientName"
-            value={reservation.clientName}
-            onChange={handleReservationChange}
-            required
-          />
-        </Form.Group>
+    const removeCompanion = (index) => {
+        setFormData((prevState) => {
+            const updatedCompanions = prevState.companions.filter((_, i) => i !== index);
+            return { ...prevState, companions: updatedCompanions };
+        });
+    };
 
-        <Form.Group controlId="formTypeOfDocument">
-          <Form.Label>Tipo de Documento</Form.Label>
-          <Form.Control
-            type="text"
-            name="typeOfDocument"
-            value={reservation.typeOfDocument}
-            onChange={handleReservationChange}
-            required
-          />
-        </Form.Group>
-
-        <Form.Group controlId="formDocumentNumber">
-          <Form.Label>Número de Documento</Form.Label>
-          <Form.Control
-            type="text"
-            name="documentNumber"
-            value={reservation.documentNumber}
-            onChange={handleReservationChange}
-            required
-          />
-        </Form.Group>
-
-        <h4>Acompañantes</h4>
-        <Form.Group controlId="formCompanionName">
-          <Form.Label>Nombre</Form.Label>
-          <Form.Control
-            type="text"
-            name="name"
-            value={companion.name}
-            onChange={handleCompanionChange}
-          />
-        </Form.Group>
-        <Form.Group controlId="formCompanionAge">
-          <Form.Label>Edad</Form.Label>
-          <Form.Control
-            type="number"
-            name="age"
-            value={companion.age}
-            onChange={handleCompanionChange}
-          />
-        </Form.Group>
-        <Form.Group controlId="formCompanionDocument">
-          <Form.Label>Número de Documento</Form.Label>
-          <Form.Control
-            type="text"
-            name="document"
-            value={companion.document}
-            onChange={handleCompanionChange}
-          />
-        </Form.Group>
-        <Button variant="primary" onClick={addCompanion}>Agregar Acompañante</Button>
-
-        <Table striped bordered hover className="mt-3">
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Edad</th>
-              <th>Número de Documento</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {companions.map((comp, index) => (
-              <tr key={index}>
-                <td>{comp.name}</td>
-                <td>{comp.age}</td>
-                <td>{comp.document}</td>
-                <td>
-                  <Button variant="danger" onClick={() => handleDeleteCompanion(index)}>
-                    <i className="bi bi-trash"></i>
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
-
-        <h4>Pagos</h4>
-        <Form.Group controlId="formPaymentAmount">
-          <Form.Label>Monto</Form.Label>
-          <Form.Control
-            type="number"
-            name="amount"
-            value={payment.amount}
-            onChange={handlePaymentChange}
-            required
-          />
-        </Form.Group>
-        <Form.Group controlId="formPaymentDate">
-          <Form.Label>Fecha de Pago</Form.Label>
-          <Form.Control
-            type="date"
-            name="date"
-            value={payment.date}
-            onChange={handlePaymentChange}
-            required
-          />
-        </Form.Group>
-        <Form.Group controlId="formPaymentStatus">
-          <Form.Label>Estado del Pago</Form.Label>
-          <Form.Control
-            as="select"
-            name="status"
-            value={payment.status}
-            onChange={handlePaymentChange}
-          >
-            <option>Pendiente</option>
-            <option>Confirmado</option>
-            <option>Completado</option>
-          </Form.Control>
-        </Form.Group>
-        <Button variant="primary" onClick={addPayment}>Agregar Pago</Button>
-
-        <Table striped bordered hover className="mt-3">
-          <thead>
-            <tr>
-              <th>Monto</th>
-              <th>Fecha de Pago</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {payments.map((pay, index) => (
-              <tr key={index}>
-                <td>{pay.amount}</td>
-                <td>{pay.date}</td>
-                <td>{pay.status}</td>
-                <td>
-                  <Button variant="danger" onClick={() => handleDeletePayment(index)}>
-                    <i className="bi bi-trash"></i>
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
-
-        <Button variant="success" type="submit">Registrar Reserva</Button>
-      </Form>
-
-      {/* Modal de Detalle (si es necesario) */}
-      <Modal show={showDetailModal} onHide={handleCloseDetailModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>Detalles de la Reserva</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {/* Mostrar detalles de la reserva aquí */}
-        </Modal.Body>
-      </Modal>
-    </div>
-  );
+    return (
+        <div>
+            <h5>Reserva de Clientes</h5>
+            <Form>
+                <Tabs defaultActiveKey="client" id="uncontrolled-tab-example" className="mb-3">
+                    <Tab eventKey="client" title="Cliente">
+                        <Row>
+                            <Col md={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Nombre del Cliente</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        name="customerName"
+                                        value={formData.customerName}
+                                        onChange={handleChange}
+                                        isInvalid={!!errorMessages.customerName}
+                                    />
+                                    <Form.Control.Feedback type="invalid">{errorMessages.customerName}</Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Edad</Form.Label>
+                                    <Form.Control
+                                        type="number"
+                                        name="customerAge"
+                                        value={formData.customerAge}
+                                        readOnly
+                                    />
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col md={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Tipo de Documento</Form.Label>
+                                    <Form.Control
+                                        as="select"
+                                        name="customerTypeOfDocument"
+                                        value={formData.customerTypeOfDocument}
+                                        onChange={handleChange}
+                                        isInvalid={!!errorMessages.customerTypeOfDocument}
+                                    >
+                                        <option value="">Selecciona...</option>
+                                        <option value="CC">Cédula de Ciudadanía</option>
+                                        <option value="TI">Tarjeta de Identidad</option>
+                                        <option value="CE">Cédula de Extrangería</option>
+                                    </Form.Control>
+                                    <Form.Control.Feedback type="invalid">{errorMessages.customerTypeOfDocument}</Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Número de Documento</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        name="customerDocumentNumber"
+                                        value={formData.customerDocumentNumber}
+                                        onChange={handleChange}
+                                        isInvalid={!!errorMessages.customerDocumentNumber}
+                                    />
+                                    <Form.Control.Feedback type="invalid">{errorMessages.customerDocumentNumber}</Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col md={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Fecha de Nacimiento</Form.Label>
+                                    <Form.Control
+                                        type="date"
+                                        name="customerBirthDate"
+                                        value={formData.customerBirthDate}
+                                        onChange={handleChange}
+                                        isInvalid={!!errorMessages.customerBirthDate}
+                                    />
+                                    <Form.Control.Feedback type="invalid">{errorMessages.customerBirthDate}</Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                    </Tab>
+                    <Tab eventKey="payment" title="Pago">
+                        <Row>
+                            <Col md={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Monto del Pago</Form.Label>
+                                    <Form.Control
+                                        type="number"
+                                        name="paymentAmount"
+                                        value={formData.paymentAmount}
+                                        onChange={handleChange}
+                                        isInvalid={!!errorMessages.paymentAmount}
+                                    />
+                                    <Form.Control.Feedback type="invalid">{errorMessages.paymentAmount}</Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Fecha de Pago</Form.Label>
+                                    <Form.Control
+                                        type="date"
+                                        name="paymentDate"
+                                        value={formData.paymentDate}
+                                        onChange={handleChange}
+                                        isInvalid={!!errorMessages.paymentDate}
+                                    />
+                                    <Form.Control.Feedback type="invalid">{errorMessages.paymentDate}</Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col md={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Estado del Pago</Form.Label>
+                                    <Form.Control
+                                        as="select"
+                                        name="paymentState"
+                                        value={formData.paymentState}
+                                        onChange={handleChange}
+                                        isInvalid={!!errorMessages.paymentState}
+                                    >
+                                        <option value="">Selecciona...</option>
+                                        <option value="Pendiente">Pendiente</option>
+                                        <option value="Confirmado">Confirmado</option>
+                                        <option value="Completado">Completado</option>
+                                    </Form.Control>
+                                    <Form.Control.Feedback type="invalid">{errorMessages.paymentState}</Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                    </Tab>
+                    <Tab eventKey="companion" title="Acompañante">
+                        <Row>
+                            <Col md={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Nombre del Acompañante</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        name="companionName"
+                                        value={formData.companionName}
+                                        onChange={handleChange}
+                                        isInvalid={!!errorMessages.companionName}
+                                    />
+                                    <Form.Control.Feedback type="invalid">{errorMessages.companionName}</Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Edad</Form.Label>
+                                    <Form.Control
+                                        type="number"
+                                        name="companionAge"
+                                        value={formData.companionAge}
+                                        readOnly
+                                    />
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col md={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Tipo de Documento</Form.Label>
+                                    <Form.Control
+                                        as="select"
+                                        name="companionTypeOfDocument"
+                                        value={formData.companionTypeOfDocument}
+                                        onChange={handleChange}
+                                        isInvalid={!!errorMessages.companionTypeOfDocument}
+                                    >
+                                        <option value="">Selecciona...</option>
+                                        <option value="CC">Cédula de Ciudadanía</option>
+                                        <option value="TI">Tarjeta de Identidad</option>
+                                        <option value="CE">Cédula de Extrangería</option>
+                                    </Form.Control>
+                                    <Form.Control.Feedback type="invalid">{errorMessages.companionTypeOfDocument}</Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Número de Documento</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        name="companionDocumentNumber"
+                                        value={formData.companionDocumentNumber}
+                                        onChange={handleChange}
+                                        isInvalid={!!errorMessages.companionDocumentNumber}
+                                    />
+                                    <Form.Control.Feedback type="invalid">{errorMessages.companionDocumentNumber}</Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col md={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Fecha de Nacimiento</Form.Label>
+                                    <Form.Control
+                                        type="date"
+                                        name="companionBirthDate"
+                                        value={formData.companionBirthDate}
+                                        onChange={handleChange}
+                                        isInvalid={!!errorMessages.companionBirthDate}
+                                    />
+                                    <Form.Control.Feedback type="invalid">{errorMessages.companionBirthDate}</Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        <Button variant="primary" onClick={addCompanion}>Agregar Acompañante</Button>
+                        <ul>
+                            {formData.companions.map((companion, index) => (
+                                <li key={index}>
+                                    {companion.name} - {companion.documentNumber} 
+                                    <Button variant="danger" onClick={() => removeCompanion(index)}>Eliminar</Button>
+                                </li>
+                            ))}
+                        </ul>
+                    </Tab>
+                </Tabs>
+                <Button variant="success" onClick={handleSave}>Guardar Reserva</Button>
+            </Form>
+        </div>
+    );
 };
 
-export default ReservationsFormClient;
+export default ReservationsFormClients;
