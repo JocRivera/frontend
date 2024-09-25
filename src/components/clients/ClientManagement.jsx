@@ -28,24 +28,6 @@ const ClientModal = ({ show, handleClose, handleSave, client }) => {
     });
     const [errors, setErrors] = useState({});
 
-    // Función para reiniciar los campos del formulario al cerrar el modal
-    // useEffect(() => {
-    //     if (!show) {
-    //         setFormData({
-    //             Identification: '',
-    //             Name: '',
-    //             Email: '',
-    //             PhoneNumber: '',
-    //             Address: '',
-    //             EPS: '',
-    //             Password: '',
-    //             Confirmar: '',
-    //             Status: 'Activo' // Valor por defecto
-    //         });
-    //         setErrors({});
-    //     }
-    // }, [show]);
-
     useEffect(() => {
         if (client)
             setFormData(client);
@@ -61,6 +43,7 @@ const ClientModal = ({ show, handleClose, handleSave, client }) => {
                 Confirmar: '',
                 Status: 'Activo', // Valor por defecto
             });
+            // El ojito siempre inicia en oculto
             setPasswordVisible(false);
             setPasswordVisible2(false);
         }
