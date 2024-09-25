@@ -153,6 +153,7 @@ function App() {
               <Route path="/listrooms" element={<Listrooms />} />
               <Route path="/myreservations" element={<Myreservations />} />
               <Route path="/reservationsfromclient" element={<ReservationsFormClient />} />
+              <Route path="/viewsplans" element={<PlanCustomer />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

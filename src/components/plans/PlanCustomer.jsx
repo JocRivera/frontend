@@ -28,7 +28,7 @@ const PlanList = () => {
       image: "/src/assets/planSol.jpg?height=200&width=300",
       price: 249.99,
       services: ["Excursión guiada", "Alquiler de bicicletas", "Picnic al aire libre"],
-      accommodations: ["No incluye alojamiento"],
+      accommodations: ["No incluye alojamientos"],
     }
   ];
 

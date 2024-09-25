@@ -20,19 +20,19 @@ const generateUniqueId = () => {
   return nextId++;
 };
 //
-// Datos quemados para servicios y alojamientos
-const serviciosQuemados = [
-  { id: 1, name: "Desayuno", price: 10 },
-  { id: 2, name: "Almuerzo", price: 15 },
-  { id: 3, name: "Cena", price: 20 },
-  { id: 4, name: "Tour guiado", price: 50 },
-];
+// // Datos quemados para servicios y alojamientos
+// const serviciosQuemados = [
+//   { id: 1, name: "Desayuno", price: 10 },
+//   { id: 2, name: "Almuerzo", price: 15 },
+//   { id: 3, name: "Cena", price: 20 },
+//   { id: 4, name: "Tour guiado", price: 50 },
+// ];
 
-const alojamientosQuemados = [
-  { id: 1, name: "Habitación individual", type: "Individual", price: 50, capacity: 1 },
-  { id: 2, name: "Habitación doble", type: "Doble", price: 80, capacity: 2 },
-  { id: 3, name: "Suite familiar", type: "Familiar", price: 150, capacity: 4 },
-];
+// const alojamientosQuemados = [
+//   { id: 1, name: "Habitación individual", type: "Individual", price: 50, capacity: 1 },
+//   { id: 2, name: "Habitación doble", type: "Doble", price: 80, capacity: 2 },
+//   { id: 3, name: "Suite familiar", type: "Familiar", price: 150, capacity: 4 },
+// ];
 
 const PlanManagement = () => {
   const [plans, setPlans] = useState([]);

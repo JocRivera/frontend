@@ -59,8 +59,10 @@ const ClientModal = ({ show, handleClose, handleSave, client }) => {
                 EPS: '',
                 Password: '',
                 Confirmar: '',
-                Status: 'Activo' // Valor por defecto
+                Status: 'Activo', // Valor por defecto
             });
+            setPasswordVisible(false);
+            setPasswordVisible2(false);
         }
         setErrors({});
     }, [client, show]);
