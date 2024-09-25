@@ -11,6 +11,7 @@ function LoginSignin({ isOpen, closeLoginModal }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [emailError, setEmailError] = useState('');
+  const [showPassword, setShowPassword] = useState(false); // State for password visibility
 
   const { isAuthenticated, login } = useAuth();
   const navigate = useNavigate();
@@ -75,6 +76,11 @@ function LoginSignin({ isOpen, closeLoginModal }) {
     }
   };
 
+  // Function to toggle password visibility
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
     <>
       <Modal show={isOpen} onHide={handleCloseLoginModal} centered size="lg" >
@@ -116,14 +122,23 @@ function LoginSignin({ isOpen, closeLoginModal }) {
 
                 <Form.Group className="mb-3" controlId="formBasicPassword">
                   <Form.Label>Contraseña</Form.Label>
-                  <Form.Control
-                    type="password"
-                    placeholder="Contraseña"
-                    className="custom-control"
-                    value={password}
-                    required
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
+                  <div className="position-relative">
+                    <Form.Control
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Contraseña"
+                      className="custom-control"
+                      value={password}
+                      required
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <Button
+                      variant="link"
+                      className="position-absolute top-50 end-0 translate-middle-y password-visibility-toggle"
+                      onClick={togglePasswordVisibility}
+                    >
+                      {showPassword ? <i className="bi bi-eye-slash" /> : <i className="bi bi-eye" />}
+                    </Button>
+                  </div>
                 </Form.Group>
 
                 <Button variant="primary" type="submit" className="custom-button">

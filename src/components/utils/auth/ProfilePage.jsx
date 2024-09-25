@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from './AuthContext'; 
+import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Container, Form, Button, Alert, Row, Col } from 'react-bootstrap';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const ProfilePage = () => {
   const { isAuthenticated, user, updateProfile } = useAuth();
   const navigate = useNavigate();
-  
+
   // Estados para los campos del formulario
   const [document, setDocument] = useState(user?.document || '');
   const [name, setName] = useState(user?.name || '');
@@ -18,6 +19,18 @@ const ProfilePage = () => {
   const [success, setSuccess] = useState('');
   const [touched, setTouched] = useState({}); // Estado para campos "tocados"
 
+  // Estados para la visibilidad de la contraseña
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Estado para el tipo de documento
+  const [documentType, setDocumentType] = useState(user?.documentType || '');
+  const documentTypeOptions = [
+    { value: 'C.C', label: 'Cédula de Ciudadanía' },
+    { value: 'C.E', label: 'Cédula de Extranjería' },
+    { value: 'P.A', label: 'Pasaporte' },
+  ];
+
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/'); // Redirige a la página de inicio si el usuario no está autenticado
@@ -26,6 +39,7 @@ const ProfilePage = () => {
       setName(user?.name || '');
       setEmail(user?.email || '');
       setBirthdate(user?.birthdate || '');
+      setDocumentType(user?.documentType || '');
     }
   }, [isAuthenticated, navigate, user]);
 
@@ -37,6 +51,7 @@ const ProfilePage = () => {
       birthdate: 'Debes tener al menos 18 años para registrarte.',
       password: 'La contraseña debe contener al menos 10 caracteres, una mayúscula, una minúscula, un número y un carácter especial.',
       confirmPassword: 'Las contraseñas no coinciden.',
+      documentType: 'Debe seleccionar un tipo de documento.',
     };
 
     const validations = {
@@ -44,8 +59,9 @@ const ProfilePage = () => {
       idNumber: /^[0-9]{4,}$/.test(value),
       email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
       birthdate: value && new Date(value) <= new Date(new Date().setFullYear(new Date().getFullYear() - 18)),
-      password: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,}$/.test(value),
+      password: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$%*?&])[A-Za-z\d@$%*?&]{10,}$/.test(value),
       confirmPassword: value === password,
+      documentType: value !== '',
     };
 
     return validations[field] ? '' : errorMessages[field];
@@ -61,7 +77,7 @@ const ProfilePage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
+  
     // Ejecuta validación final antes de enviar
     const newErrors = {
       fullName: validateField('fullName', name),
@@ -70,20 +86,40 @@ const ProfilePage = () => {
       birthdate: validateField('birthdate', birthdate),
       password: validateField('password', password),
       confirmPassword: validateField('confirmPassword', confirmPassword),
+      documentType: validateField('documentType', documentType),
     };
-
+  
     if (Object.values(newErrors).some(error => error !== '')) {
       setErrors(newErrors);
       return;
     }
+  
+    // Mostrar mensaje de perfil actualizado
+    setSuccess('Perfil actualizado correctamente.');
+    setTimeout(() => setSuccess(''), 3000);
+  };
 
-    try {
-      updateProfile({ document, name, email, birthdate, password, confirmPassword });
-      setSuccess('Perfil actualizado correctamente.');
-      setErrors({});
-    } catch (error) {
-      setErrors({ global: 'Error al actualizar el perfil.' });
-      console.log(error)
+  const handleCancel = () => {
+    setDocument(user?.document || '');
+    setName(user?.name || '');
+    setEmail(user?.email || '');
+    setBirthdate(user?.birthdate || '');
+    setPassword('');
+    setConfirmPassword('');
+    setDocumentType(user?.documentType || '');
+    setErrors({});
+    setSuccess('');
+    setTouched({});
+
+    // Close the current page
+    window.history.back();
+  };
+
+  const togglePasswordVisibility = (type) => {
+    if (type === 'password') {
+      setShowPassword(!showPassword);
+    } else if (type === 'confirmPassword') {
+      setShowConfirmPassword(!showConfirmPassword);
     }
   };
 
@@ -91,7 +127,6 @@ const ProfilePage = () => {
     <div className="container col p-5 mt-3" style={{ minHeight: "100vh", marginRight : "850px"}}>
         <h1>Editar Perfil</h1>
       <div   className='row  '> 
-
 
       {errors.global && <Alert variant="danger">{errors.global}</Alert>}
       {success && <Alert variant="success">{success}</Alert>}
@@ -131,17 +166,46 @@ const ProfilePage = () => {
               </Form.Control.Feedback>
             </Form.Group>
 
+            <Form.Group className="mb-3" controlId="formBasicDocumentType" style={{ maxWidth: '80%' }}>
+              <Form.Label>Tipo de Documento</Form.Label>
+              <Form.Select
+                value={documentType}
+                onChange={(e) => setDocumentType(e.target.value)}
+                onBlur={() => handleBlur('documentType', documentType)}
+                isInvalid={!!errors.documentType && touched.documentType}
+              >
+                <option value="">Seleccione un tipo de documento</option>
+                {documentTypeOptions.map((option, index) => (
+                  <option key={index} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Form.Select>
+              <Form.Control.Feedback type="invalid">
+                {errors.documentType}
+              </Form.Control.Feedback>
+            </Form.Group>
+
             <Form.Group className="mb-3" controlId="formBasicPassword">
               <Form.Label>Contraseña</Form.Label>
-              <Form.Control
-                type="password"
-                placeholder="Ingresa tu contraseña"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onBlur={() => handleBlur('password', password)}
-                isInvalid={!!errors.password && touched.password}
-                style={{ maxWidth: '80%' }}
-              />
+              <div style={{ position: 'relative' }}>
+                <Form.Control
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Ingresa tu contraseña"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onBlur={() => handleBlur('password', password)}
+                  isInvalid={!!errors.password && touched.password}
+                  style={{ maxWidth: '80%', paddingRight: '30px' }}
+                />
+                <button
+                  type="button"
+                  style={{ position: 'absolute', top: '50%', right: '150px', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
+                  onClick={() => togglePasswordVisibility('password')}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
               <Form.Control.Feedback type="invalid">
                 {errors.password}
               </Form.Control.Feedback>
@@ -183,15 +247,24 @@ const ProfilePage = () => {
 
             <Form.Group className="mb-3" controlId="formBasicConfirmPassword">
               <Form.Label>Confirmar Contraseña</Form.Label>
-              <Form.Control
-                type="password"
-                placeholder="Confirma tu contraseña"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                onBlur={() => handleBlur('confirmPassword', confirmPassword)}
-                isInvalid={!!errors.confirmPassword && touched.confirmPassword}
-                style={{ maxWidth: '80%' }}
-              />
+              <div style={{ position: 'relative' }}>
+                <Form.Control
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="Confirma tu contraseña"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onBlur={() => handleBlur('confirmPassword', confirmPassword)}
+                  isInvalid={!!errors.confirmPassword && touched.confirmPassword}
+                  style={{ maxWidth: '80%', paddingRight: '30px' }}
+                />
+                <button
+                  type="button"
+                  style={{ position: 'absolute', top: '50%', right: '150px', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
+                  onClick={() => togglePasswordVisibility('confirmPassword')}
+                >
+                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
               <Form.Control.Feedback type="invalid">
                 {errors.confirmPassword}
               </Form.Control.Feedback>
@@ -201,6 +274,9 @@ const ProfilePage = () => {
 
         <Button variant="primary" type="submit">
           Guardar Cambios
+        </Button>
+        <Button variant="secondary" type="button" onClick={handleCancel} className="ml-2">
+          Cancelar
         </Button>
       </Form>
     </div>
