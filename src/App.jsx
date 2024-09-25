@@ -19,6 +19,7 @@ import Sidebar from "./layouts/Sidebar";
 import Listcabins from "./components/cabins/viwescabins";
 import Listrooms from "./components/rooms/viwesRooms";
 //vista cliente
+import ReservationsFormClient from './components/pages/ReservationsFormClient';
 import Myreservations from "./components/pages/Myreservations.jsx"; 
 import PlanCustomer from "./components/plans/PlanCustomer";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -151,8 +152,7 @@ function App() {
               <Route path="/listcabins" element={<Listcabins />} />
               <Route path="/listrooms" element={<Listrooms />} />
               <Route path="/myreservations" element={<Myreservations />} />
-              <Route path="/viewsplans" element={<PlanCustomer />} />
-
+              <Route path="/reservationsfromclient" element={<ReservationsFormClient />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

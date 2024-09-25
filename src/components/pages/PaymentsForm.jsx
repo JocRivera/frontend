@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Row, Col, Button, Alert } from 'react-bootstrap';
+import { Form, Row, Col, Button } from 'react-bootstrap';
+import Swal from 'sweetalert2'; // Importa SweetAlert
 
-const PaymentsForm = ({ payments = [], onAdd, onDelete }) => {
+const PaymentsForm = ({ totalAmount, payments = [], onAdd, onDelete }) => {
     const [payment, setPayment] = useState({
         id: null,
         amount: '',
         paymentDate: '',
-        status: '',
+        status: 'Pendiente',
         receipt: ''
     });
     const [errors, setErrors] = useState({});
-    const [alert, setAlert] = useState(null);
     const [receiptUrl, setReceiptUrl] = useState('');
 
     useEffect(() => {
@@ -21,49 +21,133 @@ const PaymentsForm = ({ payments = [], onAdd, onDelete }) => {
         };
     }, [receiptUrl]);
 
-    const validate = () => {
-        const errors = {};
-        if (!payment.amount || payment.amount <= 0) errors.amount = 'El monto debe ser un número positivo.';
-        if (!payment.paymentDate) errors.paymentDate = 'La fecha de pago es obligatoria.';
-        return errors;
+    const validate = (fieldName = null) => {
+        const currentErrors = { ...errors };
+        const currentDate = new Date().toISOString().split('T')[0];
+
+        const validateField = (name) => {
+            switch (name) {
+                case 'amount':
+                    if (!payment.amount || payment.amount <= 0) {
+                        currentErrors.amount = 'El monto debe ser un número positivo.';
+                    } else {
+                        delete currentErrors.amount;
+                    }
+                    break;
+                case 'paymentDate':
+                    if (!payment.paymentDate) {
+                        currentErrors.paymentDate = 'La fecha de pago es obligatoria.';
+                    } else if (payment.paymentDate > currentDate) {
+                        currentErrors.paymentDate = 'La fecha de pago no puede ser una fecha futura.';
+                    } else {
+                        delete currentErrors.paymentDate;
+                    }
+                    break;
+                case 'status':
+                    if (!payment.status) {
+                        currentErrors.status = 'El estado es obligatorio.';
+                    } else {
+                        delete currentErrors.status;
+                    }
+                    break;
+                case 'receipt':
+                    if (!payment.receipt) {
+                        currentErrors.receipt = 'El recibo es obligatorio.';
+                    } else {
+                        delete currentErrors.receipt;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        };
+
+        // Si `fieldName` es nulo, validar todo el formulario
+        if (!fieldName) {
+            validateField('amount');
+            validateField('paymentDate');
+            validateField('status');
+            validateField('receipt');
+        } else {
+            validateField(fieldName);
+        }
+
+        setErrors(currentErrors); // Actualiza el estado de errores
+        return currentErrors; // Devuelve los errores para evaluar
     };
 
-    const handleAdd = () => {
-        const errors = validate();
-        if (Object.keys(errors).length > 0) {
-            setErrors(errors);
-            setAlert({ type: 'danger', message: 'Por favor, corrija los errores en el formulario de pagos.' });
+    const handleAddPayment = () => {
+        const currentErrors = validate(); // Validar todos los campos al agregar
+        if (Object.keys(currentErrors).length > 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Errores en el formulario',
+                text: 'Por favor, corrija los errores en el formulario de pagos.',
+                footer: Object.values(currentErrors).join('<br/>'), // Muestra los mensajes de error
+                html: true // Permite HTML en el footer
+            });
         } else {
             setErrors({});
             onAdd(payment);
             setPayment({
                 amount: '',
                 paymentDate: '',
-                status: '',
+                status: 'Pendiente',
                 receipt: ''
             });
-            setAlert({ type: 'success', message: 'Pago agregado exitosamente.' });
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: 'Pago agregado exitosamente.',
+            });
         }
+    };
+
+    const handleDeletePayment = (id) => {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "¡No podrás recuperar este pago después de eliminarlo!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                onDelete(id);
+                Swal.fire(
+                    'Eliminado!',
+                    'El pago ha sido eliminado.',
+                    'success'
+                );
+            }
+        });
     };
 
     const handleChange = (e) => {
         const { name, value, type, files } = e.target;
         if (type === 'file') {
             const file = files[0];
-            setReceiptUrl(URL.createObjectURL(file));
-            setPayment({ ...payment, receipt: file });
+            if (file && file.type.startsWith('image/')) {
+                setReceiptUrl(URL.createObjectURL(file));
+                setPayment({ ...payment, receipt: file });
+                setErrors((prevErrors) => ({ ...prevErrors, receipt: null }));
+            } else {
+                setErrors((prevErrors) => ({ ...prevErrors, receipt: 'El recibo debe ser una imagen.' }));
+            }
         } else {
             setPayment({ ...payment, [name]: value });
+            validate(name); // Validar campo en tiempo real
         }
     };
 
+    // Calcular el total de pagos realizados
+    const totalPayments = payments.reduce((acc, pay) => acc + Number(pay.amount), 0);
+    const remainingAmount = totalAmount - totalPayments;
+
     return (
         <div className="mb-3">
-            {alert && (
-                <Alert variant={alert.type} onClose={() => setAlert(null)} dismissible>
-                    {alert.message}
-                </Alert>
-            )}
             <h5>Pagos</h5>
             <Form>
                 <Row>
@@ -107,11 +191,16 @@ const PaymentsForm = ({ payments = [], onAdd, onDelete }) => {
                                 name="status"
                                 value={payment.status}
                                 onChange={handleChange}
+                                isInvalid={!!errors.status}
                             >
+                                <option value="">Selecciona</option>
                                 <option value="Pendiente">Pendiente</option>
                                 <option value="Confirmado">Confirmado</option>
                                 <option value="Completado">Completado</option>
                             </Form.Control>
+                            <Form.Control.Feedback type="invalid">
+                                {errors.status}
+                            </Form.Control.Feedback>
                         </Form.Group>
                     </Col>
                     <Col md={6}>
@@ -120,8 +209,13 @@ const PaymentsForm = ({ payments = [], onAdd, onDelete }) => {
                             <Form.Control
                                 type="file"
                                 name="receipt"
+                                accept="image/*"
                                 onChange={handleChange}
+                                isInvalid={!!errors.receipt}
                             />
+                            <Form.Control.Feedback type="invalid">
+                                {errors.receipt}
+                            </Form.Control.Feedback>
                             {receiptUrl && (
                                 <img
                                     src={receiptUrl}
@@ -132,11 +226,12 @@ const PaymentsForm = ({ payments = [], onAdd, onDelete }) => {
                         </Form.Group>
                     </Col>
                 </Row>
-                <Button variant="primary" onClick={handleAdd} className="mt-3">
+                <Button variant="primary" onClick={handleAddPayment} className="mt-3">
                     Agregar Pago
                 </Button>
             </Form>
-
+            <h6>Saldo Pendiente</h6>
+            <p>${remainingAmount > 0 ? remainingAmount : 0} (de ${totalAmount})</p>
             <h6>Lista de Pagos</h6>
             <ul>
                 {payments.map((pay) => (
@@ -152,7 +247,7 @@ const PaymentsForm = ({ payments = [], onAdd, onDelete }) => {
                         <Button
                             variant="danger"
                             size="sm"
-                            onClick={() => onDelete(pay.id)}
+                            onClick={() => handleDeletePayment(pay.id)}
                             className="ms-2"
                         >
                             Eliminar

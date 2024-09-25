@@ -1,5 +1,6 @@
 import * as Icon from "react-icons/md";
 import '../../styles/Homepage.css';
+import { Link } from 'react-router-dom';
 
 function HomePage() {
   return (
@@ -8,7 +9,9 @@ function HomePage() {
         <div className="container">
           <div className="masthead-subheading">Disfruta</div>
           <div className="masthead-heading text-uppercase">Los lagos</div>
-          <a className="btn btn-primary btn-xl text-uppercase" href="reservas.html">Reserva</a>
+          <Link className="btn btn-primary btn-xl text-uppercase" to="/reservationsfromclient">
+          Reserva
+          </Link>
         </div>
       </header>
 

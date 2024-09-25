@@ -1,0 +1,21 @@
+.switch-active .form-check-input {
+    background-color: #0df024; /* Color para estado activo */
+    border-color: #0df024; /* Color para el borde del switch activo */
+    
+  }
+  
+  .switch-inactive .form-check-input {
+    background-color: #dc3545; /* Color para estado inactivo */
+    border-color: #dc3545; /* Color para el borde del switch inactivo */
+  }
+  
+  /* También puedes añadir un estilo para el switch cuando está activo */
+  .switch-active .form-check-input:checked {
+    background-color: #0df024; /* Color de fondo cuando está activado */
+  }
+  
+  /* Y para el inactivo */
+  .switch-inactive .form-check-input:checked {
+    background-color: #dc3545; /* Color de fondo cuando está desactivado */
+  }
+  
