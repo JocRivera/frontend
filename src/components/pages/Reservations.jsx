@@ -263,19 +263,29 @@ const Reservations = () => {
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleCloseModals}>
+            
             Cancelar
+
           </Button>
+
           <Button variant="primary" onClick={handleUpdateReservation}>
+
             Actualizar Reserva
+
           </Button>
+
         </Modal.Footer>
+
       </Modal>
 
-      {/* Modal para ver detalle */}
       <Modal show={showDetailModal} onHide={handleCloseModals} size="lg">
+
         <Modal.Header closeButton>
+
           <Modal.Title>Detalles de la Reserva</Modal.Title>
+
         </Modal.Header>
+
         <Modal.Body>
           {selectedReservation && (
             <>
@@ -307,6 +317,9 @@ const Reservations = () => {
           <Button variant="secondary" onClick={handleCloseModals}>
             Cerrar
           </Button>
+
+
+
         </Modal.Footer>
       </Modal>
     </div>
