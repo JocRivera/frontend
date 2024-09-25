@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Button, Table, FormControl, Modal, InputGroup, Alert } from 'react-bootstrap';
+import { Button, Table, FormControl, Modal, InputGroup } from 'react-bootstrap';
+import Swal from 'sweetalert2'; // Importar SweetAlert2
 import ReservationForm from '../pages/ReservationForm';
-import CompanionsForm from '../pages/CompanionsForm';
+import CompanionsForm from '../pages/companionsForm';
 import PaymentsForm from '../pages/PaymentsForm';
+import { utils, writeFile } from 'xlsx'; // Importar funciones de xlsx
 import 'bootstrap-icons/font/bootstrap-icons.css'; // Import Bootstrap Icons
 
 const Reservations = () => {
@@ -41,7 +43,6 @@ const Reservations = () => {
   ]);
   const [filteredReservations, setFilteredReservations] = useState(reservations);
   const [searchTerm, setSearchTerm] = useState('');
-  const [alert, setAlert] = useState(null);
 
   const handleSearch = (e) => {
     const term = e.target.value.toLowerCase();
@@ -54,11 +55,24 @@ const Reservations = () => {
   };
 
   const handleAddReservation = (newReservation) => {
+    if (!newReservation.clientName || !newReservation.startDate || !newReservation.endDate) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Por favor, completa todos los campos obligatorios.'
+      });
+      return;
+    }
+
     const reservationWithId = { ...newReservation, id: generateId() };
     setReservations([...reservations, reservationWithId]);
     setFilteredReservations([...filteredReservations, reservationWithId]);
     setShowAddModal(false);
-    setAlert({ type: 'success', message: 'Reserva agregada exitosamente.' });
+    Swal.fire({
+      icon: 'success',
+      title: '¡Éxito!',
+      text: 'Reserva agregada exitosamente.'
+    });
   };
 
   const handleEditReservation = (updatedReservation) => {
@@ -66,14 +80,29 @@ const Reservations = () => {
     setReservations(updatedReservations);
     setFilteredReservations(updatedReservations);
     setShowEditModal(false);
-    setAlert({ type: 'success', message: 'Reserva editada exitosamente.' });
+    Swal.fire({
+      icon: 'success',
+      title: '¡Éxito!',
+      text: 'Reserva editada exitosamente.'
+    });
   };
 
   const handleDeleteReservation = (id) => {
-    const updatedReservations = reservations.filter(res => res.id !== id);
-    setReservations(updatedReservations);
-    setFilteredReservations(updatedReservations);
-    setAlert({ type: 'danger', message: 'Reserva eliminada.' });
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: '¡No podrás recuperar esta reserva después de eliminarla!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const updatedReservations = reservations.filter(res => res.id !== id);
+        setReservations(updatedReservations);
+        setFilteredReservations(updatedReservations);
+        Swal.fire('Eliminado', 'Reserva eliminada.', 'success');
+      }
+    });
   };
 
   const handleDetail = (reservation) => {
@@ -91,10 +120,30 @@ const Reservations = () => {
   };
 
   const handleUpdateReservation = () => {
-    if (selectedReservation) {
-      const updatedReservation = { ...selectedReservation, companions, payments };
-      handleEditReservation(updatedReservation);
-    }
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: '¿Quieres editar esta reserva?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, editar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        if (!selectedReservation.clientName || !selectedReservation.startDate || !selectedReservation.endDate) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error reserva incompleta',
+            text: 'Por favor, completa todos los campos obligatorios.'
+          });
+          return;
+        }
+        
+        if (selectedReservation) {
+          const updatedReservation = { ...selectedReservation, companions, payments };
+          handleEditReservation(updatedReservation);
+        }
+      }
+    });
   };
 
   const handleChangeReservation = (name, value) => {
@@ -111,20 +160,28 @@ const Reservations = () => {
     setSelectedReservation(null);
   };
 
+  // Función para descargar la lista de reservas en Excel
+  const handleDownloadExcel = () => {
+    const worksheet = utils.json_to_sheet(filteredReservations);
+    const workbook = utils.book_new();
+    utils.book_append_sheet(workbook, worksheet, 'Reservas');
+    writeFile(workbook, 'reservas.xlsx');
+  };
+
   return (
     <div className="container col p-5 mt-3" style={{ minHeight: "100vh", marginRight: "850px", marginTop: "50px" }}>
-      {alert && (
-        <Alert variant={alert.type} onClose={() => setAlert(null)} dismissible>
-          {alert.message}
-        </Alert>
-      )}
       <div className="d-flex justify-content-between align-items-center my-3">
         <h2>Reservas</h2>
-        <Button variant="primary" onClick={() => setShowAddModal(true)}>
-          Registrar Reserva
-        </Button>
+        <div>
+          <Button variant="primary" onClick={() => setShowAddModal(true)}>
+            Registrar Reserva
+          </Button>
+          <Button variant="success" onClick={handleDownloadExcel} className="ms-2">
+            Descargar Excel
+          </Button>
+        </div>
       </div>
-      <InputGroup className="mb-3">
+      <InputGroup className="mb-3" style={{ maxWidth: '300px' }}> {/* Hacer la barra de búsqueda más pequeña */}
         <FormControl
           placeholder="Buscar por cliente o código"
           value={searchTerm}
@@ -135,12 +192,12 @@ const Reservations = () => {
         <thead>
           <tr>
             <th>Código</th>
+            <th>Nombre del Cliente</th>
+            <th>Tipo de Documento</th>
+            <th>Número de Documento</th>
             <th>Fecha Inicio</th>
             <th>Fecha Fin</th>
             <th>Estado</th>
-            <th>Tipo de Documento</th>
-            <th>Número de Documento</th>
-            <th>Nombre del Cliente</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -148,34 +205,16 @@ const Reservations = () => {
           {filteredReservations.map((reservation) => (
             <tr key={reservation.id}>
               <td>{reservation.code}</td>
+              <td>{reservation.clientName}</td>
+              <td>{reservation.typeOfDocument}</td>
+              <td>{reservation.documentNumber}</td>
               <td>{reservation.startDate}</td>
               <td>{reservation.endDate}</td>
               <td>{reservation.status}</td>
-              <td>{reservation.typeOfDocument}</td>
-              <td>{reservation.documentNumber}</td>
-              <td>{reservation.clientName}</td>
               <td>
-                <Button
-                  variant="info"
-                  size="sm"
-                  onClick={() => handleDetail(reservation)}
-                >
-                  🔍
-                </Button>
-                <Button
-                  variant="warning"
-                  size="sm"
-                  onClick={() => handleEdit(reservation)}
-                >
-                  ✏️
-                </Button>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => handleDeleteReservation(reservation.id)}
-                >
-                  🗑️
-                </Button>
+                <Button variant="info" onClick={() => handleDetail(reservation)}>Ver Detalle</Button>
+                <Button variant="warning" onClick={() => handleEdit(reservation)}>Editar</Button>
+                <Button variant="danger" onClick={() => handleDeleteReservation(reservation.id)}>Eliminar</Button>
               </td>
             </tr>
           ))}
@@ -189,7 +228,7 @@ const Reservations = () => {
         </Modal.Header>
         <Modal.Body>
           <ReservationForm
-            reservation={selectedReservation || {}}
+            reservation={{}} // Puedes pasar un objeto vacío si es para agregar
             onChange={handleChangeReservation}
           />
           <CompanionsForm
@@ -200,7 +239,7 @@ const Reservations = () => {
           <PaymentsForm
             payments={payments}
             onAdd={(payment) => setPayments([...payments, { ...payment, id: generateId() }])}
-            onDelete={(id) => setPayments(payments.filter(payment => payment.id !== id))}
+            onDelete={(id) => setPayments(payments.filter(pmt => pmt.id !== id))}
           />
         </Modal.Body>
         <Modal.Footer>
@@ -208,19 +247,19 @@ const Reservations = () => {
             Cancelar
           </Button>
           <Button variant="primary" onClick={() => handleAddReservation(selectedReservation)}>
-            Guardar
-          </Button>
+            Guardar Reserva
+            </Button>
         </Modal.Footer>
       </Modal>
 
       {/* Modal para editar reserva */}
-      <Modal show={showEditModal} onHide={handleCloseModals}>
+      <Modal show={showEditModal} onHide={handleCloseModals} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>Editar Reserva</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <ReservationForm
-            reservation={selectedReservation || {}}
+            reservation={selectedReservation}
             onChange={handleChangeReservation}
           />
           <CompanionsForm
@@ -231,7 +270,7 @@ const Reservations = () => {
           <PaymentsForm
             payments={payments}
             onAdd={(payment) => setPayments([...payments, { ...payment, id: generateId() }])}
-            onDelete={(id) => setPayments(payments.filter(payment => payment.id !== id))}
+            onDelete={(id) => setPayments(payments.filter(pmt => pmt.id !== id))}
           />
         </Modal.Body>
         <Modal.Footer>
@@ -239,44 +278,41 @@ const Reservations = () => {
             Cancelar
           </Button>
           <Button variant="primary" onClick={handleUpdateReservation}>
-            Guardar Cambios
+            Actualizar Reserva
           </Button>
         </Modal.Footer>
       </Modal>
 
-      {/* Modal para ver detalles */}
-      <Modal show={showDetailModal} onHide={handleCloseModals}>
+      {/* Modal para ver detalle */}
+      <Modal show={showDetailModal} onHide={handleCloseModals} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>Detalles de la Reserva</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {selectedReservation && (
-            <div>
-              <h5>Datos de la Reserva</h5>
-              <p>Código: {selectedReservation.code}</p>
-              <p>Fecha de Inicio: {new Date(selectedReservation.startDate).toLocaleString()}</p>
-              <p>Fecha de Fin: {new Date(selectedReservation.endDate).toLocaleString()}</p>
-              <p>Estado: {selectedReservation.status}</p>
-              <p>Tipo Documento: {selectedReservation.typeOfDocument}</p>
-              <p>Número Documento: {selectedReservation.documentNumber}</p>
-              <p>Nombre Cliente: {selectedReservation.clientName}</p>
-              <h5>Acompañantes</h5>
+            <>
+              <h5>Código: {selectedReservation.code}</h5>
+              <h5>Nombre del Cliente: {selectedReservation.clientName}</h5>
+              <h5>Tipo de Documento: {selectedReservation.typeOfDocument}</h5>
+              <h5>Número de Documento: {selectedReservation.documentNumber}</h5>
+              <h5>Fecha Inicio: {selectedReservation.startDate}</h5>
+              <h5>Fecha Fin: {selectedReservation.endDate}</h5>
+              <h5>Estado: {selectedReservation.status}</h5>
+
+              <h6>Acompañantes:</h6>
               <ul>
-                {companions.map(companion => (
-                  <li key={companion.id}>
-                    {companion.name} - {companion.documentNumber}
-                  </li>
+                {companions.map(comp => (
+                  <li key={comp.id}>{comp.name}</li>
                 ))}
               </ul>
-              <h5>Pagos</h5>
+
+              <h6>Pagos:</h6>
               <ul>
-                {payments.map(payment => (
-                  <li key={payment.id}>
-                    ${payment.amount} - {payment.date} - {payment.status}
-                  </li>
+                {payments.map(pmt => (
+                  <li key={pmt.id}>Monto: {pmt.amount}, Fecha: {pmt.date}, Estado: {pmt.status}</li>
                 ))}
               </ul>
-            </div>
+            </>
           )}
         </Modal.Body>
         <Modal.Footer>
@@ -289,6 +325,8 @@ const Reservations = () => {
   );
 };
 
-const generateId = () => Math.floor(Math.random() * 10000);
+const generateId = () => {
+  return Math.random().toString(36).substr(2, 9); // Generar un ID único
+};
 
 export default Reservations;

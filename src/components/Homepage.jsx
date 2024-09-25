@@ -8,7 +8,7 @@ function HomePage() {
         <div className="container">
           <div className="masthead-subheading">Disfruta</div>
           <div className="masthead-heading text-uppercase">Los lagos</div>
-          <a className="btn btn-primary btn-xl text-uppercase" href="reservas.html">Reserva</a>
+          <a className="btn btn-primary btn-xl text-uppercase" href="ReservationsFormClient.jsx">Reserva</a>
         </div>
       </header>
 

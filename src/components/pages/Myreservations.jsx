@@ -1,120 +1,176 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Button, Badge, Card, Modal, Row } from 'react-bootstrap';
-import { CalendarDays, Info, X, MapPin, Users, Coffee, Sunrise, Sunset } from 'lucide-react';
+import React, { useState } from 'react';
+import { Button, Table, FormControl, Modal, InputGroup } from 'react-bootstrap';
+import Swal from 'sweetalert2'; 
+import { utils, writeFile } from 'xlsx'; 
+import 'bootstrap-icons/font/bootstrap-icons.css';
 
-const mockReservations = [
-    { id: 1, planName: "Romantic Getaway", clientName: "John Doe", status: "confirmed", date: "2023-07-15", checkIn: "2023-08-01", checkOut: "2023-08-03", location: "Seaside Suite", guests: 2, amenities: ["Champagne", "Spa Treatment", "Candlelit Dinner"] },
-    { id: 2, planName: "Family Fun", clientName: "Jane Smith", status: "pending", date: "2023-07-16", checkIn: "2023-08-10", checkOut: "2023-08-15", location: "Garden Villa", guests: 4, amenities: ["Kids Club", "Pool Access", "Game Room"] },
-    { id: 3, planName: "Adventure Package", clientName: "Mike Johnson", status: "cancelled", date: "2023-07-10", checkIn: "2023-07-20", checkOut: "2023-07-23", location: "Mountain Cabin", guests: 2, amenities: ["Hiking Gear", "Kayak Rental", "Guided Tour"] },
-    { id: 4, planName: "Relaxation Retreat", clientName: "Emily Brown", status: "confirmed", date: "2023-07-18", checkIn: "2023-09-05", checkOut: "2023-09-10", location: "Zen Garden Room", guests: 1, amenities: ["Daily Yoga", "Meditation Sessions", "Spa Access"] },
-];
+const MyReservations = () => {
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState(null);
+  const [companions, setCompanions] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [reservations, setReservations] = useState([
+    // Datos de ejemplo
+    {
+      id: 1,
+      code: 'R001',
+      startDate: '2024-08-01T12:00',
+      endDate: '2024-08-05T12:00',
+      status: 'Reservado',
+      typeOfDocument: 'CC',
+      documentNumber: '123456789',
+      clientName: 'Juan Pérez',
+      companions: [],
+      payments: []
+    },
+    {
+      id: 2,
+      code: 'R002',
+      startDate: '2024-08-10T12:00',
+      endDate: '2024-08-12T12:00',
+      status: 'Confirmado',
+      typeOfDocument: 'TI',
+      documentNumber: '987654321',
+      clientName: 'Ana Gómez',
+      companions: [],
+      payments: []
+    },
+    // Agrega más reservas para probar la paginación
+  ]);
+  const [filteredReservations, setFilteredReservations] = useState(reservations);
+  const [searchTerm, setSearchTerm] = useState('');
 
-const getStatusColor = (status) => {
-    switch (status) {
-        case 'confirmed': return 'success';
-        case 'pending': return 'warning';
-        case 'cancelled': return 'danger';
-        default: return 'secondary';
-    }
+  // Paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const reservationsPerPage = 5; // Cambia el número de reservas por página aquí
+
+  const handleSearch = (e) => {
+    const term = e.target.value.toLowerCase();
+    setSearchTerm(term);
+    const filtered = reservations.filter(res =>
+      res.clientName.toLowerCase().includes(term) ||
+      res.code.toLowerCase().includes(term)
+    );
+    setFilteredReservations(filtered);
+    setCurrentPage(1); // Reiniciar a la primera página después de buscar
+  };
+
+  const handleDetail = (reservation) => {
+    setSelectedReservation(reservation);
+    setCompanions(reservation.companions || []);
+    setPayments(reservation.payments || []);
+    setShowDetailModal(true);
+  };
+
+  const handleCloseDetailModal = () => {
+    setShowDetailModal(false);
+    setSelectedReservation(null);
+  };
+
+  // Función para descargar la lista de reservas en Excel
+  const handleDownloadExcel = () => {
+    const worksheet = utils.json_to_sheet(filteredReservations);
+    const workbook = utils.book_new();
+    utils.book_append_sheet(workbook, worksheet, 'Reservas');
+    writeFile(workbook, 'reservas.xlsx');
+  };
+
+  // Funciones de paginación
+  const indexOfLastReservation = currentPage * reservationsPerPage;
+  const indexOfFirstReservation = indexOfLastReservation - reservationsPerPage;
+  const currentReservations = filteredReservations.slice(indexOfFirstReservation, indexOfLastReservation);
+  const totalPages = Math.ceil(filteredReservations.length / reservationsPerPage);
+
+  return (
+    <div className="container col p-5 mt-3" style={{ minHeight: "100vh", marginRight: "850px", marginTop: "50px" }}>
+      <div className="d-flex justify-content-between align-items-center my-3">
+        <h2>Mis Reservas</h2>
+        <Button variant="success" onClick={handleDownloadExcel}>
+          Descargar Excel
+        </Button>
+      </div>
+      <InputGroup className="mb-3" style={{ maxWidth: '300px' }}>
+        <FormControl
+          placeholder="Buscar por cliente o código"
+          value={searchTerm}
+          onChange={handleSearch}
+        />
+      </InputGroup>
+      <Table striped bordered hover>
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Nombre del Cliente</th>
+            <th>Tipo de Documento</th>
+            <th>Número de Documento</th>
+            <th>Fecha Inicio</th>
+            <th>Fecha Fin</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {currentReservations.map((reservation) => (
+            <tr key={reservation.id}>
+              <td>{reservation.code}</td>
+              <td>{reservation.clientName}</td>
+              <td>{reservation.typeOfDocument}</td>
+              <td>{reservation.documentNumber}</td>
+              <td>{reservation.startDate}</td>
+              <td>{reservation.endDate}</td>
+              <td>{reservation.status}</td>
+              <td>
+                <Button variant="info" onClick={() => handleDetail(reservation)}>Ver Detalle</Button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+
+      {/* Paginación */}
+      <div className="d-flex justify-content-center mt-4">
+        {Array.from({ length: totalPages }, (_, index) => (
+          <Button 
+            key={index + 1} 
+            variant={currentPage === index + 1 ? 'primary' : 'light'} 
+            onClick={() => setCurrentPage(index + 1)} 
+            className="mx-1"
+          >
+            {index + 1}
+          </Button>
+        ))}
+      </div>
+
+      {/* Modal para ver detalle */}
+      <Modal show={showDetailModal} onHide={handleCloseDetailModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>Detalles de la Reserva</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <h5>Código: {selectedReservation?.code}</h5>
+          <p>Nombre del Cliente: {selectedReservation?.clientName}</p>
+          <p>Tipo de Documento: {selectedReservation?.typeOfDocument}</p>
+          <p>Número de Documento: {selectedReservation?.documentNumber}</p>
+          <p>Fecha Inicio: {selectedReservation?.startDate}</p>
+          <p>Fecha Fin: {selectedReservation?.endDate}</p>
+          <p>Estado: {selectedReservation?.status}</p>
+          {/* Detalles de acompañantes y pagos aquí */}
+          <h6>Acompañantes:</h6>
+          <ul>
+            {companions.map((companion, index) => (
+              <li key={index}>{companion.name}</li>
+            ))}
+          </ul>
+          <h6>Pagos:</h6>
+          <ul>
+            {payments.map((payment, index) => (
+              <li key={index}>{payment.amount} - {payment.date} - {payment.status}</li>
+            ))}
+          </ul>
+        </Modal.Body>
+      </Modal>
+    </div>
+  );
 };
 
-export default function MyReservations() {
-    const [reservations, setReservations] = useState(mockReservations);
-    const [selectedReservation, setSelectedReservation] = useState(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-
-    const handleCancelReservation = (id) => {
-        setReservations(reservations.map(res =>
-            res.id === id ? { ...res, status: 'cancelled' } : res
-        ));
-    };
-
-    const handleShowModal = (reservation) => {
-        setSelectedReservation(reservation);
-        setIsModalOpen(true);
-    };
-
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setSelectedReservation(null);
-    };
-
-    return (
-        <div className="container" style={{ minHeight: "100vh", paddingTop: "60px" }}>
-            <h1 className="text-center mb-4">My Magical Getaways</h1>
-            <Row>
-                {reservations.map((reservation) => (
-                    <div className="col-md-4 mb-4" key={reservation.id}>
-                        <Card className="shadow-sm">
-                            <Card.Header className={`bg-${getStatusColor(reservation.status)}`}>
-                                <div className="d-flex justify-content-between align-items-center">
-                                    <span>{reservation.planName}</span>
-                                    <Badge bg={getStatusColor(reservation.status)}>{reservation.status}</Badge>
-                                </div>
-                                <small>Booked on {reservation.date}</small>
-                            </Card.Header>
-                            <Card.Body>
-                                <div className="mb-2">
-                                    <MapPin className="me-1" /> {reservation.location}
-                                </div>
-                                <div className="mb-2">
-                                    <Users className="me-1" /> {reservation.guests} guests
-                                </div>
-                                <div className="d-flex justify-content-between mb-2">
-                                    <div><Sunrise className="me-1" /> {reservation.checkIn}</div>
-                                    <div><Sunset className="me-1" /> {reservation.checkOut}</div>
-                                </div>
-                                <div className="d-flex flex-wrap">
-                                    {reservation.amenities.map((amenity, index) => (
-                                        <Badge key={index} bg="light" className="me-1">
-                                            <Coffee className="me-1" /> {amenity}
-                                        </Badge>
-                                    ))}
-                                </div>
-                            </Card.Body>
-                            <Card.Footer className="d-flex justify-content-between">
-                                <Button variant="info" size="sm" onClick={() => handleShowModal(reservation)}>
-                                    <Info className="me-1" /> Details
-                                </Button>
-                                {reservation.status !== 'cancelled' && (
-                                    <Button variant="danger" size="sm" onClick={() => handleCancelReservation(reservation.id)}>
-                                        <X className="me-1" /> Cancel
-                                    </Button>
-                                )}
-                            </Card.Footer>
-                        </Card>
-                    </div>
-                ))}
-            </Row>
-
-            <div className="text-center mt-4">
-                <Link to="/viewsplans">
-                    <Button className="btn btn-primary">
-                        <CalendarDays className="me-2" /> Book a New Adventure
-                    </Button>
-                </Link>
-            </div>
-
-
-            <Modal show={isModalOpen} onHide={handleCloseModal}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Reservation Details</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    {selectedReservation && (
-                        <div>
-                            <h4>{selectedReservation.planName}</h4>
-                            <p><strong>Location:</strong> {selectedReservation.location}</p>
-                            <p><strong>Check-in:</strong> {selectedReservation.checkIn}</p>
-                            <p><strong>Check-out:</strong> {selectedReservation.checkOut}</p>
-                            <p><strong>Guests:</strong> {selectedReservation.guests}</p>
-                            <p><strong>Amenities:</strong> {selectedReservation.amenities.join(', ')}</p>
-                            <p><strong>Booked on:</strong> {selectedReservation.date}</p>
-                        </div>
-                    )}
-                </Modal.Body>
-            </Modal>
-        </div>
-    );
-}
+export default MyReservations;
