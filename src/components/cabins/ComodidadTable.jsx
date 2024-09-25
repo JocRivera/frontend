@@ -1,8 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Table, Modal, Form } from 'react-bootstrap';
-import Swal from 'sweetalert2';
+import React, { useState, useEffect } from "react";
+import { Button, Table, Modal, Form } from "react-bootstrap";
+import AsyncSelect from "react-select/async";
+import Swal from "sweetalert2";
 
-// Componente para gestionar Comodidades dentro del formulario de Cabaña
+// Simulación de datos de artículos reales
+let articuloData = [
+  { id: "1", nombre: "Cama Doble", codigo: "CD001" },
+  { id: "2", nombre: "Televisor 42 pulgadas", codigo: "TV042" },
+  { id: "3", nombre: "Aire Acondicionado", codigo: "AC001" },
+  { id: "4", nombre: "Mini Bar", codigo: "MB001" },
+  { id: "5", nombre: "Baño Privado", codigo: "BP001" },
+];
+
 const TableComodidad = ({ comodidades, onUpdateComodidades }) => {
   const [selectedComodidad, setSelectedComodidad] = useState(null);
   const [showComodidadModal, setShowComodidadModal] = useState(false);
@@ -14,57 +23,46 @@ const TableComodidad = ({ comodidades, onUpdateComodidades }) => {
 
   const handleSaveComodidad = (comodidad) => {
     if (selectedComodidad) {
-      onUpdateComodidades(comodidades.map((item) => (item.id === comodidad.id ? comodidad : item)));
+      onUpdateComodidades(
+        comodidades.map((item) => (item.id === comodidad.id ? { ...item, ...comodidad } : item))
+      );
     } else {
-      onUpdateComodidades([...comodidades, { ...comodidad, id: Date.now() }]);
+      onUpdateComodidades([...comodidades, comodidad]);
     }
     setShowComodidadModal(false);
     Swal.fire({
-      icon: 'success',
-      title: 'Éxito',
-      text: 'Comodidad guardada correctamente',
-      timer: 2000, // Desaparece después de 2 segundos
-      showConfirmButton: false
+      icon: "success",
+      title: "Éxito",
+      text: "Comodidad guardada correctamente",
+      timer: 2000,
+      showConfirmButton: false,
     });
   };
 
   const handleEditComodidad = (comodidad) => {
-    Swal.fire({
-      title: '¿Estás seguro de editar esta comodidad?',
-      text: 'Esta acción no se puede deshacer',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Sí, editar',
-      cancelButtonText: 'Cancelar'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        setSelectedComodidad(comodidad);
-        setShowComodidadModal(true);
-      }
-    });
+    setSelectedComodidad(comodidad);
+    setShowComodidadModal(true);
   };
 
   const handleDeleteComodidad = (id) => {
     Swal.fire({
-      title: '¿Estás seguro?',
-      text: 'Esta acción no se puede deshacer',
-      icon: 'warning',
+      title: "¿Estás seguro?",
+      text: "Esta acción no se puede deshacer",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar'
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
     }).then((result) => {
       if (result.isConfirmed) {
         onUpdateComodidades(comodidades.filter((item) => item.id !== id));
         Swal.fire({
-          icon: 'success',
-          title: 'Eliminado',
-          text: 'Comodidad eliminada correctamente',
-          timer: 2000, // Desaparece después de 2 segundos
-          showConfirmButton: false
+          icon: "success",
+          title: "Eliminado",
+          text: "Comodidad eliminada correctamente",
+          timer: 2000,
+          showConfirmButton: false,
         });
       }
     });
@@ -78,6 +76,7 @@ const TableComodidad = ({ comodidades, onUpdateComodidades }) => {
           <tr>
             <th>ID</th>
             <th>Artículos</th>
+            <th>Código</th>
             <th>Observación</th>
             <th>Fecha de Ingreso</th>
             <th>Estado</th>
@@ -88,13 +87,18 @@ const TableComodidad = ({ comodidades, onUpdateComodidades }) => {
           {comodidades.map((comodidad) => (
             <tr key={comodidad.id}>
               <td>{comodidad.id}</td>
-              <td>{comodidad.articulos}</td>
+              <td>{comodidad.nombreArticulo}</td>
+              <td>{comodidad.codigoArticulo}</td>
               <td>{comodidad.observacion}</td>
               <td>{new Date(comodidad.fechaIngreso).toLocaleDateString()}</td>
               <td>{comodidad.estado}</td>
               <td>
-                <Button variant="info" onClick={() => handleEditComodidad(comodidad)}>Editar</Button>
-                <Button variant="danger" onClick={() => handleDeleteComodidad(comodidad.id)}>Eliminar</Button>
+                <Button variant="info" onClick={() => handleEditComodidad(comodidad)}>
+                  Editar
+                </Button>
+                <Button variant="danger" onClick={() => handleDeleteComodidad(comodidad.id)}>
+                  Eliminar
+                </Button>
               </td>
             </tr>
           ))}
@@ -113,118 +117,167 @@ const TableComodidad = ({ comodidades, onUpdateComodidades }) => {
   );
 };
 
-// Modal para agregar/editar Comodidades
 const ModalComodidad = ({ show, onHide, comodidad, onSave }) => {
-  const [articulos, setArticulos] = useState(comodidad?.articulos || '');
-  const [observacion, setObservacion] = useState(comodidad?.observacion || '');
-  const [fechaIngreso, setFechaIngreso] = useState(comodidad?.fechaIngreso || '');
-  const [estado, setEstado] = useState(comodidad?.estado || 'Disponible');
+  const [selectedArticulo, setSelectedArticulo] = useState(null);
+  const [newArticulo, setNewArticulo] = useState("");
+  const [newCodigo, setNewCodigo] = useState("");
+  const [observacion, setObservacion] = useState(comodidad?.observacion || "");
+  const [fechaIngreso, setFechaIngreso] = useState(comodidad?.fechaIngreso || "");
+  const [estado, setEstado] = useState(comodidad?.estado || "Disponible");
+  const [showNewArticuloForm, setShowNewArticuloForm] = useState(false);
   const [errors, setErrors] = useState({});
+
   useEffect(() => {
-    const newErrors = {};
-    if (articulos.trim() && articulos.trim().length < 2) {
-      newErrors.articulos = 'Debe tener al menos 2 caracteres';
+    if (comodidad) {
+      const articuloEncontrado = articuloData.find(a => a.id === comodidad.articuloId);
+      setSelectedArticulo(articuloEncontrado ? { 
+        value: articuloEncontrado.id, 
+        label: articuloEncontrado.nombre,
+        codigo: articuloEncontrado.codigo 
+      } : null);
+      setObservacion(comodidad.observacion);
+      setFechaIngreso(comodidad.fechaIngreso);
+      setEstado(comodidad.estado);
     }
-    if (observacion.trim() && observacion.trim().length < 6) {
-      newErrors.observacion = 'Debe tener al menos 6 caracteres';
-    }
-    if (fechaIngreso && isNaN(new Date(fechaIngreso).getTime())) {
-      newErrors.fechaIngreso = 'Fecha inválida';
-    }
-    setErrors(newErrors);
-  }, [articulos, observacion, fechaIngreso]); // Corregir 'observaciaon' a 'observacion'
+  }, [comodidad]);
 
   const handleSave = () => {
     const newErrors = {};
-    
-    if (!articulos.trim()) newErrors.articulos = 'El campo Artículos es obligatorio';
-    if (!observacion.trim()) newErrors.observacion = 'El campo Observación es obligatorio';
-    if (!fechaIngreso) newErrors.fechaIngreso = 'El campo Fecha de Ingreso es obligatorio';
-    if (isNaN(new Date(fechaIngreso).getTime())) newErrors.fechaIngreso = 'Fecha inválida';
-  
+
+    if (!selectedArticulo && !newArticulo) newErrors.articulo = "Debe seleccionar o crear un artículo";
+    if (!observacion.trim()) newErrors.observacion = "El campo Observación es obligatorio"; 
+    if (!fechaIngreso.trim()) newErrors.fechaIngreso = "El campo Fecha de Ingreso es obligatorio";
+    if (isNaN(new Date(fechaIngreso).getTime())) newErrors.fechaIngreso = "Fecha inválida";
+
     setErrors(newErrors);
-  
+
     if (Object.keys(newErrors).length > 0) {
-      // Muestra una alerta con todos los errores
       Swal.fire({
-        title: 'Errores en el formulario',
-        html: Object.values(newErrors).join('<br>'), // Muestra todos los errores en líneas separadas
-        icon: 'error',
-        confirmButtonText: 'Ok',
+        title: "Errores en el formulario",
+        html: Object.values(newErrors).join("<br>"),
+        icon: "error",
+        confirmButtonText: "Ok",
       });
-    } else {
-      // Llama a la función onSave si no hay errores
-      onSave({ ...comodidad, articulos, observacion, fechaIngreso, estado });
+      return;
     }
+
+    let articuloId, nombreArticulo, codigoArticulo;
+
+    if (newArticulo) {
+      const nuevoArticulo = {
+        id: Date.now().toString(),
+        nombre: newArticulo,
+        codigo: newCodigo
+      };
+      articuloData.push(nuevoArticulo);
+      articuloId = nuevoArticulo.id;
+      nombreArticulo = nuevoArticulo.nombre;
+      codigoArticulo = nuevoArticulo.codigo;
+    } else {
+      articuloId = selectedArticulo.value;
+      nombreArticulo = selectedArticulo.label;
+      codigoArticulo = selectedArticulo.codigo;
+    }
+
+    onSave({
+      id: comodidad ? comodidad.id : Date.now().toString(),
+      articuloId,
+      nombreArticulo,
+      codigoArticulo,
+      observacion,
+      fechaIngreso,
+      estado,
+    });
   };
-  
+
+  const handleSelectChange = (selectedOption) => {
+    setSelectedArticulo(selectedOption);
+    setShowNewArticuloForm(false);
+  };
+
+  const loadArticulos = (inputValue) => {
+    return Promise.resolve(
+      articuloData
+        .filter((articulo) =>
+          articulo.nombre.toLowerCase().includes(inputValue.toLowerCase())
+        )
+        .map((articulo) => ({
+          value: articulo.id,
+          label: articulo.nombre,
+          codigo: articulo.codigo
+        }))
+    );
+  };
 
   return (
-    <Modal show={show} onHide={onHide} size="lg">
+    <Modal show={show} onHide={onHide}>
       <Modal.Header closeButton>
-        <Modal.Title>{comodidad ? 'Editar Comodidad' : 'Agregar Comodidad'}</Modal.Title>
+        <Modal.Title>{comodidad ? "Editar Comodidad" : "Agregar Comodidad"}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form>
           <Form.Group>
             <Form.Label>Artículos</Form.Label>
-            <Form.Control
-              type="text"
-              value={articulos}
-              onChange={(e) => setArticulos(e.target.value)}
-              isInvalid={!!errors.articulos}
-              onBlur={() => {
-                if (articulos.trim() && articulos.trim().length < 2) {
-                  setErrors((prevErrors) => ({
-                    ...prevErrors,
-                    articulos: 'Debe tener al menos 2 caracteres'
-                  }));
-                }
-              }}
+            <AsyncSelect
+              cacheOptions
+              loadOptions={loadArticulos}
+              defaultOptions
+              onChange={handleSelectChange}
+              value={selectedArticulo}
+              placeholder="Selecciona un artículo..."
             />
-            <Form.Control.Feedback type="invalid">
-              {errors.articulos}
-            </Form.Control.Feedback>
+            {errors.articulo && <div className="text-danger">{errors.articulo}</div>}
+            <Button 
+              variant="link" 
+              onClick={() => setShowNewArticuloForm(!showNewArticuloForm)}
+            >
+              {showNewArticuloForm ? "Cancelar" : "Crear nuevo artículo"}
+            </Button>
           </Form.Group>
-          <Form.Group>
-            <Form.Label>Observación</Form.Label>
-            <Form.Control
-              type="text"
-              value={observacion}
-              onChange={(e) => setObservacion(e.target.value)}
-              isInvalid={!!errors.observacion}
-              onBlur={() => {
-                if (observacion.trim() && observacion.trim().length < 6) {
-                  setErrors((prevErrors) => ({
-                    ...prevErrors,
-                    observacion: 'Debe tener al menos 6 caracteres'
-                  }));
-                }
-              }}
-            />
-            <Form.Control.Feedback type="invalid">
-              {errors.observacion}
-            </Form.Control.Feedback>
-          </Form.Group>
+          
+          {showNewArticuloForm && (
+            <>
+              <Form.Group>
+                <Form.Label>Nuevo Artículo</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Nombre del nuevo artículo"
+                  value={newArticulo}
+                  onChange={(e) => setNewArticulo(e.target.value)}
+                />
+              </Form.Group>
+              <Form.Group>
+                <Form.Label>Código del Nuevo Artículo</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Código del nuevo artículo"
+                  value={newCodigo}
+                  onChange={(e) => setNewCodigo(e.target.value)}
+                />
+              </Form.Group>
+            </>
+          )}
+          
+          {selectedArticulo && (
+            <Form.Group>
+              <Form.Label>Código del Artículo</Form.Label>
+              <Form.Control
+                type="text"
+                value={selectedArticulo.codigo}
+                readOnly
+              />
+            </Form.Group>
+          )}
+
+          
           <Form.Group>
             <Form.Label>Fecha de Ingreso</Form.Label>
             <Form.Control
               type="date"
               value={fechaIngreso}
               onChange={(e) => setFechaIngreso(e.target.value)}
-              isInvalid={!!errors.fechaIngreso}
-              onBlur={() => {
-                if (fechaIngreso && isNaN(new Date(fechaIngreso).getTime())) {
-                  setErrors((prevErrors) => ({
-                    ...prevErrors,
-                    fechaIngreso: 'Fecha inválida'
-                  }));
-                }
-              }}
             />
-            <Form.Control.Feedback type="invalid">
-              {errors.fechaIngreso}
-            </Form.Control.Feedback>
+            {errors.fechaIngreso && <div className="text-danger">{errors.fechaIngreso}</div>}
           </Form.Group>
           <Form.Group>
             <Form.Label>Estado</Form.Label>
@@ -233,10 +286,20 @@ const ModalComodidad = ({ show, onHide, comodidad, onSave }) => {
               value={estado}
               onChange={(e) => setEstado(e.target.value)}
             >
-              <option>Disponible</option>
-              <option>En reparación</option>
-              <option>No disponible</option>
+              <option value="Disponible">Disponible</option>
+              <option value="De Baja">Dado de Baja</option>
+              <option value="En Mantenimiento">En Mantenimiento</option>
             </Form.Control>
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Observación</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Observación"
+              value={observacion}
+              onChange={(e) => setObservacion(e.target.value)}
+            />
+            {errors.observacion && <div className="text-danger">{errors.observacion}</div>}
           </Form.Group>
         </Form>
       </Modal.Body>
@@ -244,7 +307,7 @@ const ModalComodidad = ({ show, onHide, comodidad, onSave }) => {
         <Button variant="secondary" onClick={onHide}>
           Cancelar
         </Button>
-        <Button variant="primary" onClick={handleSave} disabled={Object.keys(errors).length > 0}>
+        <Button variant="primary" onClick={handleSave}>
           Guardar
         </Button>
       </Modal.Footer>

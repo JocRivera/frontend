@@ -100,3 +100,29 @@ input[type="text"]:focus {
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
+
+.pagination-container {
+  justify-content: center;
+  display: flex;
+  margin-top: 20px;
+}
+
+.pagination-container ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.pagination-container li {
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.pagination-container a {
+  text-decoration: none;
+  color: #337ab7;
+}
+
+.pagination-container .active a {
+  color: #23527c;
+}

@@ -1,18 +1,15 @@
 import React, { useState } from "react";
 import { Button, Card, Modal, Form, Row, Col } from "react-bootstrap";
-import TableComodidad from "./ComodidadTable"; // Asegúrate de que este componente esté importado correctamente
-import Swal from "sweetalert2"; // Importa la librería de alertas
-import './Cabins.css'
-
+import TableComodidad from "./ComodidadTable";
+import Swal from "sweetalert2";
+import ReactPaginate from "react-paginate";
 import "./Cabins.css";
 
-// Componente para gestionar Cabañas
 const CabanaManagement = () => {
   const [cabanaList, setCabanaList] = useState([]);
   const [selectedCabana, setSelectedCabana] = useState(null);
   const [showCabanaForm, setShowCabanaForm] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
-
   const [formValues, setFormValues] = useState({
     nombre: "",
     capacidad: "",
@@ -23,6 +20,14 @@ const CabanaManagement = () => {
   });
   const [searchTerm, setSearchTerm] = useState("");
   const [errors, setErrors] = useState({});
+
+  const handlePageClick = (data) => {
+    const currentPage = data.selected;
+    const itemsPerPage = 10;
+    const offset = currentPage * itemsPerPage;
+    const paginatedCabins = cabanaList.slice(offset, offset + itemsPerPage);
+    // Aquí puedes actualizar la lista de cabañas paginadas
+  };
 
   const validateForm = () => {
     const newErrors = {};
@@ -35,21 +40,8 @@ const CabanaManagement = () => {
     if (!formValues.imagen) newErrors.imagen = "Imagen es obligatoria";
     if (formValues.comodidades.length === 0)
       newErrors.comodidades = "Debe agregar al menos una comodidad";
-  
     setErrors(newErrors);
-  
-    // Si hay errores, mostrar la alerta
-    if (Object.keys(newErrors).length > 0) {
-      Swal.fire({
-        title: "Errores en el formulario",
-        html: Object.values(newErrors).join("<br>"), // Muestra todos los errores en líneas separadas
-        icon: "error",
-        confirmButtonText: "Ok",
-      });
-      return false;
-    }
-  
-    return true;
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSaveCabana = () => {
@@ -61,6 +53,8 @@ const CabanaManagement = () => {
           item.id === formValues.id ? { ...item, ...formValues } : item
         )
       );
+     
+      
       Swal.fire({
         title: "Cabaña editada con éxito",
         text: "La cabaña ha sido editada con éxito.",
@@ -80,7 +74,7 @@ const CabanaManagement = () => {
       });
     }
     setShowCabanaForm(false);
-    setSelectedCabana(null); // Resetear cabaña seleccionada
+    setSelectedCabana(null);
     setFormValues({
       nombre: "",
       capacidad: "",
@@ -89,49 +83,6 @@ const CabanaManagement = () => {
       comodidades: [],
       imagen: null,
     });
-  };
-
-  const validateField = (name, value) => {
-    switch (name) {
-      case "nombre":
-        return value.length < 4
-          ? "El nombre debe tener al menos 4 caracteres"
-          : "";
-      case "capacidad":
-        if (!value) return "Capacidad es obligatoria";
-        if (value < 4 || value > 7) return "Capacidad debe estar entre 4 y 7";
-        return "";
-      case "descripcion":
-        return value.length < 6
-          ? "Descripción es obligatoria, mínimo 6 caracteres"
-          : "";
-      case "imagen":
-        return !value ? "Imagen es obligatoria" : "";
-      case "comodidades":
-        return value.length === 0 ? "Debe agregar al menos una comodidad" : "";
-      default:
-        return "";
-    }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    const error = validateField(name, value);
-    setErrors({ ...errors, [name]: error });
-    setFormValues({ ...formValues, [name]: value });
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    const error = validateField("imagen", file);
-    setErrors({ ...errors, imagen: error });
-    setFormValues({ ...formValues, imagen: file });
-  };
-
-  const handleComodidadesChange = (newComodidades) => {
-    const error = validateField("comodidades", newComodidades);
-    setErrors({ ...errors, comodidades: error });
-    setFormValues({ ...formValues, comodidades: newComodidades });
   };
 
   const handleEditCabana = (cabana) => {
@@ -154,7 +105,7 @@ const CabanaManagement = () => {
           descripcion: cabana.descripcion,
           comodidades: cabana.comodidades,
           imagen: cabana.imagen,
-          id: cabana.id, // Necesario para identificar la cabaña al editar
+          id: cabana.id,
         });
         setShowCabanaForm(true);
       }
@@ -200,9 +151,10 @@ const CabanaManagement = () => {
   );
 
   return (
-    <div className="container col p-5 mt-3" style={{ minHeight: "100vh", marginRight : "850px", marginTop  : "50px"}}>
-
-
+    <div
+      className="container col p-5 mt-3"
+      style={{ minHeight: "100vh", marginRight: "850px", marginTop: "50px" }}
+    >
       <h1>Lista de Cabañas</h1>
       <div
         className="d-flex justify-content-start align-items-center mb-2"
@@ -287,7 +239,9 @@ const CabanaManagement = () => {
                   type="text"
                   name="nombre"
                   value={formValues.nombre}
-                  onChange={handleChange}
+                  onChange={(e) =>
+                    setFormValues({ ...formValues, nombre: e.target.value })
+                  }
                   isInvalid={!!errors.nombre}
                 />
                 <Form.Control.Feedback type="invalid">
@@ -300,7 +254,9 @@ const CabanaManagement = () => {
                   type="number"
                   name="capacidad"
                   value={formValues.capacidad}
-                  onChange={handleChange}
+                  onChange={(e) =>
+                    setFormValues({ ...formValues, capacidad: e.target.value })
+                  }
                   isInvalid={!!errors.capacidad}
                 />
                 <Form.Control.Feedback type="invalid">
@@ -313,7 +269,9 @@ const CabanaManagement = () => {
                   as="select"
                   name="estado"
                   value={formValues.estado}
-                  onChange={handleChange}
+                  onChange={(e) =>
+                    setFormValues({ ...formValues, estado: e.target.value })
+                  }
                 >
                   <option>En servicio</option>
                   <option>En mantenimiento</option>
@@ -326,7 +284,12 @@ const CabanaManagement = () => {
                   type="text"
                   name="descripcion"
                   value={formValues.descripcion}
-                  onChange={handleChange}
+                  onChange={(e) =>
+                    setFormValues({
+                      ...formValues,
+                      descripcion: e.target.value,
+                    })
+                  }
                   isInvalid={!!errors.descripcion}
                 />
                 <Form.Control.Feedback type="invalid">
@@ -337,7 +300,12 @@ const CabanaManagement = () => {
                 <Form.Label>Comodidades</Form.Label>
                 <TableComodidad
                   comodidades={formValues.comodidades}
-                  onUpdateComodidades={handleComodidadesChange}
+                  onUpdateComodidades={(newComodidades) =>
+                    setFormValues({
+                      ...formValues,
+                      comodidades: newComodidades,
+                    })
+                  }
                 />
                 {errors.comodidades && (
                   <div className="text-danger">{errors.comodidades}</div>
@@ -347,7 +315,9 @@ const CabanaManagement = () => {
                 <Form.Label>Imagen</Form.Label>
                 <Form.Control
                   type="file"
-                  onChange={handleFileChange}
+                  onChange={(e) =>
+                    setFormValues({ ...formValues, imagen: e.target.files[0] })
+                  }
                   isInvalid={!!errors.imagen}
                 />
                 {formValues.imagen && (
@@ -418,6 +388,16 @@ const CabanaManagement = () => {
           </Modal.Footer>
         </Modal>
       )}
+     <ReactPaginate
+  previousLabel={"Anterior"}
+  nextLabel={"Siguiente"}
+  breakLabel={"..."}
+  pageCount={Math.ceil(cabanaList.length / 10)}
+  marginPagesDisplayed={2}
+  pageRangeDisplayed={5}
+  onPageChange={handlePageClick}
+  containerClassName={"pagination-container"}
+/>
     </div>
   );
 };

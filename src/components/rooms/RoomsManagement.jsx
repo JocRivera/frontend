@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button, Card, Modal, Form, Row, Col } from 'react-bootstrap';
 import TableComodidad from '../cabins/ComodidadTable'; 
 import Swal from 'sweetalert2'; 
+import ReactPaginate from "react-paginate";
 import '../cabins/Cabins.css'; 
 
 // Componente para gestionar Habitaciones
@@ -22,6 +23,13 @@ const RoomsManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [errors, setErrors] = useState({});
 
+  const handlePageClick = (data) => {
+    const currentPage = data.selected;
+    const itemsPerPage = 10;
+    const offset = currentPage * itemsPerPage;
+    const paginatedRooms = filteredRoomList.slice(offset, offset + itemsPerPage);
+    // Aquí puedes actualizar la lista de habitaciones paginadas
+  };
   const validateForm = () => {
     const newErrors = {};
     if (!formValues.nombre) newErrors.nombre = "Nombre es obligatorio";
@@ -417,6 +425,16 @@ const RoomsManagement = () => {
           </Modal.Footer>
         </Modal>
       )}
+      <ReactPaginate
+  previousLabel={"Anterior"}
+  nextLabel={"Siguiente"}
+  breakLabel={"..."}
+  pageCount={Math.ceil(filteredRoomList.length / 10)}
+  marginPagesDisplayed={2}
+  pageRangeDisplayed={5}
+  onPageChange={handlePageClick}
+  containerClassName={"pagination-container"}
+/>
     </div>
   );
 };
