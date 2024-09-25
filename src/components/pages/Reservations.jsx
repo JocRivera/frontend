@@ -11,36 +11,23 @@ const Reservations = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+
   const [selectedReservation, setSelectedReservation] = useState(null);
   const [companions, setCompanions] = useState([]);
   const [payments, setPayments] = useState([]);
-  const [reservations, setReservations] = useState([
-    // Datos de ejemplo
-    {
-      id: 1,
-      code: 'R001',
-      startDate: '2024-08-01T12:00',
-      endDate: '2024-08-05T12:00',
-      status: 'Reservado',
-      typeOfDocument: 'CC',
-      documentNumber: '123456789',
-      clientName: 'Juan Pérez',
+
+  const [reservations, setReservations] = useState([]);
+  const [newReservation, setNewReservations] = useState({
+      code: '',
+      startDate: '',
+      endDate: '',
+      status: '',
+      typeOfDocument: '',
+      documentNumber: '',
+      clientName: '',
       companions: [],
       payments: []
-    },
-    {
-      id: 2,
-      code: 'R002',
-      startDate: '2024-08-10T12:00',
-      endDate: '2024-08-12T12:00',
-      status: 'Confirmado',
-      typeOfDocument: 'TI',
-      documentNumber: '987654321',
-      clientName: 'Ana Gómez',
-      companions: [],
-      payments: []
-    }
-  ]);
+  })
   const [filteredReservations, setFilteredReservations] = useState(reservations);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -54,7 +41,7 @@ const Reservations = () => {
     setFilteredReservations(filtered);
   };
 
-  const handleAddReservation = (newReservation) => {
+  const handleAddReservation = async (newReservation) => {
     if (!newReservation.clientName || !newReservation.startDate || !newReservation.endDate) {
       Swal.fire({
         icon: 'error',
@@ -64,9 +51,10 @@ const Reservations = () => {
       return;
     }
 
-    const reservationWithId = { ...newReservation, id: generateId() };
-    setReservations([...reservations, reservationWithId]);
-    setFilteredReservations([...filteredReservations, reservationWithId]);
+    const response = await axios.post('http://localhost:4000/reservationsBookEdge')
+    setReservations([...reservations, response.data]);
+    setNewSer
+    setFilteredReservations([...filteredReservations, response.data]);
     setShowAddModal(false);
     Swal.fire({
       icon: 'success',
