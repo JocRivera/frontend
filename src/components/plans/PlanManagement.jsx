@@ -130,7 +130,15 @@ const PlanManagement = () => {
       }
     }
 
-    if (!values.endDate) errors.endDate = "La fecha de fin es requerida";
+    if (!values.endDate) {
+      errors.endDate = "La fecha fin es requerida";
+    } else {
+      const endDate = startOfDay(parseISO(values.endDate));
+      const today = startOfDay(new Date());
+      if (isBefore(endDate, today)) {
+        errors.endDate = "La fecha fin no puede ser anterior a hoy";
+      }
+    }
 
     if (!values.price) {
       errors.price = "El precio es requerido";
