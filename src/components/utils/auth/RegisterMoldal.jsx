@@ -10,8 +10,22 @@ function RegisterModal({ isOpen, clickModal }) {
     birthdate: '',
     email: '',
     password: '',
+    confirmPassword: '', // State for confirm password
+    tipoDocumento: '', // State for tipo de documento
   });
-  const [errors, setErrors] = React.useState({});
+
+  const [errors, setErrors] = React.useState({
+    fullName: '',
+    idNumber: '',
+    birthdate: '',
+    email: '',
+    password: '',
+    confirmPassword: '', // Error state for confirm password
+    tipoDocumento: '', // Error state for tipo de documento
+  });
+
+  const [showPassword, setShowPassword] = React.useState(false); // State for password visibility
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false); // State for confirm password visibility
 
   const validateForm = (name, value) => {
     const errorMessages = {
@@ -20,6 +34,8 @@ function RegisterModal({ isOpen, clickModal }) {
       email: 'Por favor, ingrese un email válido.',
       birthdate: 'Debes tener al menos 18 años para registrarte.',
       password: 'La contraseña debe contener al menos 10 caracteres, una mayúscula, una minúscula, un número y un carácter especial.',
+      confirmPassword: 'Las contraseñas no coinciden.',
+      tipoDocumento: 'Por favor, seleccione un tipo de documento válido.',
     };
 
     const validations = {
@@ -28,6 +44,8 @@ function RegisterModal({ isOpen, clickModal }) {
       email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
       birthdate: value && new Date(value) <= new Date(new Date().setFullYear(new Date().getFullYear() - 18)),
       password: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$%*?&])[A-Za-z\d@$%*?&]{10,}$/.test(value),
+      confirmPassword: value === formData.password,
+      tipoDocumento: ['CC', 'TI', 'CE', 'PAS'].includes(value),
     };
 
     return validations[name] ? '' : errorMessages[name];
@@ -109,6 +127,23 @@ function RegisterModal({ isOpen, clickModal }) {
               </Form.Group>
 
               <Form.Group className="mb-3">
+                <Form.Label>Tipo de Documento</Form.Label>
+                <Form.Select
+                  name="tipoDocumento"
+                  value={formData.tipoDocumento}
+                  onChange={handleChange}
+                  isInvalid={!!errors.tipoDocumento}
+                >
+                  <option value="">Seleccione un tipo de documento</option>
+                  <option value="CC">Cédula de Ciudadanía</option>
+                  <option value="TI">Tarjeta de Identidad</option>
+                  <option value="CE">Cédula de Extranjería</option>
+                  <option value="PAS">Pasaporte</option>
+                </Form.Select>
+                <Form.Control.Feedback type="invalid">{errors.tipoDocumento}</Form.Control.Feedback>
+              </Form.Group>
+
+              <Form.Group className="mb-3">
                 <Form.Label>Fecha de Nacimiento</Form.Label>
                 <Form.Control
                   type="date"
@@ -135,15 +170,48 @@ function RegisterModal({ isOpen, clickModal }) {
 
               <Form.Group className="mb-3">
                 <Form.Label>Password</Form.Label>
-                <Form.Control
-                  type="password"
-                  name="password"
-                  placeholder="Password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  isInvalid={!!errors.password}
-                />
-                <Form.Control.Feedback type="invalid">{errors.password}</Form.Control.Feedback>
+                <div className="position-relative">
+                  <Form.Control
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    placeholder="Password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    isInvalid={!!errors.password}
+                  />
+                  <Button
+                    variant="link"
+                    className="position-absolute top-50 end-0 translate-middle-y"
+                    style={{ zIndex: 1 }}
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <i className="bi bi-eye-slash" /> : <i className="bi bi-eye" />}
+                  </Button>
+                </div>
+                <Form.Control.Feedback type="invalid" style={{ marginTop: '5px', display: 'block' }}>{errors.password}</Form.Control.Feedback>
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label>Confirm Password</Form.Label>
+                <div className="position-relative">
+                  <Form.Control
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    placeholder="Confirm Password"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    isInvalid={!!errors.confirmPassword}
+                  />
+                  <Button
+                    variant="link"
+                    className="position-absolute top-50 end-0 translate-middle-y"
+                    style={{ zIndex: 1 }}
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? <i className="bi bi-eye-slash" /> : <i className="bi bi-eye" />}
+                  </Button>
+                </div>
+                <Form.Control.Feedback type="invalid" style={{ marginTop: '5px', display: 'block' }}>{errors.confirmPassword}</Form.Control.Feedback>
               </Form.Group>
 
               <Button variant="primary" type="submit" className="custom-button">

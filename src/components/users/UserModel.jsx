@@ -1,40 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Form, Button } from "react-bootstrap";
 import Swal from "sweetalert2";
-
-// Función para generar contraseña aleatoria
-const generatePassword = () => {
-  const length = 10;
-  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+~`|}{[]:;?><,./-=";
-  let password = "";
-  while (true) {
-    password = "";
-    let hasUpper = false;
-    let hasLower = false;
-    let hasSpecial = false;
-    for (let i = 0; i < length; i++) {
-      const char = charset.charAt(Math.floor(Math.random() * charset.length));
-      password += char;
-      if (/[A-Z]/.test(char)) hasUpper = true;
-      if (/[a-z]/.test(char)) hasLower = true;
-      if (/[@#$%^&*()_+~`|}{[$$:;?><,./-=]/.test(char)) hasSpecial = true;
-    }
-    if (hasUpper && hasLower && hasSpecial) break;
-  }
-  return password;
-};
+import { FaEye, FaEyeSlash } from "react-icons/fa"; // Importar íconos para mostrar/ocultar contraseña
 
 const UserModal = ({ show, handleClose, handleSave, user }) => {
   const [formData, setFormData] = useState({
     nombre: "",
     documento: "",
+    tipoDocumento: "CC", // Tipo de documento por defecto (por ejemplo, CC, TI)
     email: "",
     telefono: "",
     rol: "empleado", // Rol por defecto
     contraseña: "",
     confirmarContraseña: "",
+    estado: "activo", // Estado por defecto
   });
   const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false); // Estado para mostrar/ocultar contraseña
 
   // Efecto para cargar datos de usuario al editar o resetear el formulario al agregar nuevo
   useEffect(() => {
@@ -43,17 +25,19 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
         ...user,
         contraseña: user.contraseña || "",
         confirmarContraseña: user.contraseña || "",
+        estado: user.estado || "activo",
       });
     } else {
-      const generatedPassword = generatePassword();
       setFormData({
         nombre: "",
         documento: "",
+        tipoDocumento: "CC", // Tipo de documento por defecto
         email: "",
         telefono: "",
         rol: "empleado", // Rol por defecto
-        contraseña: generatedPassword,
-        confirmarContraseña: generatedPassword,
+        contraseña: "",
+        confirmarContraseña: "",
+        estado: "activo", // Estado por defecto
       });
     }
     setErrors({});
@@ -80,6 +64,10 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
           !value || !/^\d{6,15}$/.test(value)
             ? "Debe ser un número entre 6 y 15 dígitos."
             : "";
+        break;
+      case "tipoDocumento":
+        newErrors.tipoDocumento =
+          !value ? "Selecciona un tipo de documento." : "";
         break;
       case "email":
         newErrors.email =
@@ -116,6 +104,12 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
         newErrors.confirmarContraseña =
           value !== formData.contraseña ? "Las contraseñas no coinciden." : "";
         break;
+      case "estado":
+        newErrors.estado =
+          !value || (value !== "activo" && value !== "inactivo")
+            ? "Selecciona un estado válido."
+            : "";
+        break;
       default:
         break;
     }
@@ -133,16 +127,21 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
   // Guardar el formulario y cerrar el modal si todo es correcto
   const handleSubmit = async () => {
     if (isFormValid()) {
-      await handleSave(formData); // Guardar los datos
-      Swal.fire({
-        title: "Éxito",
-        text: user ? "Usuario actualizado" : "Usuario agregado",
-        icon: "success",
-        timer: 2000, // Desaparece después de 2 segundos
-        showConfirmButton: false,
-      }).then(() => {
-        handleClose(); // Cerrar el modal después de guardar
+      await handleSave(formData); // Llamar a la función handleSave con el parámetro formData
+      handleClose(); // Cerrar el modal después de guardar
+      // Resetear el formulario a sus valores por defecto
+      setFormData({
+        nombre: "",
+        documento: "",
+        tipoDocumento: "CC",
+        email: "",
+        telefono: "",
+        rol: "empleado",
+        contraseña: "",
+        confirmarContraseña: "",
+        estado: "activo",
       });
+      setErrors({});
     } else {
       Swal.fire({
         title: "Error",
@@ -186,6 +185,24 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
             />
             <Form.Control.Feedback type="invalid">
               {errors.documento}
+            </Form.Control.Feedback>
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Tipo de Documento</Form.Label>
+            <Form.Select
+              name="tipoDocumento"
+              value={formData.tipoDocumento}
+              onChange={handleInputChange}
+              isInvalid={!!errors.tipoDocumento}
+            >
+              <option value="CC">Cédula de Ciudadanía</option>
+              <option value="TI">Tarjeta de Identidad</option>
+              <option value="CE">Cédula de Extranjería</option>
+              <option value="PAS">Pasaporte</option>
+            </Form.Select>
+            <Form.Control.Feedback type="invalid">
+              {errors.tipoDocumento}
             </Form.Control.Feedback>
           </Form.Group>
 
@@ -234,44 +251,82 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
           </Form.Group>
 
           <Form.Group className="mb-3">
+            <Form.Label>Estado</Form.Label>
+            <Form.Check
+              type="switch"
+              id="estado-switch"
+              name="estado"
+              checked={formData.estado === "activo"}
+              onChange={() =>
+                setFormData((prev) => ({
+                  ...prev,
+                  estado: prev.estado === "activo" ? "inactivo" : "activo",
+                }))
+              }
+              label={formData.estado}
+            />
+            <Form.Control.Feedback type="invalid">
+              {errors.estado}
+            </Form.Control.Feedback>
+          </Form.Group>
+
+          <Form.Group className="mb-3 position-relative">
             <Form.Label>Contraseña</Form.Label>
             <Form.Control
-              type="password"
+              type={showPassword ? "text" : "password"}
               name="contraseña"
               value={formData.contraseña}
               onChange={handleInputChange}
               isInvalid={!!errors.contraseña}
-              readOnly={false} // Permitir edición de la contraseña
             />
+            <span
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: "absolute",
+                top: "35px",
+                right: "10px",
+                cursor: "pointer",
+              }}
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </span>
             <Form.Control.Feedback type="invalid">
               {errors.contraseña}
             </Form.Control.Feedback>
           </Form.Group>
 
-          {/* Campo de Confirmar Contraseña */}
-          <Form.Group className="mb-3">
+          <Form.Group className="mb-3 position-relative">
             <Form.Label>Confirmar Contraseña</Form.Label>
             <Form.Control
-              type="password"
+              type={showPassword ? "text" : "password"}
               name="confirmarContraseña"
               value={formData.confirmarContraseña}
               onChange={handleInputChange}
               isInvalid={!!errors.confirmarContraseña}
-              readOnly={false} // Permitir edición de la confirmación de la contraseña
             />
+            <span
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: "absolute",
+                top: "35px",
+                right: "10px",
+                cursor: "pointer",
+              }}
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </span>
             <Form.Control.Feedback type="invalid">
               {errors.confirmarContraseña}
             </Form.Control.Feedback>
           </Form.Group>
         </Form>
       </Modal.Body>
-
       <Modal.Footer>
         <Button variant="secondary" onClick={handleClose}>
           Cerrar
         </Button>
         <Button variant="primary" onClick={handleSubmit}>
-          Guardar
+          {user ? "Actualizar" : "Agregar"}
         </Button>
       </Modal.Footer>
     </Modal>
