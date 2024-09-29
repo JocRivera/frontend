@@ -21,6 +21,7 @@ import Listrooms from "./components/rooms/viwesRooms";
 //vista cliente
 import ReservationsFormClient from './components/pages/ReservationsFormClient';
 import Myreservations from "./components/pages/Myreservations.jsx"; 
+import PlanCustomer from "./components/plans/PlanCustomer";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 
@@ -152,7 +153,7 @@ function App() {
               <Route path="/listrooms" element={<Listrooms />} />
               <Route path="/myreservations" element={<Myreservations />} />
               <Route path="/reservationsfromclient" element={<ReservationsFormClient />} />
-
+              <Route path="/viewsplans" element={<PlanCustomer />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

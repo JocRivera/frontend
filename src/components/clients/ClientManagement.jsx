@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, FormControl, Form, Modal } from 'react-bootstrap';
+import { Table, Button, FormControl, Form, Modal, InputGroup } from 'react-bootstrap';
+import { FaEyeSlash, FaEye } from "react-icons/fa";
 import Swal from 'sweetalert2';
 
 // Función para generar una contraseña aleatoria
-const generateRandomPassword = (length = 8) => {
-    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
-    let password = "";
-    for (let i = 0; i < length; i++) {
-        const randomIndex = Math.floor(Math.random() * charset.length);
-        password += charset[randomIndex];
-    }
-    return password;
-};
+// const generateRandomPassword = (length = 8) => {
+//     const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
+//     let password = "";
+//     for (let i = 0; i < length; i++) {
+//         const randomIndex = Math.floor(Math.random() * charset.length);
+//         password += charset[randomIndex];
+//     }
+//     return password;
+// };
 
 const ClientModal = ({ show, handleClose, handleSave, client }) => {
     const [formData, setFormData] = useState({
@@ -22,18 +23,15 @@ const ClientModal = ({ show, handleClose, handleSave, client }) => {
         Address: '',
         EPS: '',
         Password: '',
+        Confirmar: '',
         Status: 'Activo' // Valor por defecto
     });
     const [errors, setErrors] = useState({});
 
     useEffect(() => {
-        if (client) {
-            setFormData({
-                ...client,
-                Password: client.Password || ''
-            });
-        } else {
-            const generatedPassword = generateRandomPassword();
+        if (client)
+            setFormData(client);
+        else if (!show) {
             setFormData({
                 Identification: '',
                 Name: '',
@@ -41,18 +39,32 @@ const ClientModal = ({ show, handleClose, handleSave, client }) => {
                 PhoneNumber: '',
                 Address: '',
                 EPS: '',
-                Password: generatedPassword,
-                Status: 'Activo' // Valor por defecto
+                Password: '',
+                Confirmar: '',
+                Status: 'Activo', // Valor por defecto
             });
+            // El ojito siempre inicia en oculto
+            setPasswordVisible(false);
+            setPasswordVisible2(false);
         }
         setErrors({});
-    }, [client]);
+    }, [client, show]);
 
     const handleInputChange = ({ target: { name, value } }) => {
         setFormData(prev => ({ ...prev, [name]: value }));
         validateForm(name, value);
     };
 
+    const [passwordVisible, setPasswordVisible] = useState(false);
+
+    const togglePasswordVisibility = () => {
+        setPasswordVisible(!passwordVisible);
+    };
+    const [passwordVisible2, setPasswordVisible2] = useState(false);
+
+    const togglePasswordVisibility2 = () => {
+        setPasswordVisible2(!passwordVisible2);
+    };
     const validateForm = (name, value) => {
         const newErrors = { ...errors };
         switch (name) {
@@ -62,7 +74,7 @@ const ClientModal = ({ show, handleClose, handleSave, client }) => {
                     : '';
                 break;
             case 'Name':
-                newErrors.Name = !value || !/^[a-zA-Z\s]+$/.test(value)
+                newErrors.Name = !value || !/^[a-záéíóüuA-Z\s]+$/.test(value)
                     ? 'El nombre debe contener solo letras y espacios.'
                     : '';
                 break;
@@ -88,11 +100,12 @@ const ClientModal = ({ show, handleClose, handleSave, client }) => {
             case 'Status':
                 newErrors.Status = !value ? 'El estado es requerido.' : '';
                 break;
-            // case 'Password':
-            //     newErrors.Password = !value || !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(value)
-            //         ? 'La contraseña debe tener al menos 8 caracteres, incluyendo mayúsculas, minúsculas, números y caracteres especiales.'
-            //         : '';
-            //     break;
+            case 'Password':
+                newErrors.Password = !value ? 'La contraseña es requerida.' : !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(value) ? 'Debe contener al menos una letra mayúscula, una letra minúscula, un número y un carácter especial.' : '';
+                break;
+            case 'Confirmar':
+                newErrors.Confirmar = !value ? 'La confirmación de la contraseña es requerida.' : value !== formData.Password ? 'Las contraseñas no coinciden.' : '';
+                break;
             default:
                 break;
         }
@@ -166,6 +179,7 @@ const ClientModal = ({ show, handleClose, handleSave, client }) => {
 
     };
 
+
     return (
         <Modal show={show} onHide={handleClose}>
             <Modal.Header closeButton>
@@ -181,12 +195,9 @@ const ClientModal = ({ show, handleClose, handleSave, client }) => {
                         isInvalid={!!errors.DocumentType}
                     >
                         <option value="">Seleccione un tipo de documento</option>
-                        <option value="Tarjeta de identidad">Tarjeta de identidad</option>
                         <option value="Cédula de ciudadanía">Cédula de ciudadanía</option>
                         <option value="Cédula de extranjería">Cédula de extranjería</option>
                         <option value="Pasaporte">Pasaporte</option>
-                        <option value="Registro civil">Registro civil</option>
-                        <option value="Carné diplomático">Carné diplomático</option>
                     </Form.Select>
                     <Form.Control.Feedback type="invalid">
                         {errors.DocumentType}
@@ -295,17 +306,41 @@ const ClientModal = ({ show, handleClose, handleSave, client }) => {
 
                     <Form.Group className="mb-3">
                         <Form.Label>Contraseña</Form.Label>
-                        <Form.Control
-                            type="password"
-                            name="Password"
-                            value={formData.Password}
-                            readOnly
-                        />
-                        <Form.Control.Feedback type="invalid">
-                            {errors.Password}
-                        </Form.Control.Feedback>
+                        <InputGroup>
+                            <Form.Control
+                                type={passwordVisible ? 'text' : 'password'}
+                                name="Password"
+                                value={formData.Password}
+                                onChange={handleInputChange}
+                                isInvalid={!!errors.Password}
+                            />
+                            <InputGroup.Text onClick={togglePasswordVisibility} style={{ cursor: 'pointer' }}>
+                                {passwordVisible ? <FaEyeSlash /> : <FaEye />}
+                            </InputGroup.Text>
+                            <Form.Control.Feedback type="invalid">
+                                {errors.Password}
+                            </Form.Control.Feedback>
+                        </InputGroup>
                     </Form.Group>
-                    <Form.Group className='mb-3'>{client ? <Form.Label><Button variant='tertiary'>Enviar correo de recuperación</Button></Form.Label> : null}</Form.Group>
+                    <Form.Group>
+                        <Form.Label>Confirmar contraseña</Form.Label>
+                        <InputGroup>
+                            <Form.Control
+                                type={passwordVisible2 ? 'text' : 'password'}
+                                name="Confirmar"
+                                value={formData.Confirmar}
+                                onChange={handleInputChange}
+                                isInvalid={!!errors.Confirmar}
+                            />
+                            <InputGroup.Text onClick={togglePasswordVisibility2} style={{ cursor: 'pointer' }}>
+                                {passwordVisible2 ? <FaEyeSlash /> : <FaEye />}
+                            </InputGroup.Text>
+                            <Form.Control.Feedback type="invalid">
+                                {errors.Confirmar}
+                            </Form.Control.Feedback>
+                        </InputGroup>
+                    </Form.Group>
+                    {/* <Form.Group className='mb-3'>{client ? <Form.Label><Button variant='tertiary'>Enviar correo de recuperación</Button></Form.Label> : null}</Form.Group> */}
                 </Form>
             </Modal.Body>
             <Modal.Footer>
@@ -332,7 +367,7 @@ const ClientManagement = () => {
     const [selectedClientDetails, setSelectedClientDetails] = useState(null);
 
 
-    
+
     const saveClient = (client) => {
         setClients((prevClients) =>
             client.Id
