@@ -4,7 +4,7 @@ import Swal from "sweetalert2";
 import * as BsIcons from "react-icons/bs";
 import UserModal from "./UserModel";
 import "./users.css";
-
+import ReactPaginate from "react-paginate";
 const UserTable = () => {
   const initialUsers = [
     {
@@ -49,6 +49,8 @@ const UserTable = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showDetails, setShowDetails] = useState(false);
   const [selectedUserDetails, setSelectedUserDetails] = useState(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const itemsPerPage = 6;
 
   const saveUser = (user) => {
     const { isEditing } = modalState;
@@ -144,6 +146,15 @@ const UserTable = () => {
     ].some((field) => field.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  const handlePageClick = (data) => {
+    setCurrentPage(data.selected);
+  };
+
+  const paginatedUsers = filteredUsers.slice(
+    currentPage * itemsPerPage,
+    (currentPage + 1) * itemsPerPage
+  );
+
   const toggleUserModal = (user = null) => {
     if (user) {
       setModalState({
@@ -178,184 +189,158 @@ const UserTable = () => {
     setSelectedUserDetails(null); // Resetear detalles al cerrar
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-  };
+ 
 
-  const [paginaActual, setPaginaActual] = useState(1);
-  const [usuariosPorPagina, setUsuariosPorPagina] = useState(10);
+  
 
-  const indiceUltimoUsuario = paginaActual * usuariosPorPagina;
-  const indicePrimerUsuario = indiceUltimoUsuario - usuariosPorPagina;
-  const usuariosPaginados = filteredUsers.slice(indicePrimerUsuario, indiceUltimoUsuario);
+  
 
-  const numeroDePaginas = Math.ceil(filteredUsers.length / usuariosPorPagina);
 
-  const cambiarPagina = (numeroDePagina) => {
-    setPaginaActual(numeroDePagina);
-  };
+  
 
   return (
-    <div
-      className="container col p-5 mt-3"
-      style={{ minHeight: "100vh", marginRight: "850px", marginTop: "50px" }}
-    >
-      <h1>Lista de Usuarios</h1>
-      <div className="d-flex justify-content-between align-items-center mb-2">
-        <Form className="d-flex mb-3" onSubmit={handleSearch}>
-          <FormControl
-            type="search"
-            placeholder="Buscar..."
-            className="me-2"
-            aria-label="Search"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <Button variant="outline-success" type="submit">
-            Buscar
+      <div
+        className="container col p-5 mt-3"
+        style={{ minHeight: "100vh", marginRight: "850px", marginTop: "50px" }}
+      >
+        <h1>Lista de Usuarios</h1>
+        <div className="d-flex justify-content-between align-items-center mb-2">
+          <Form className="d-flex mb-3" onSubmit={(e) => e.preventDefault()}>
+            <FormControl
+              type="search"
+              placeholder="Buscar..."
+              className="me-2"
+              aria-label="Search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <Button variant="outline-success" type="submit">
+              Buscar
+            </Button>
+          </Form>
+  
+          <Button
+            variant="primary"
+            className="mb-3"
+            onClick={() => toggleUserModal()}
+          >
+            Agregar Usuario
           </Button>
-        </Form>
-
-        <Button
-          variant="primary"
-          className="mb-3"
-          onClick={() => toggleUserModal()}
-        >
-          Agregar Usuario
-        </Button>
-      </div>
-
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Tipo Documento</th>{" "}
-            {/* Nueva columna para el tipo de documento */}
-            <th>Documento</th>
-            <th>Email</th>
-            <th>Teléfono</th>
-            <th>Rol</th>
-            <th>Estado</th>
-            <th>Acción</th>
-          </tr>
-        </thead>
-        <tbody>
-          {usuariosPaginados.length > 0 ? (
-            usuariosPaginados.map((user) => (
-              <tr key={user.id}>
-                <td>{user.id}</td>
-                <td>{user.nombre}</td>
-                <td>{user.tipoDocumento}</td>{" "}
-                {/* Mostrar el tipo de documento */}
-                <td>{user.documento}</td>
-                <td>{user.email}</td>
-                <td>{user.telefono}</td>
-                <td>{user.rol}</td>
-                <td>
-                  <Form.Check
-                    type="switch"
-                    id={`estado-${user.id}`}
-                    name="estado"
-                    checked={user.estado === "activo"}
-                    onChange={() => handleChangeEstado(user)}
-                    label={user.estado}
-                  />
-                </td>
-                <td
-                  className="d-flex justify-content-center"
-                  style={{ gap: "10px" }}
-                >
-                  <Button
-                    variant="info"
-                    onClick={() => handleShowDetails(user)}
+        </div>
+  
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Tipo Documento</th>
+              <th>Documento</th>
+              <th>Email</th>
+              <th>Teléfono</th>
+              <th>Rol</th>
+              <th>Estado</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedUsers.length > 0 ? (
+              paginatedUsers.map((user) => (
+                <tr key={user.id}>
+                  <td>{user.id}</td>
+                  <td>{user.nombre}</td>
+                  <td>{user.tipoDocumento}</td>
+                  <td>{user.documento}</td>
+                  <td>{user.email}</td>
+                  <td>{user.telefono}</td>
+                  <td>{user.rol}</td>
+                  <td>
+                    <Form.Check
+                      type="switch"
+                      id={`estado-${user.id}`}
+                      name="estado"
+                      checked={user.estado === "activo"}
+                      onChange={() => handleChangeEstado(user)}
+                      label={user.estado}
+                    />
+                  </td>
+                  <td
+                    className="d-flex justify-content-center"
+                    style={{ gap: "10px" }}
                   >
-                    <BsIcons.BsInfoLg style={{ marginRight: "5px" }} />
-                  </Button>
-                  <Button
-                    variant="warning"
-                    onClick={() => toggleUserModal(user)}
-                  >
-                    <BsIcons.BsPencilFill style={{ marginRight: "5px" }} />
-                  </Button>
-                  <Button
-                    variant="danger"
-                    onClick={() => handleDeleteUser(user)}
-                  >
-                    <BsIcons.BsTrash3Fill style={{ marginRight: "5px" }} />
-                  </Button>
+                    <Button
+                      variant="info"
+                      onClick={() => handleShowDetails(user)}
+                    >
+                      <BsIcons.BsInfoLg style={{ marginRight: "5px" }} />
+                    </Button>
+                    <Button
+                      variant="warning"
+                      onClick={() => toggleUserModal(user)}
+                    >
+                      <BsIcons.BsPencilFill style={{ marginRight: "5px" }} />
+                    </Button>
+                    <Button
+                      variant="danger"
+                      onClick={() => handleDeleteUser(user)}
+                    >
+                      <BsIcons.BsTrash3Fill style={{ marginRight: "5px" }} />
+                    </Button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="9" className="text-center">
+                  No se encontraron usuarios
                 </td>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="8" className="text-center">
-                No se encontraron usuarios
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </Table>
-
-      <div className="d-flex justify-content-center">
-        {[...Array(numeroDePaginas).keys()].map((numeroDePagina) => (
-          <Button
-            key={numeroDePagina}
-            onClick={() => cambiarPagina(numeroDePagina + 1)}
-            className={paginaActual === numeroDePagina + 1 ? "active" : ""}
-          >
-            {numeroDePagina + 1}
-          </Button>
-        ))}
+            )}
+          </tbody>
+        </Table>
+  
+        <ReactPaginate
+          previousLabel={"Anterior"}
+          nextLabel={"Siguiente"}
+          breakLabel={"..."}
+          pageCount={Math.ceil(filteredUsers.length / itemsPerPage)}
+          marginPagesDisplayed={2}
+          pageRangeDisplayed={5}
+          onPageChange={handlePageClick}
+          containerClassName={"pagination-container"}
+          activeClassName={"active"}
+        />
+  
+        <UserModal
+          show={modalState.showUserModal}
+          handleClose={handleCloseModal}
+          user={modalState.selectedUser}
+          handleSave={saveUser}
+        />
+  
+        <Modal show={showDetails} onHide={handleCloseDetails}>
+          <Modal.Header closeButton>
+            <Modal.Title>Detalles del Usuario</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {selectedUserDetails && (
+              <div>
+                <p><strong>ID:</strong> {selectedUserDetails.id}</p>
+                <p><strong>Nombre:</strong> {selectedUserDetails.nombre}</p>
+                <p><strong>Tipo Documento:</strong> {selectedUserDetails.tipoDocumento}</p>
+                <p><strong>Documento:</strong> {selectedUserDetails.documento}</p>
+                <p><strong>Email:</strong> {selectedUserDetails.email}</p>
+                <p><strong>Teléfono:</strong> {selectedUserDetails.telefono}</p>
+                <p><strong>Rol:</strong> {selectedUserDetails.rol}</p>
+              </div>
+            )}
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleCloseDetails}>
+              Cerrar
+            </Button>
+          </Modal.Footer>
+        </Modal>
       </div>
-
-      <UserModal
-        show={modalState.showUserModal}
-        handleClose={handleCloseModal}
-        user={modalState.selectedUser}
-        handleSave={saveUser}
-      />
-
-      <Modal show={showDetails} onHide={handleCloseDetails}>
-        <Modal.Header closeButton>
-          <Modal.Title>Detalles del Usuario</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {selectedUserDetails && (
-            <div>
-              <p>
-                <strong>ID:</strong> {selectedUserDetails.id}
-              </p>
-              <p>
-                <strong>Nombre:</strong> {selectedUserDetails.nombre}
-              </p>
-              <p>
-                <strong>Tipo Documento:</strong>{" "}
-                {selectedUserDetails.tipoDocumento}
-              </p>{" "}
-              {/* Detalle del tipo de documento */}
-              <p>
-                <strong>Documento:</strong> {selectedUserDetails.documento}
-              </p>
-              <p>
-                <strong>Email:</strong> {selectedUserDetails.email}
-              </p>
-              <p>
-                <strong>Teléfono:</strong> {selectedUserDetails.telefono}
-              </p>
-              <p>
-                <strong>Rol:</strong> {selectedUserDetails.rol}
-              </p>
-            </div>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseDetails}>
-            Cerrar
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    </div>
   );
 };
 

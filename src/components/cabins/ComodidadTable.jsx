@@ -1,70 +1,88 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Table, Modal, Form } from 'react-bootstrap';
-import Swal from 'sweetalert2';
+import React, { useState, useEffect } from "react";
+import { Button, Table, Modal, Form, Row, Col } from "react-bootstrap";
+import Select from "react-select";
+import Swal from "sweetalert2";
+import {
+  PlusCircle,
+  Edit,
+  Trash,
+  Bed,
+  Tv,
+  Wind,
+  Archive,
+  Bath,
+} from "lucide-react";
+import "./Cabins.css"; // Asegúrate de que este archivo exista y contenga los estilos necesarios
 
-// Componente para gestionar Comodidades dentro del formulario de Cabaña
-const TableComodidad = ({ comodidades, onUpdateComodidades }) => {
+// Simulación de datos de artículos reales
+let articuloData = [
+  { id: "1", nombre: "Cama Doble", codigo: "CD001", icon: <Bed /> },
+  { id: "2", nombre: "Televisor 42 pulgadas", codigo: "TV042", icon: <Tv /> },
+  { id: "3", nombre: "Aire Acondicionado", codigo: "AC001", icon: <Wind /> },
+  { id: "4", nombre: "Mini Bar", codigo: "MB001", icon: <Archive /> },
+  { id: "5", nombre: "Baño Privado", codigo: "BP001", icon: <Bath /> },
+];
+
+const TableComodidad = ({ comodidades, onUpdateComodidades, onShowModal, onHideModal }) => {
   const [selectedComodidad, setSelectedComodidad] = useState(null);
   const [showComodidadModal, setShowComodidadModal] = useState(false);
 
+  
   const handleAddComodidad = () => {
     setSelectedComodidad(null);
     setShowComodidadModal(true);
+    onShowModal();
+  };
+
+  const handleCloseComodidadModal = () => {
+    setShowComodidadModal(false);
+    onHideModal();
   };
 
   const handleSaveComodidad = (comodidad) => {
     if (selectedComodidad) {
-      onUpdateComodidades(comodidades.map((item) => (item.id === comodidad.id ? comodidad : item)));
+      onUpdateComodidades(
+        comodidades.map((item) =>
+          item.id === comodidad.id ? { ...item, ...comodidad } : item
+        )
+      );
     } else {
-      onUpdateComodidades([...comodidades, { ...comodidad, id: Date.now() }]);
+      onUpdateComodidades([...comodidades, comodidad]);
     }
     setShowComodidadModal(false);
     Swal.fire({
-      icon: 'success',
-      title: 'Éxito',
-      text: 'Comodidad guardada correctamente',
-      timer: 2000, // Desaparece después de 2 segundos
-      showConfirmButton: false
+      icon: "success",
+      title: "Éxito",
+      text: "Comodidad guardada correctamente",
+      timer: 2000,
+      showConfirmButton: false,
     });
   };
 
   const handleEditComodidad = (comodidad) => {
-    Swal.fire({
-      title: '¿Estás seguro de editar esta comodidad?',
-      text: 'Esta acción no se puede deshacer',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Sí, editar',
-      cancelButtonText: 'Cancelar'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        setSelectedComodidad(comodidad);
-        setShowComodidadModal(true);
-      }
-    });
+    setSelectedComodidad(comodidad);
+    setShowComodidadModal(true);
   };
 
   const handleDeleteComodidad = (id) => {
     Swal.fire({
-      title: '¿Estás seguro?',
-      text: 'Esta acción no se puede deshacer',
-      icon: 'warning',
+      title: "¿Estás seguro?",
+      text: "Esta acción no se puede deshacer",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar'
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
     }).then((result) => {
       if (result.isConfirmed) {
         onUpdateComodidades(comodidades.filter((item) => item.id !== id));
         Swal.fire({
-          icon: 'success',
-          title: 'Eliminado',
-          text: 'Comodidad eliminada correctamente',
-          timer: 2000, // Desaparece después de 2 segundos
-          showConfirmButton: false
+          icon: "success",
+          title: "Eliminado",
+          text: "Comodidad eliminada correctamente",
+          timer: 2000,
+          showConfirmButton: false,
         });
       }
     });
@@ -72,12 +90,16 @@ const TableComodidad = ({ comodidades, onUpdateComodidades }) => {
 
   return (
     <div>
-      <Button onClick={handleAddComodidad}>Agregar Comodidad</Button>
-      <Table striped bordered hover>
+      <Button onClick={handleAddComodidad} className="mb-3" variant="primary">
+        <PlusCircle size={16} className="me-2" />
+        Agregar Comodidad
+      </Button>
+      <Table striped bordered hover responsive>
         <thead>
           <tr>
             <th>ID</th>
             <th>Artículos</th>
+            <th>Código</th>
             <th>Observación</th>
             <th>Fecha de Ingreso</th>
             <th>Estado</th>
@@ -85,26 +107,46 @@ const TableComodidad = ({ comodidades, onUpdateComodidades }) => {
           </tr>
         </thead>
         <tbody>
-          {comodidades.map((comodidad) => (
-            <tr key={comodidad.id}>
-              <td>{comodidad.id}</td>
-              <td>{comodidad.articulos}</td>
-              <td>{comodidad.observacion}</td>
-              <td>{new Date(comodidad.fechaIngreso).toLocaleDateString()}</td>
-              <td>{comodidad.estado}</td>
-              <td>
-                <Button variant="info" onClick={() => handleEditComodidad(comodidad)}>Editar</Button>
-                <Button variant="danger" onClick={() => handleDeleteComodidad(comodidad.id)}>Eliminar</Button>
-              </td>
-            </tr>
-          ))}
+          {comodidades.map((comodidad) => {
+            const articulo = articuloData.find(
+              (a) => a.id === comodidad.articuloId
+            );
+            return (
+              <tr key={comodidad.id}>
+                <td>{comodidad.id}</td>
+                <td>
+                  {articulo && articulo.icon}
+                  {comodidad.nombreArticulo}
+                </td>
+                <td>{comodidad.codigoArticulo}</td>
+                <td>{comodidad.observacion}</td>
+                <td>{new Date(comodidad.fechaIngreso).toLocaleDateString()}</td>
+                <td>{comodidad.estado}</td>
+                <td>
+                  <Button
+                    variant="warning"
+                    className="me-2"
+                    onClick={() => handleEditComodidad(comodidad)}
+                  >
+                    <Edit size={16} />
+                  </Button>
+                  <Button
+                    variant="danger"
+                    onClick={() => handleDeleteComodidad(comodidad.id)}
+                  >
+                    <Trash size={16} />
+                  </Button>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </Table>
 
       {showComodidadModal && (
         <ModalComodidad
           show={showComodidadModal}
-          onHide={() => setShowComodidadModal(false)}
+          onHide={handleCloseComodidadModal}
           comodidad={selectedComodidad}
           onSave={handleSaveComodidad}
         />
@@ -113,138 +155,279 @@ const TableComodidad = ({ comodidades, onUpdateComodidades }) => {
   );
 };
 
-// Modal para agregar/editar Comodidades
 const ModalComodidad = ({ show, onHide, comodidad, onSave }) => {
-  const [articulos, setArticulos] = useState(comodidad?.articulos || '');
-  const [observacion, setObservacion] = useState(comodidad?.observacion || '');
-  const [fechaIngreso, setFechaIngreso] = useState(comodidad?.fechaIngreso || '');
-  const [estado, setEstado] = useState(comodidad?.estado || 'Disponible');
+  const [selectedArticulo, setSelectedArticulo] = useState(null);
+  const [newArticulo, setNewArticulo] = useState("");
+  const [newCodigo, setNewCodigo] = useState("");
+  const [codigoArticulo, setCodigoArticulo] = useState(
+    comodidad?.codigoArticulo || ""
+  );
+  const [observacion, setObservacion] = useState(comodidad?.observacion || "");
+  const [fechaIngreso, setFechaIngreso] = useState(
+    comodidad?.fechaIngreso || ""
+  );
+  const [estado, setEstado] = useState(comodidad?.estado || "Disponible");
+  const [showNewArticuloForm, setShowNewArticuloForm] = useState(false);
   const [errors, setErrors] = useState({});
+  const [editableNombre, setEditableNombre] = useState("");
+
   useEffect(() => {
-    const newErrors = {};
-    if (articulos.trim() && articulos.trim().length < 2) {
-      newErrors.articulos = 'Debe tener al menos 2 caracteres';
+    if (comodidad) {
+      const articuloEncontrado = articuloData.find(
+        (a) => a.id === comodidad.articuloId
+      );
+      setSelectedArticulo(
+        articuloEncontrado
+          ? {
+              value: articuloEncontrado.id,
+              label: articuloEncontrado.nombre,
+              codigo: articuloEncontrado.codigo,
+            }
+          : null
+      );
+      setEditableNombre(comodidad.nombreArticulo);
+      setCodigoArticulo(comodidad.codigoArticulo);
+      setObservacion(comodidad.observacion);
+      setFechaIngreso(comodidad.fechaIngreso);
+      setEstado(comodidad.estado);
+    } else {
+      resetForm();
     }
-    if (observacion.trim() && observacion.trim().length < 6) {
-      newErrors.observacion = 'Debe tener al menos 6 caracteres';
-    }
-    if (fechaIngreso && isNaN(new Date(fechaIngreso).getTime())) {
-      newErrors.fechaIngreso = 'Fecha inválida';
-    }
-    setErrors(newErrors);
-  }, [articulos, observacion, fechaIngreso]); // Corregir 'observaciaon' a 'observacion'
+  }, [comodidad]);
+
+  const resetForm = () => {
+    setSelectedArticulo(null);
+    setEditableNombre("");
+    setCodigoArticulo("");
+    setObservacion("");
+    setFechaIngreso("");
+    setEstado("Disponible");
+    setShowNewArticuloForm(false);
+    setNewArticulo("");
+    setNewCodigo("");
+  };
 
   const handleSave = () => {
     const newErrors = {};
-    
-    if (!articulos.trim()) newErrors.articulos = 'El campo Artículos es obligatorio';
-    if (!observacion.trim()) newErrors.observacion = 'El campo Observación es obligatorio';
-    if (!fechaIngreso) newErrors.fechaIngreso = 'El campo Fecha de Ingreso es obligatorio';
-    if (isNaN(new Date(fechaIngreso).getTime())) newErrors.fechaIngreso = 'Fecha inválida';
-  
+
+    if (!selectedArticulo && !newArticulo && !editableNombre)
+      newErrors.articulo = "Debe seleccionar, crear o editar un artículo";
+    if (!codigoArticulo.trim())
+      newErrors.codigo = "El campo Código es obligatorio";
+    if (!observacion.trim())
+      newErrors.observacion = "El campo Observación es obligatorio";
+    if (!fechaIngreso.trim())
+      newErrors.fechaIngreso = "El campo Fecha de Ingreso es obligatorio";
+    if (isNaN(new Date(fechaIngreso).getTime()))
+      newErrors.fechaIngreso = "Fecha inválida";
+
     setErrors(newErrors);
-  
+
     if (Object.keys(newErrors).length > 0) {
-      // Muestra una alerta con todos los errores
       Swal.fire({
-        title: 'Errores en el formulario',
-        html: Object.values(newErrors).join('<br>'), // Muestra todos los errores en líneas separadas
-        icon: 'error',
-        confirmButtonText: 'Ok',
+        title: "Errores en el formulario",
+        html: Object.values(newErrors).join("<br>"),
+        icon: "error",
+        confirmButtonText: "Ok",
       });
+      return;
+    }
+
+    let articuloId, nombreArticulo;
+
+    if (newArticulo) {
+      const nuevoArticulo = {
+        id: Date.now().toString(),
+        nombre: newArticulo,
+        codigo: newCodigo,
+      };
+      articuloData.push(nuevoArticulo);
+      articuloId = nuevoArticulo.id;
+      nombreArticulo = nuevoArticulo.nombre;
+    } else if (comodidad && editableNombre !== comodidad.nombreArticulo) {
+      const articuloIndex = articuloData.findIndex(
+        (a) => a.id === comodidad.articuloId
+      );
+      if (articuloIndex !== -1) {
+        articuloData[articuloIndex].nombre = editableNombre;
+        articuloData[articuloIndex].codigo = codigoArticulo;
+        articuloId = comodidad.articuloId;
+        nombreArticulo = editableNombre;
+      } else {
+        articuloId = comodidad.articuloId;
+        nombreArticulo = editableNombre;
+      }
     } else {
-      // Llama a la función onSave si no hay errores
-      onSave({ ...comodidad, articulos, observacion, fechaIngreso, estado });
+      articuloId = selectedArticulo
+        ? selectedArticulo.value
+        : comodidad.articuloId;
+      nombreArticulo =
+        editableNombre ||
+        (selectedArticulo ? selectedArticulo.label : comodidad.nombreArticulo);
+    }
+
+    onSave({
+      id: comodidad ? comodidad.id : Date.now().toString(),
+      articuloId,
+      nombreArticulo,
+      codigoArticulo,
+      observacion,
+      fechaIngreso,
+      estado,
+    });
+
+    resetForm();
+  };
+
+  const handleSelectChange = (selectedOption) => {
+    setSelectedArticulo(selectedOption);
+    setShowNewArticuloForm(false);
+    if (selectedOption) {
+      setEditableNombre(selectedOption.label);
+      setCodigoArticulo(selectedOption.codigo);
     }
   };
-  
+
+  const handleCodigoChange = (e) => {
+    setCodigoArticulo(e.target.value);
+  };
 
   return (
-    <Modal show={show} onHide={onHide} size="lg">
+    <Modal
+      show={show}
+      onHide={onHide}
+      size="lg"
+      backdrop="static"
+      keyboard={false}
+      className="modal-comodidad"
+    >
       <Modal.Header closeButton>
-        <Modal.Title>{comodidad ? 'Editar Comodidad' : 'Agregar Comodidad'}</Modal.Title>
+        <Modal.Title>
+          {comodidad ? "Editar Comodidad" : "Agregar Comodidad"}
+        </Modal.Title>
       </Modal.Header>
-      <Modal.Body>
+      <Modal.Body className="bg-light">
         <Form>
-          <Form.Group>
-            <Form.Label>Artículos</Form.Label>
-            <Form.Control
-              type="text"
-              value={articulos}
-              onChange={(e) => setArticulos(e.target.value)}
-              isInvalid={!!errors.articulos}
-              onBlur={() => {
-                if (articulos.trim() && articulos.trim().length < 2) {
-                  setErrors((prevErrors) => ({
-                    ...prevErrors,
-                    articulos: 'Debe tener al menos 2 caracteres'
-                  }));
-                }
-              }}
-            />
-            <Form.Control.Feedback type="invalid">
-              {errors.articulos}
-            </Form.Control.Feedback>
-          </Form.Group>
-          <Form.Group>
-            <Form.Label>Observación</Form.Label>
-            <Form.Control
-              type="text"
-              value={observacion}
-              onChange={(e) => setObservacion(e.target.value)}
-              isInvalid={!!errors.observacion}
-              onBlur={() => {
-                if (observacion.trim() && observacion.trim().length < 6) {
-                  setErrors((prevErrors) => ({
-                    ...prevErrors,
-                    observacion: 'Debe tener al menos 6 caracteres'
-                  }));
-                }
-              }}
-            />
-            <Form.Control.Feedback type="invalid">
-              {errors.observacion}
-            </Form.Control.Feedback>
-          </Form.Group>
-          <Form.Group>
-            <Form.Label>Fecha de Ingreso</Form.Label>
-            <Form.Control
-              type="date"
-              value={fechaIngreso}
-              onChange={(e) => setFechaIngreso(e.target.value)}
-              isInvalid={!!errors.fechaIngreso}
-              onBlur={() => {
-                if (fechaIngreso && isNaN(new Date(fechaIngreso).getTime())) {
-                  setErrors((prevErrors) => ({
-                    ...prevErrors,
-                    fechaIngreso: 'Fecha inválida'
-                  }));
-                }
-              }}
-            />
-            <Form.Control.Feedback type="invalid">
-              {errors.fechaIngreso}
-            </Form.Control.Feedback>
-          </Form.Group>
-          <Form.Group>
-            <Form.Label>Estado</Form.Label>
-            <Form.Control
-              as="select"
-              value={estado}
-              onChange={(e) => setEstado(e.target.value)}
-            >
-              <option>Disponible</option>
-              <option>En reparación</option>
-              <option>No disponible</option>
-            </Form.Control>
-          </Form.Group>
+          <Row>
+            <Col md={6}>
+              {comodidad ? (
+                <Form.Group className="mb-3">
+                  <Form.Label>Nombre del Artículo</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={editableNombre}
+                    onChange={(e) => setEditableNombre(e.target.value)}
+                  />
+                </Form.Group>
+              ) : (
+                <>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Artículos</Form.Label>
+                    <Select
+                      options={articuloData.map((a) => ({
+                        value: a.id,
+                        label: a.nombre,
+                        codigo: a.codigo,
+                      }))}
+                      onChange={handleSelectChange}
+                      value={selectedArticulo}
+                      placeholder="Selecciona un artículo..."
+                      isClearable
+                    />
+                    {errors.articulo && (
+                      <div className="text-danger">{errors.articulo}</div>
+                    )}
+                  </Form.Group>
+                  <Button
+                    variant="outline-primary"
+                    onClick={() => setShowNewArticuloForm(!showNewArticuloForm)}
+                    className="mb-3"
+                  >
+                    {showNewArticuloForm ? "Cancelar" : "Crear nuevo artículo"}
+                  </Button>
+                  {showNewArticuloForm && (
+                    <>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Nuevo Artículo</Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder="Nombre del nuevo artículo"
+                          value={newArticulo}
+                          onChange={(e) => setNewArticulo(e.target.value)}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Código del Nuevo Artículo</Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder="Código del nuevo artículo"
+                          value={newCodigo}
+                          onChange={(e) => setNewCodigo(e.target.value)}
+                        />
+                      </Form.Group>
+                    </>
+                  )}
+                </>
+              )}
+
+              <Form.Group className="mb-3">
+                <Form.Label>Código del Artículo</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={codigoArticulo}
+                  onChange={handleCodigoChange}
+                />
+                {errors.codigo && (
+                  <div className="text-danger">{errors.codigo}</div>
+                )}
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Fecha de Ingreso</Form.Label>
+                <Form.Control
+                  type="date"
+                  value={fechaIngreso}
+                  onChange={(e) => setFechaIngreso(e.target.value)}
+                />
+                {errors.fechaIngreso && (
+                  <div className="text-danger">{errors.fechaIngreso}</div>
+                )}
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Estado</Form.Label>
+                <Form.Control
+                  as="select"
+                  value={estado}
+                  onChange={(e) => setEstado(e.target.value)}
+                >
+                  <option value="Disponible">Disponible</option>
+                  <option value="De Baja">Dado de Baja</option>
+                  <option value="En Mantenimiento">En Mantenimiento</option>
+                </Form.Control>
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Observación</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  placeholder="Observación"
+                  value={observacion}
+                  onChange={(e) => setObservacion(e.target.value)}
+                />
+                {errors.observacion && (
+                  <div className="text-danger">{errors.observacion}</div>
+                )}
+              </Form.Group>
+            </Col>
+          </Row>
         </Form>
       </Modal.Body>
-      <Modal.Footer>
+      <Modal.Footer className="bg-light">
         <Button variant="secondary" onClick={onHide}>
           Cancelar
         </Button>
-        <Button variant="primary" onClick={handleSave} disabled={Object.keys(errors).length > 0}>
+        <Button variant="primary" onClick={handleSave}>
           Guardar
         </Button>
       </Modal.Footer>

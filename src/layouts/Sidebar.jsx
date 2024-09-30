@@ -12,13 +12,13 @@ const { Sider } = Layout;
 
 const menuItems = [
     { key: '1', icon: <MdDashboard size={24} />, label: <Link to="/dashboard">Dashboard</Link> },
-    { key: '2', icon: <MdRoomService size={24} />, label: <Link to="/services">Servicios</Link> },
-    { key: '3', icon: <FaUsers size={24} />, label: <Link to="/users">Usuarios</Link> },
-    { key: '4', icon: <FaUsersBetweenLines size={24} />, label: <Link to="/clients">Clientes</Link> },
-    { key: '5', icon: <GiWoodCabin size={24} />, label: <Link to="/cabins">Cabañas</Link> },
-    { key: '6', icon: <GiBed size={24} />, label: <Link to="/rooms">Habitaciones</Link> },
-    { key: '7', icon: <MdBeachAccess size={24} />, label: <Link to="/plans">Planes</Link> },
-    { key: '8', icon: <FaCalendarDays size={24} />, label: <Link to="/reservations">Reservas</Link> },
+    { key: '2', icon: <GiWoodCabin size={24} />, label: <Link to="/cabins">Cabañas</Link> },
+    { key: '3', icon: <GiBed size={24} />, label: <Link to="/rooms">Habitaciones</Link> },
+    { key: '4', icon: <MdRoomService size={24} />, label: <Link to="/services">Servicios</Link> },
+    { key: '5', icon: <MdBeachAccess size={24} />, label: <Link to="/plans">Planes</Link> },
+    { key: '6', icon: <FaUsersBetweenLines size={24} />, label: <Link to="/clients">Clientes</Link> },
+    { key: '7', icon: <FaCalendarDays size={24} />, label: <Link to="/reservations">Reservas</Link> },
+    { key: '8', icon: <FaUsers size={24} />, label: <Link to="/users">Usuarios</Link> },
     { key: '9', icon: <IoSettingsSharp size={24} />, label: <Link to="/settings">Configuración</Link> },
 ];
 
