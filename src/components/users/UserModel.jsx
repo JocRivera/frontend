@@ -1,24 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Form, Button } from "react-bootstrap";
+import { Modal, Form, Button, InputGroup } from "react-bootstrap";
 import Swal from "sweetalert2";
-import { FaEye, FaEyeSlash } from "react-icons/fa"; // Importar íconos para mostrar/ocultar contraseña
+import { FaEye, FaEyeSlash, FaLock, FaUnlock } from "react-icons/fa";
 
 const UserModal = ({ show, handleClose, handleSave, user }) => {
   const [formData, setFormData] = useState({
     nombre: "",
     documento: "",
-    tipoDocumento: "CC", // Tipo de documento por defecto (por ejemplo, CC, TI)
+    tipoDocumento: "CC",
     email: "",
     telefono: "",
-    rol: "empleado", // Rol por defecto
+    rol: "empleado",
     contraseña: "",
     confirmarContraseña: "",
-    estado: "activo", // Estado por defecto
+    estado: "activo",
   });
   const [errors, setErrors] = useState({});
-  const [showPassword, setShowPassword] = useState(false); // Estado para mostrar/ocultar contraseña
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [touched, setTouched] = useState({});
 
-  // Efecto para cargar datos de usuario al editar o resetear el formulario al agregar nuevo
   useEffect(() => {
     if (user) {
       setFormData({
@@ -31,25 +32,29 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
       setFormData({
         nombre: "",
         documento: "",
-        tipoDocumento: "CC", // Tipo de documento por defecto
+        tipoDocumento: "CC",
         email: "",
         telefono: "",
-        rol: "empleado", // Rol por defecto
+        rol: "empleado",
         contraseña: "",
         confirmarContraseña: "",
-        estado: "activo", // Estado por defecto
+        estado: "activo",
       });
     }
     setErrors({});
+    setTouched({});
   }, [user]);
 
-  // Manejo de cambios en los inputs y validación en tiempo real
   const handleInputChange = ({ target: { name, value } }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
     validateForm(name, value);
   };
 
-  // Validación del formulario para cada campo
+  const handleBlur = (field) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    validateForm(field, formData[field]);
+  };
+
   const validateForm = (name, value) => {
     const newErrors = { ...errors };
     switch (name) {
@@ -93,7 +98,6 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
           !/^.*(?=.{10,})(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&*()_+~`|}{[$$:;?><,./-=]).*$/.test(value)
             ? "La contraseña debe tener al menos 10 caracteres, incluyendo mayúsculas, minúsculas y caracteres especiales."
             : "";
-        // Validar confirmación de contraseña también
         if (formData.confirmarContraseña && value !== formData.confirmarContraseña) {
           newErrors.confirmarContraseña = "Las contraseñas no coinciden.";
         } else {
@@ -116,7 +120,6 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
     setErrors(newErrors);
   };
 
-  // Verifica si todos los campos están llenos y no tienen errores
   const isFormValid = () => {
     return (
       Object.values(formData).every((val) => val !== "") &&
@@ -124,12 +127,10 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
     );
   };
 
-  // Guardar el formulario y cerrar el modal si todo es correcto
   const handleSubmit = async () => {
     if (isFormValid()) {
-      await handleSave(formData); // Llamar a la función handleSave con el parámetro formData
-      handleClose(); // Cerrar el modal después de guardar
-      // Resetear el formulario a sus valores por defecto
+      await handleSave(formData);
+      handleClose();
       setFormData({
         nombre: "",
         documento: "",
@@ -142,15 +143,52 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
         estado: "activo",
       });
       setErrors({});
+      setTouched({});
     } else {
       Swal.fire({
         title: "Error",
         text: "Corrige los errores del formulario",
         icon: "error",
-        timer: 2000, // Desaparece después de 2 segundos
+        timer: 2000,
         showConfirmButton: false,
       });
     }
+  };
+
+  const togglePasswordVisibility = (field) => {
+    if (field === 'contraseña') {
+      setShowPassword(!showPassword);
+    } else if (field === 'confirmarContraseña') {
+      setShowConfirmPassword(!showConfirmPassword);
+    }
+  };
+
+  const renderPasswordField = (fieldName, placeholder, value, onChange, onBlur, error, touched, showPassword, toggleVisibility) => {
+    return (
+      <Form.Group className="mb-3" controlId={`formBasic${fieldName}`}>
+        <Form.Label>{fieldName === 'contraseña' ? 'Contraseña' : 'Confirmar Contraseña'}</Form.Label>
+        <InputGroup>
+          <Form.Control
+            type={showPassword ? 'text' : 'password'}
+            placeholder={placeholder}
+            name={fieldName}
+            value={value}
+            onChange={onChange}
+            onBlur={onBlur}
+            isInvalid={!!error && touched}
+          />
+          <InputGroup.Text 
+            onClick={() => toggleVisibility(fieldName)}
+            style={{ cursor: 'pointer', background: showPassword ? '#e9ecef' : '#ffffff' }}
+          >
+            {showPassword ? <FaEyeSlash /> : <FaEye />}
+          </InputGroup.Text>
+        </InputGroup>
+        <Form.Control.Feedback type="invalid">
+          {error}
+        </Form.Control.Feedback>
+      </Form.Group>
+    );
   };
 
   return (
@@ -270,55 +308,29 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
             </Form.Control.Feedback>
           </Form.Group>
 
-          <Form.Group className="mb-3 position-relative">
-            <Form.Label>Contraseña</Form.Label>
-            <Form.Control
-              type={showPassword ? "text" : "password"}
-              name="contraseña"
-              value={formData.contraseña}
-              onChange={handleInputChange}
-              isInvalid={!!errors.contraseña}
-            />
-            <span
-              onClick={() => setShowPassword(!showPassword)}
-              style={{
-                position: "absolute",
-                top: "35px",
-                right: "10px",
-                cursor: "pointer",
-              }}
-            >
-              {showPassword ? <FaEyeSlash /> : <FaEye />}
-            </span>
-            <Form.Control.Feedback type="invalid">
-              {errors.contraseña}
-            </Form.Control.Feedback>
-          </Form.Group>
+          {renderPasswordField(
+            'contraseña',
+            'Ingrese la contraseña',
+            formData.contraseña,
+            handleInputChange,
+            () => handleBlur('contraseña'),
+            errors.contraseña,
+            touched.contraseña,
+            showPassword,
+            togglePasswordVisibility
+          )}
 
-          <Form.Group className="mb-3 position-relative">
-            <Form.Label>Confirmar Contraseña</Form.Label>
-            <Form.Control
-              type={showPassword ? "text" : "password"}
-              name="confirmarContraseña"
-              value={formData.confirmarContraseña}
-              onChange={handleInputChange}
-              isInvalid={!!errors.confirmarContraseña}
-            />
-            <span
-              onClick={() => setShowPassword(!showPassword)}
-              style={{
-                position: "absolute",
-                top: "35px",
-                right: "10px",
-                cursor: "pointer",
-              }}
-            >
-              {showPassword ? <FaEyeSlash /> : <FaEye />}
-            </span>
-            <Form.Control.Feedback type="invalid">
-              {errors.confirmarContraseña}
-            </Form.Control.Feedback>
-          </Form.Group>
+          {renderPasswordField(
+            'confirmarContraseña',
+            'Confirme la contraseña',
+            formData.confirmarContraseña,
+            handleInputChange,
+            () => handleBlur('confirmarContraseña'),
+            errors.confirmarContraseña,
+            touched.confirmarContraseña,
+            showConfirmPassword,
+            togglePasswordVisibility
+          )}
         </Form>
       </Modal.Body>
       <Modal.Footer>

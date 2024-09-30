@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Container, Form, Button, Alert, Row, Col } from 'react-bootstrap';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { Container, Form, Button, Alert, Row, Col, InputGroup } from 'react-bootstrap';
+import { FaEye, FaEyeSlash, FaLock, FaUnlock } from 'react-icons/fa';
 
 const ProfilePage = () => {
   const { isAuthenticated, user, updateProfile } = useAuth();
@@ -17,7 +17,7 @@ const ProfilePage = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState('');
-  const [touched, setTouched] = useState({}); // Estado para campos "tocados"
+  const [touched, setTouched] = useState({});
 
   // Estados para la visibilidad de la contraseña
   const [showPassword, setShowPassword] = useState(false);
@@ -33,7 +33,7 @@ const ProfilePage = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/'); // Redirige a la página de inicio si el usuario no está autenticado
+      navigate('/');
     } else {
       setDocument(user?.document || '');
       setName(user?.name || '');
@@ -78,7 +78,6 @@ const ProfilePage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
   
-    // Ejecuta validación final antes de enviar
     const newErrors = {
       fullName: validateField('fullName', name),
       idNumber: validateField('idNumber', document),
@@ -94,7 +93,6 @@ const ProfilePage = () => {
       return;
     }
   
-    // Mostrar mensaje de perfil actualizado
     setSuccess('Perfil actualizado correctamente.');
     setTimeout(() => setSuccess(''), 3000);
   };
@@ -111,7 +109,6 @@ const ProfilePage = () => {
     setSuccess('');
     setTouched({});
 
-    // Close the current page
     window.history.back();
   };
 
@@ -123,165 +120,258 @@ const ProfilePage = () => {
     }
   };
 
-  return (
-    <div className="container col p-5 mt-3" style={{ minHeight: "100vh", marginRight : "850px"}}>
-        <h1>Editar Perfil</h1>
-      <div   className='row  '> 
-
-      {errors.global && <Alert variant="danger">{errors.global}</Alert>}
-      {success && <Alert variant="success">{success}</Alert>}
-
-      <Form onSubmit={handleSubmit}>
-        <Row>
-          <Col md={6}>
-            <Form.Group className="mb-3" controlId="formBasicDocument">
-              <Form.Label>Número de Documento</Form.Label>
+  // Función para renderizar el campo de contraseña con diferentes estilos
+  const renderPasswordField = (fieldName, placeholder, value, onChange, onBlur, error, touched, showPassword, toggleVisibility, style) => {
+    switch(style) {
+      case 'minimal':
+        return (
+          <Form.Group className="mb-3" controlId={`formBasic${fieldName}`}>
+            <Form.Label>{fieldName === 'Password' ? 'Contraseña' : 'Confirmar Contraseña'}</Form.Label>
+            <div style={{ position: 'relative', maxWidth: '80%' }}>
               <Form.Control
-                type="number"
-                placeholder="Ingresa tu número de documento"
-                value={document}
-                onChange={(e) => setDocument(e.target.value)}
-                onBlur={() => handleBlur('idNumber', document)}
-                isInvalid={!!errors.idNumber && touched.idNumber}
-                style={{ maxWidth: '80%' }}
+                type={showPassword ? 'text' : 'password'}
+                placeholder={placeholder}
+                value={value}
+                onChange={onChange}
+                onBlur={onBlur}
+                isInvalid={!!error && touched}
+                style={{ paddingRight: '40px' }}
               />
-              <Form.Control.Feedback type="invalid">
-                {errors.idNumber}
-              </Form.Control.Feedback>
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="formBasicName">
-              <Form.Label>Nombre</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Ingresa tu nombre"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                onBlur={() => handleBlur('fullName', name)}
-                isInvalid={!!errors.fullName && touched.fullName}
-                style={{ maxWidth: '80%' }}
-              />
-              <Form.Control.Feedback type="invalid">
-                {errors.fullName}
-              </Form.Control.Feedback>
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="formBasicDocumentType" style={{ maxWidth: '80%' }}>
-              <Form.Label>Tipo de Documento</Form.Label>
-              <Form.Select
-                value={documentType}
-                onChange={(e) => setDocumentType(e.target.value)}
-                onBlur={() => handleBlur('documentType', documentType)}
-                isInvalid={!!errors.documentType && touched.documentType}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  right: '10px',
+                  transform: 'translateY(-50%)',
+                  cursor: 'pointer',
+                }}
+                onClick={toggleVisibility}
               >
-                <option value="">Seleccione un tipo de documento</option>
-                {documentTypeOptions.map((option, index) => (
-                  <option key={index} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Form.Select>
-              <Form.Control.Feedback type="invalid">
-                {errors.documentType}
-              </Form.Control.Feedback>
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="formBasicPassword">
-              <Form.Label>Contraseña</Form.Label>
-              <div style={{ position: 'relative' }}>
-                <Form.Control
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Ingresa tu contraseña"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onBlur={() => handleBlur('password', password)}
-                  isInvalid={!!errors.password && touched.password}
-                  style={{ maxWidth: '80%', paddingRight: '30px' }}
-                />
-                <button
-                  type="button"
-                  style={{ position: 'absolute', top: '50%', right: '150px', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
-                  onClick={() => togglePasswordVisibility('password')}
-                >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
-                </button>
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
               </div>
-              <Form.Control.Feedback type="invalid">
-                {errors.password}
-              </Form.Control.Feedback>
-            </Form.Group>
-          </Col>
+            </div>
+            <Form.Control.Feedback type="invalid">
+              {error}
+            </Form.Control.Feedback>
+          </Form.Group>
+        );
 
-          <Col md={6}>
-            <Form.Group className="mb-3" controlId="formBasicEmail">
-              <Form.Label>Correo Electrónico</Form.Label>
+      case 'boxed':
+        return (
+          <Form.Group className="mb-3" controlId={`formBasic${fieldName}`}>
+            <Form.Label>{fieldName === 'Password' ? 'Contraseña' : 'Confirmar Contraseña'}</Form.Label>
+            <div style={{ position: 'relative', maxWidth: '80%' }}>
               <Form.Control
-                type="email"
-                placeholder="Ingresa tu correo electrónico"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onBlur={() => handleBlur('email', email)}
-                isInvalid={!!errors.email && touched.email}
-                style={{ maxWidth: '80%' }}
+                type={showPassword ? 'text' : 'password'}
+                placeholder={placeholder}
+                value={value}
+                onChange={onChange}
+                onBlur={onBlur}
+                isInvalid={!!error && touched}
+                style={{ paddingRight: '40px' }}
               />
-              <Form.Control.Feedback type="invalid">
-                {errors.email}
-              </Form.Control.Feedback>
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="formBasicBirthdate">
-              <Form.Label>Fecha de Nacimiento</Form.Label>
-              <Form.Control
-                type="date"
-                placeholder="Ingresa tu fecha de nacimiento"
-                value={birthdate}
-                onChange={(e) => setBirthdate(e.target.value)}
-                onBlur={() => handleBlur('birthdate', birthdate)}
-                isInvalid={!!errors.birthdate && touched.birthdate}
-                style={{ maxWidth: '80%' }}
-              />
-              <Form.Control.Feedback type="invalid">
-                {errors.birthdate}
-              </Form.Control.Feedback>
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="formBasicConfirmPassword">
-              <Form.Label>Confirmar Contraseña</Form.Label>
-              <div style={{ position: 'relative' }}>
-                <Form.Control
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  placeholder="Confirma tu contraseña"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  onBlur={() => handleBlur('confirmPassword', confirmPassword)}
-                  isInvalid={!!errors.confirmPassword && touched.confirmPassword}
-                  style={{ maxWidth: '80%', paddingRight: '30px' }}
-                />
-                <button
-                  type="button"
-                  style={{ position: 'absolute', top: '50%', right: '150px', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
-                  onClick={() => togglePasswordVisibility('confirmPassword')}
-                >
-                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                </button>
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  right: '5px',
+                  transform: 'translateY(-50%)',
+                  background: '#f8f9fa',
+                  border: '1px solid #ced4da',
+                  borderRadius: '4px',
+                  padding: '5px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '30px',
+                  height: '30px',
+                }}
+                onClick={toggleVisibility}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
               </div>
-              <Form.Control.Feedback type="invalid">
-                {errors.confirmPassword}
-              </Form.Control.Feedback>
-            </Form.Group>
-          </Col>
-        </Row>
+            </div>
+            <Form.Control.Feedback type="invalid">
+              {error}
+            </Form.Control.Feedback>
+          </Form.Group>
+        );
 
-        <Button variant="primary" type="submit">
-          Guardar Cambios
-        </Button>
-        <Button variant="secondary" type="button" onClick={handleCancel} className="ml-2">
-          Cancelar
-        </Button>
-      </Form>
-    </div>
+      case 'integrated':
+        return (
+          <Form.Group className="mb-3" controlId={`formBasic${fieldName}`}>
+            <Form.Label>{fieldName === 'Password' ? 'Contraseña' : 'Confirmar Contraseña'}</Form.Label>
+            <InputGroup style={{ maxWidth: '80%' }}>
+              <Form.Control
+                type={showPassword ? 'text' : 'password'}
+                placeholder={placeholder}
+                value={value}
+                onChange={onChange}
+                onBlur={onBlur}
+                isInvalid={!!error && touched}
+              />
+              <InputGroup.Text 
+                onClick={toggleVisibility}
+                style={{ cursor: 'pointer', background: showPassword ? '#e9ecef' : '#ffffff' }}
+              >
+                {showPassword ? <FaUnlock /> : <FaLock />}
+              </InputGroup.Text>
+            </InputGroup>
+            <Form.Control.Feedback type="invalid">
+              {error}
+            </Form.Control.Feedback>
+          </Form.Group>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="container col p-5 mt-3" style={{ minHeight: "100vh", marginRight: "850px" }}>
+      <h1>Editar Perfil</h1>
+      <div className='row'>
+        {errors.global && <Alert variant="danger">{errors.global}</Alert>}
+        {success && <Alert variant="success">{success}</Alert>}
+
+        <Form onSubmit={handleSubmit}>
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3" controlId="formBasicDocument">
+                <Form.Label>Número de Documento</Form.Label>
+                <Form.Control
+                  type="number"
+                  placeholder="Ingresa tu número de documento"
+                  value={document}
+                  onChange={(e) => setDocument(e.target.value)}
+                  onBlur={() => handleBlur('idNumber', document)}
+                  isInvalid={!!errors.idNumber && touched.idNumber}
+                  style={{ maxWidth: '80%' }}
+                />
+                <Form.Control.Feedback type="invalid">
+                  {errors.idNumber}
+                </Form.Control.Feedback>
+              </Form.Group>
+
+              <Form.Group className="mb-3" controlId="formBasicName">
+                <Form.Label>Nombre</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Ingresa tu nombre"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onBlur={() => handleBlur('fullName', name)}
+                  isInvalid={!!errors.fullName && touched.fullName}
+                  style={{ maxWidth: '80%' }}
+                />
+                <Form.Control.Feedback type="invalid">
+                  {errors.fullName}
+                </Form.Control.Feedback>
+              </Form.Group>
+
+              <Form.Group className="mb-3" controlId="formBasicDocumentType" style={{ maxWidth: '80%' }}>
+                <Form.Label>Tipo de Documento</Form.Label>
+                <Form.Select
+                  value={documentType}
+                  onChange={(e) => setDocumentType(e.target.value)}
+                  onBlur={() => handleBlur('documentType', documentType)}
+                  isInvalid={!!errors.documentType && touched.documentType}
+                >
+                  <option value="">Seleccione un tipo de documento</option>
+                  {documentTypeOptions.map((option, index) => (
+                    <option key={index} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </Form.Select>
+                <Form.Control.Feedback type="invalid">
+                  {errors.documentType}
+                </Form.Control.Feedback>
+              </Form.Group>
+
+              {/* Minimal style password field */}
+              {renderPasswordField(
+                'Password',
+                'Password',
+                password,
+                (e) => setPassword(e.target.value),
+                () => handleBlur('confirmPassword', password),
+                errors.password,
+                touched.password,
+                showPassword,
+                () => togglePasswordVisibility('password'),
+                'boxed'
+              )}
+            </Col>
+
+            <Col md={6}>
+              <Form.Group className="mb-3" controlId="formBasicEmail">
+                <Form.Label>Correo Electrónico</Form.Label>
+                <Form.Control
+                  type="email"
+                  placeholder="Ingresa tu correo electrónico"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onBlur={() => handleBlur('email', email)}
+                  isInvalid={!!errors.email && touched.email}
+                  style={{ maxWidth: '80%' }}
+                />
+                <Form.Control.Feedback type="invalid">
+                  {errors.email}
+                </Form.Control.Feedback>
+              </Form.Group>
+
+              <Form.Group className="mb-3" controlId="formBasicBirthdate">
+                <Form.Label>Fecha de Nacimiento</Form.Label>
+                <Form.Control
+                  type="date"
+                  placeholder="Ingresa tu fecha de nacimiento"
+                  value={birthdate}
+                  onChange={(e) => setBirthdate(e.target.value)}
+                  onBlur={() => handleBlur('birthdate', birthdate)}
+                  isInvalid={!!errors.birthdate && touched.birthdate}
+                  style={{ maxWidth: '80%' }}
+                />
+                <Form.Control.Feedback type="invalid">
+                  {errors.birthdate}
+                </Form.Control.Feedback>
+              </Form.Group>
+
+              {/* Boxed style confirm password field */}
+              {renderPasswordField(
+                'ConfirmPassword',
+                'Confirma tu contraseña',
+                confirmPassword,
+                (e) => setConfirmPassword(e.target.value),
+                () => handleBlur('confirmPassword', confirmPassword),
+                errors.confirmPassword,
+                touched.confirmPassword,
+                showConfirmPassword,
+                () => togglePasswordVisibility('confirmPassword'),
+                'boxed'
+              )}
+
+              {/* Integrated style password field (optional, for demonstration) */}
+            
+            </Col>
+          </Row>
+
+          <Button variant="primary" type="submit">
+            Guardar Cambios
+          </Button>
+          <Button
+          variant="secondary"
+            type="button"
+            onClick={handleCancel}
+            className="ml-2"
+          >
+            Cancelar
+          </Button>
+        </Form>
       </div>
-      
+    </div>
   );
 };
 

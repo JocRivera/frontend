@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
+import { Modal, Button, Form, InputGroup } from 'react-bootstrap';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 function RecovyPassword({ show, onHide }) {
   const [email, setEmail] = useState('');
@@ -9,6 +10,8 @@ function RecovyPassword({ show, onHide }) {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const validEmails = ['admin@example.com', 'test@test.com'];
 
@@ -25,7 +28,7 @@ function RecovyPassword({ show, onHide }) {
       
       setTimeout(() => {
         setShowChangePasswordModal(true);
-      }, 2000); // Muestra el modal de cambio de contraseña después de 2 segundos
+      }, 2000);
     } else {
       setErrorMessage('El correo electrónico no está registrado.');
       setSuccessMessage('');
@@ -33,7 +36,6 @@ function RecovyPassword({ show, onHide }) {
   };
 
   const validatePassword = (password) => {
-    // Validación de contraseña robusta
     return /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,}$/.test(password);
   };
 
@@ -58,9 +60,16 @@ function RecovyPassword({ show, onHide }) {
       setPasswordError('Las contraseñas no coinciden.');
       return;
     }
-    // Aquí podrías manejar el cambio de contraseña
     setShowChangePasswordModal(false);
-    onHide(); // Cierra el modal después de cambiar la contraseña
+    onHide();
+  };
+
+  const togglePasswordVisibility = (field) => {
+    if (field === 'new') {
+      setShowNewPassword(!showNewPassword);
+    } else if (field === 'confirm') {
+      setShowConfirmPassword(!showConfirmPassword);
+    }
   };
 
   return (
@@ -107,31 +116,47 @@ function RecovyPassword({ show, onHide }) {
           <Form onSubmit={handlePasswordChangeSubmit}>
             <Form.Group className="mb-3" controlId="formNewPassword">
               <Form.Label>Nueva Contraseña</Form.Label>
-              <Form.Control
-                type="password"
-                placeholder="Ingrese nueva contraseña"
-                value={newPassword}
-                onChange={handleNewPasswordChange}
-                isInvalid={!!passwordError}
-                required
-              />
-              <Form.Control.Feedback type="invalid">
-                {passwordError}
-              </Form.Control.Feedback>
+              <InputGroup>
+                <Form.Control
+                  type={showNewPassword ? 'text' : 'password'}
+                  placeholder="Ingrese nueva contraseña"
+                  value={newPassword}
+                  onChange={handleNewPasswordChange}
+                  isInvalid={!!passwordError}
+                  required
+                />
+                <InputGroup.Text 
+                  onClick={() => togglePasswordVisibility('new')}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {showNewPassword ? <FaEyeSlash /> : <FaEye />}
+                </InputGroup.Text>
+                <Form.Control.Feedback type="invalid">
+                  {passwordError}
+                </Form.Control.Feedback>
+              </InputGroup>
             </Form.Group>
             <Form.Group className="mb-3" controlId="formConfirmPassword">
               <Form.Label>Confirmar Contraseña</Form.Label>
-              <Form.Control
-                type="password"
-                placeholder="Confirme nueva contraseña"
-                value={confirmPassword}
-                onChange={handleConfirmPasswordChange}
-                isInvalid={confirmPassword && newPassword !== confirmPassword}
-                required
-              />
-              <Form.Control.Feedback type="invalid">
-                Las contraseñas no coinciden.
-              </Form.Control.Feedback>
+              <InputGroup>
+                <Form.Control
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="Confirme nueva contraseña"
+                  value={confirmPassword}
+                  onChange={handleConfirmPasswordChange}
+                  isInvalid={confirmPassword && newPassword !== confirmPassword}
+                  required
+                />
+                <InputGroup.Text 
+                  onClick={() => togglePasswordVisibility('confirm')}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                </InputGroup.Text>
+                <Form.Control.Feedback type="invalid">
+                  Las contraseñas no coinciden.
+                </Form.Control.Feedback>
+              </InputGroup>
             </Form.Group>
             <Button variant="primary" type="submit" disabled={!!passwordError || newPassword !== confirmPassword}>
               Cambiar Contraseña

@@ -1,31 +1,32 @@
 import React, { useState } from 'react';
-import { Modal, Form, Button, Row, Col } from 'react-bootstrap';
+import { Modal, Form, Button, Row, Col, InputGroup } from 'react-bootstrap';
 import './stylesLogin.css';
 import Swal from 'sweetalert2';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 function RegisterModal({ isOpen, clickModal }) {
-  const [formData, setFormData] = React.useState({
+  const [formData, setFormData] = useState({
     fullName: '',
     idNumber: '',
     birthdate: '',
     email: '',
     password: '',
-    confirmPassword: '', // State for confirm password
-    tipoDocumento: '', // State for tipo de documento
+    confirmPassword: '',
+    tipoDocumento: '',
   });
 
-  const [errors, setErrors] = React.useState({
+  const [errors, setErrors] = useState({
     fullName: '',
     idNumber: '',
     birthdate: '',
     email: '',
     password: '',
-    confirmPassword: '', // Error state for confirm password
-    tipoDocumento: '', // Error state for tipo de documento
+    confirmPassword: '',
+    tipoDocumento: '',
   });
 
-  const [showPassword, setShowPassword] = React.useState(false); // State for password visibility
-  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false); // State for confirm password visibility
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const validateForm = (name, value) => {
     const errorMessages = {
@@ -83,20 +84,27 @@ function RegisterModal({ isOpen, clickModal }) {
         title: 'Registro exitoso!',
         text: 'Te has registrado correctamente.',
       }).then(() => {
-        // Cerrar el modal de registro después de mostrar la alerta
         clickModal();
       });
+    }
+  };
+
+  const togglePasswordVisibility = (field) => {
+    if (field === 'password') {
+      setShowPassword(!showPassword);
+    } else if (field === 'confirmPassword') {
+      setShowConfirmPassword(!showConfirmPassword);
     }
   };
 
   return (
     <Modal show={isOpen} onHide={clickModal} size="lg" style={{ background: 'rgba(0, 0, 0, 0.5)' }}>
       <Modal.Body>
-        <Button variant="danger" onClick={clickModal} style={{ float: 'right' }}>X</Button>
+        <Button variant="danger" onClick={clickModal} style={{ position: 'absolute', top: 10, right: 10, zIndex: 999 }}>X</Button>
         <Modal.Title className="text-center">Bienvenido al Registro</Modal.Title>
-        <Row>
+        <Row className="align-items-center">
           <Col md={6} className="image-col">
-            <img src="/src/assets/losgLagos.png" alt="Logo" className="logo-img" style={{ width: '100%', height: '60%', objectFit: 'cover' }} />
+            <img src="/src/assets/losgLagos.png" alt="Logo" className="logo-img" style={{ width: '100%', height: 'auto', objectFit: 'contain' }} />
           </Col>
           <Col md={6} className="form-col">
             <Form onSubmit={handleRegister}>
@@ -170,7 +178,7 @@ function RegisterModal({ isOpen, clickModal }) {
 
               <Form.Group className="mb-3">
                 <Form.Label>Password</Form.Label>
-                <div className="position-relative">
+                <InputGroup>
                   <Form.Control
                     type={showPassword ? "text" : "password"}
                     name="password"
@@ -179,21 +187,19 @@ function RegisterModal({ isOpen, clickModal }) {
                     onChange={handleChange}
                     isInvalid={!!errors.password}
                   />
-                  <Button
-                    variant="link"
-                    className="position-absolute top-50 end-0 translate-middle-y"
-                    style={{ zIndex: 1 }}
-                    onClick={() => setShowPassword(!showPassword)}
+                  <InputGroup.Text 
+                    onClick={() => togglePasswordVisibility('password')}
+                    style={{ cursor: 'pointer', background: '#ffffff' }}
                   >
-                    {showPassword ? <i className="bi bi-eye-slash" /> : <i className="bi bi-eye" />}
-                  </Button>
-                </div>
-                <Form.Control.Feedback type="invalid" style={{ marginTop: '5px', display: 'block' }}>{errors.password}</Form.Control.Feedback>
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </InputGroup.Text>
+                </InputGroup>
+                <Form.Control.Feedback type="invalid">{errors.password}</Form.Control.Feedback>
               </Form.Group>
 
               <Form.Group className="mb-3">
                 <Form.Label>Confirm Password</Form.Label>
-                <div className="position-relative">
+                <InputGroup>
                   <Form.Control
                     type={showConfirmPassword ? "text" : "password"}
                     name="confirmPassword"
@@ -202,16 +208,14 @@ function RegisterModal({ isOpen, clickModal }) {
                     onChange={handleChange}
                     isInvalid={!!errors.confirmPassword}
                   />
-                  <Button
-                    variant="link"
-                    className="position-absolute top-50 end-0 translate-middle-y"
-                    style={{ zIndex: 1 }}
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  <InputGroup.Text 
+                    onClick={() => togglePasswordVisibility('confirmPassword')}
+                    style={{ cursor: 'pointer', background: '#ffffff' }}
                   >
-                    {showConfirmPassword ? <i className="bi bi-eye-slash" /> : <i className="bi bi-eye" />}
-                  </Button>
-                </div>
-                <Form.Control.Feedback type="invalid" style={{ marginTop: '5px', display: 'block' }}>{errors.confirmPassword}</Form.Control.Feedback>
+                    {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                  </InputGroup.Text>
+                </InputGroup>
+                <Form.Control.Feedback type="invalid">{errors.confirmPassword}</Form.Control.Feedback>
               </Form.Group>
 
               <Button variant="primary" type="submit" className="custom-button">
