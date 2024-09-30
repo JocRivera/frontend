@@ -8,6 +8,7 @@ import {
   Row,
   Col,
   Table,
+  Pagination,
 } from "react-bootstrap";
 import { FaUpload, FaTrash, FaEdit, FaClipboardList } from "react-icons/fa";
 import Swal from "sweetalert2";
@@ -111,6 +112,10 @@ const PlanManagement = () => {
       setTouchedFields({});
     }
   }, [showAddModal]);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [plansPerPage] = useState(9);
+
 
   const validate = (values) => {
     const errors = {};
@@ -434,6 +439,14 @@ const PlanManagement = () => {
     plan.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const indexOfLastPlan = currentPage * plansPerPage;
+  const indexOfFirstPlan = indexOfLastPlan - plansPerPage;
+  const currentPlans = filteredPlans.slice(indexOfFirstPlan, indexOfLastPlan);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const validationErrors = validate(newPlan);
@@ -671,6 +684,13 @@ const PlanManagement = () => {
           <p>No se encontraron planes.</p>
         )}
       </Row>
+      <Pagination className="justify-content-center mt-4">
+        {[...Array(Math.ceil(filteredPlans.length / plansPerPage))].map((_, index) => (
+          <Pagination.Item key={index + 1} active={index + 1 === currentPage} onClick={() => paginate(index + 1)}>
+            {index + 1}
+          </Pagination.Item>
+        ))}
+      </Pagination>
       {/* Modal para añadir plan */}
       <Modal
         show={showAddModal}
@@ -827,6 +847,7 @@ const PlanManagement = () => {
             <Row>
               <Col md={6}>
                 <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                  <h4>Servicios</h4>
                   <Table bordered>
                     <thead>
                       <tr>
@@ -869,6 +890,7 @@ const PlanManagement = () => {
               </Col>
               <Col md={6}>
                 <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                  <h4>Alojamientos</h4>
                   <Table bordered>
                     <thead>
                       <tr>

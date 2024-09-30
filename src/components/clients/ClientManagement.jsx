@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, FormControl, Form, Modal, InputGroup } from 'react-bootstrap';
+import { Table, Button, FormControl, Form, Modal, InputGroup, Pagination } from 'react-bootstrap';
 import { FaEyeSlash, FaEye } from "react-icons/fa";
 import Swal from 'sweetalert2';
 
@@ -366,6 +366,11 @@ const ClientManagement = () => {
     const [showDetails, setShowDetails] = useState(false);
     const [selectedClientDetails, setSelectedClientDetails] = useState(null);
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const [clientsPerPage] = useState(10);
+
+
+
 
 
     const saveClient = (client) => {
@@ -433,6 +438,12 @@ const ClientManagement = () => {
             (field) => field.toString().toLowerCase().includes(searchTerm.toLowerCase())
         )
     );
+
+    const indexOfLastClient = currentPage * clientsPerPage;
+    const indexOfFirstClient = indexOfLastClient - clientsPerPage;
+    const currentClients = filteredClients.slice(indexOfFirstClient, indexOfLastClient);
+
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     const toggleClientModal = (client = null) => {
         if (client) {
@@ -563,6 +574,13 @@ const ClientManagement = () => {
                     )}
                 </tbody>
             </Table>
+            <Pagination>
+                {[...Array(Math.ceil(filteredClients.length / clientsPerPage))].map((_, index) => (
+                    <Pagination.Item key={index + 1} active={index + 1 === currentPage} onClick={() => paginate(index + 1)}>
+                        {index + 1}
+                    </Pagination.Item>
+                ))}
+            </Pagination>
 
             <ClientModal
                 show={modalState.showClientModal}
