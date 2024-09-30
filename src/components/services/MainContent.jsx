@@ -3,6 +3,8 @@ import * as BsIcons from "react-icons/bs";
 import { Button, Modal, Form, Table, FormControl } from 'react-bootstrap';
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import ReactPaginate from "react-paginate";
+
 
 const MainContent = () => {
     const [showModal, setShowModal] = useState(false);
@@ -20,7 +22,8 @@ const MainContent = () => {
     const [editService, setEditService] = useState({});
     const [errors, setErrors] = useState({});
     const [query, setQuery] = useState(''); // Estado para la búsqueda
-
+    const [currentPage, setCurrentPage] = useState(); // Estado para la paginación
+    const itemsPerPage = 5; // Número de servicios por página
     useEffect(() => {
         const fetchServices = async () => {
             try {
@@ -199,6 +202,14 @@ const MainContent = () => {
         (service.description || '').toLowerCase().includes(query.toLowerCase())
     );
 
+    const handlePageChange = (selectedPage) => {
+        setCurrentPage(selectedPage.selected);
+    };
+
+    // const handlePageChange = () => {
+    //     filteredServices.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
+    // }
+
     return (
         <div className='container col p-5 mt-3' style={{ minHeight: "100vh", marginRight: "900px", marginTop: "50px" }}>
             {/* Barra de búsqueda */}
@@ -261,7 +272,17 @@ const MainContent = () => {
                     )}
                 </tbody>
             </Table>
-
+            <ReactPaginate
+                previousLabel={"Anterior"}
+                nextLabel={"Siguiente"}
+                breakLabel={"..."}
+                pageCount={Math.ceil(filteredServices.length / itemsPerPage)}
+                marginPagesDisplayed={2}
+                pageRangeDisplayed={5}
+                onPageChange={handlePageChange}
+                containerClassName={"pagination-container"}
+                activeClassName={"active"}
+            />
             {/* Modal para añadir servicios */}
             <Modal show={showModal} onHide={() => setShowModal(false)}>
                 <Modal.Header closeButton>
