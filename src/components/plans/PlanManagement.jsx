@@ -142,6 +142,8 @@ const PlanManagement = () => {
       const today = startOfDay(new Date());
       if (isBefore(endDate, today)) {
         errors.endDate = "La fecha fin no puede ser anterior a hoy";
+      } else if (isBefore(endDate, values.startDate)) {
+        errors.endDate = "La fecha fin debe ser posterior a la fecha de inicio";
       }
     }
 
