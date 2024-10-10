@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Table, FormControl, Modal, InputGroup } from 'react-bootstrap';
-import Swal from 'sweetalert2'; // Importar SweetAlert2
-import ReservationForm from '../pages/ReservationForm';
-import CompanionsForm from '../pages/companionsForm';
-import PaymentsForm from '../pages/PaymentsForm';
-import { utils, writeFile } from 'xlsx'; // Importar funciones de xlsx
-import 'bootstrap-icons/font/bootstrap-icons.css'; // Import Bootstrap Icons
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { Button, Table, FormControl, Modal, InputGroup } from "react-bootstrap";
+import Swal from "sweetalert2";
+import ReservationForm from "../pages/ReservationForm";
+import CompanionsForm from "../pages/companionsForm";
+import PaymentsForm from "../pages/PaymentsForm";
+import ReactPaginate from "react-paginate";
+import { utils, writeFile } from "xlsx";
+import "bootstrap-icons/font/bootstrap-icons.css";
 
 const Reservations = () => {
   const [showAddModal, setShowAddModal] = useState(false);
@@ -19,109 +19,130 @@ const Reservations = () => {
   const [companions, setCompanions] = useState([]);
   const [payments, setPayments] = useState([]);
   const [newReservation, setNewReservation] = useState({
-    estado: '',
-    tipoDocumento: '',
-    documento: '',
-    nombreCliente: '',
+    estado: "",
+    tipoDocumento: "",
+    documento: "",
+    startDate: "",
+    endDate: "",
+    nombreCliente: "",
     companions: [],
-    payments: []
+    payments: [],
   });
   const [filteredReservations, setFilteredReservations] = useState(reservations);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [reservationsPerPage] = useState(5); // Cambia este valor para ajustar el número de reservas por página
 
   useEffect(() => {
-    const fetchReservations = async () => {
-      const [reservationsResponse, companionsResponse, paymentsResponse] = await Promise.all([
-        axios.get('http://localhost:4000/api/reservations'),
-        axios.get('http://localhost:4000/api/companions'),
-        axios.get('http://localhost:4000/api/payments')
-      ]);
-      setReservations(reservationsResponse.data);
-      setFilteredReservations(reservationsResponse.data);
-      setCompanions(companionsResponse.data);
-      setPayments(paymentsResponse.data);
-      console.log("get success");
-    };
-    fetchReservations();
-  }, [newReservation]);
+    // Simulate fetching data
+    const mockReservations = [
+      {
+        _id: "1",
+        estado: "Confirmada",
+        tipoDocumento: "DNI",
+        documento: "12345678",
+        startDate: "2024-10-10",
+        endDate: "2024-10-15",
+        nombreCliente: "John Doe",
+        companions: [],
+        payments: [],
+      },
+      // Add more mock reservations as needed
+      // ...
+    ];
+    setReservations(mockReservations);
+    setFilteredReservations(mockReservations);
+  }, []);
 
   const handleSearch = (e) => {
     const term = e.target.value.toLowerCase();
     setSearchTerm(term);
-    const filtered = reservations.filter(res =>
-      res.nombreCliente.toLowerCase().includes(term) ||
-      res.documento.toLowerCase().includes(term)
+    const filtered = reservations.filter(
+      (res) =>
+        res.nombreCliente.toLowerCase().includes(term) ||
+        res.documento.toLowerCase().includes(term)
     );
     setFilteredReservations(filtered);
+    setCurrentPage(1); // Reset to first page on search
   };
 
-  const handleAddReservation = async () => {
-    if (!newReservation.nombreCliente || !newReservation.tipoDocumento || !newReservation.documento) {
+  // Get current reservations
+  const indexOfLastReservation = currentPage * reservationsPerPage;
+  const indexOfFirstReservation = indexOfLastReservation - reservationsPerPage;
+  const currentReservations = filteredReservations.slice(
+    indexOfFirstReservation,
+    indexOfLastReservation
+  );
+
+  // Change page
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  const handleAddReservation = () => {
+    if (
+      !newReservation.nombreCliente ||
+      !newReservation.tipoDocumento ||
+      !newReservation.documento ||
+      !newReservation.startDate ||
+      !newReservation.endDate
+    ) {
       Swal.fire({
-        icon: 'error',
-        title: 'Error reserva incompleta',
-        text: 'Por favor, completa todos los campos obligatorios.'
+        icon: "error",
+        title: "Error reserva incompleta",
+        text: "Por favor, completa todos los campos obligatorios.",
       });
       return;
     }
 
-    try {
-      const response = await axios.post('http://localhost:4000/api/reservations', newReservation);
-      console.log('Response:', response);
-      setReservations([...reservations, response.data]);
-      setNewReservation({
-        estado: '',
-        tipoDocumento: '',
-        documento: '',
-        nombreCliente: '',
-        companions: [],
-        payments: []
-      });
-      setFilteredReservations([...reservations, response.data]);
-      setShowAddModal(false);
-      Swal.fire({
-        icon: 'success',
-        title: '¡Éxito!',
-        text: 'Reserva registrada exitosamente.'
-      });
-    }
-    catch (error) {
-      console.error(error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error al registrar la reserva',
-        text: 'Ha ocurrido un error al registrar la reserva. Por favor, intenta de nuevo.'
-      });
-    }
-  }
-
-  const handleEditReservation = (updatedReservation) => {
-    const updatedReservations = reservations.map(res => res.id === updatedReservation.id ? updatedReservation : res);
-    setReservations(updatedReservations);
-    setFilteredReservations(updatedReservations);
-    setShowEditModal(false);
+    const newReservationWithId = { ...newReservation, _id: generateId() };
+    setReservations([...reservations, newReservationWithId]);
+    setFilteredReservations([...reservations, newReservationWithId]);
+    setNewReservation({
+      estado: "",
+      tipoDocumento: "",
+      documento: "",
+      startDate: "",
+      endDate: "",
+      nombreCliente: "",
+      companions: [],
+      payments: [],
+    });
+    setShowAddModal(false);
     Swal.fire({
-      icon: 'success',
-      title: '¡Éxito!',
-      text: 'Reserva editada exitosamente.'
+      icon: "success",
+      title: "¡Éxito!",
+      text: "Reserva registrada exitosamente.",
     });
   };
 
-  const handleDeleteReservation = (id) => {
+  const handleEditReservation = (updatedReservation) => {
+    if (
+      !updatedReservation.nombreCliente ||
+      !updatedReservation.tipoDocumento ||
+      !updatedReservation.documento ||
+      !updatedReservation.startDate ||
+      !updatedReservation.endDate
+    ) {
+      Swal.fire({
+        icon: "warning",
+        title: "Campos incompletos",
+        text: "Por favor, completa todos los campos requeridos.",
+      });
+      return;
+    }
+
+    const updatedReservations = reservations.map((reservation) =>
+      reservation._id === updatedReservation._id ? updatedReservation : reservation
+    );
+    setReservations(updatedReservations);
+    setFilteredReservations(updatedReservations);
+    setShowEditModal(false);
+
     Swal.fire({
-      title: '¿Estás seguro?',
-      text: '¡No podrás recuperar esta reserva después de eliminarla!',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        const updatedReservations = reservations.filter(res => res.id !== id);
-        setReservations(updatedReservations);
-        setFilteredReservations(updatedReservations);
-        Swal.fire('Eliminado', 'Reserva eliminada.', 'success');
-      }
+      icon: "success",
+      title: "¡Éxito!",
+      text: "Reserva editada exitosamente.",
     });
   };
 
@@ -141,27 +162,62 @@ const Reservations = () => {
 
   const handleUpdateReservation = () => {
     Swal.fire({
-      title: '¿Estás seguro?',
-      text: '¿Quieres editar esta reserva?',
-      icon: 'warning',
+      title: "¿Estás seguro?",
+      text: "¿Quieres editar esta reserva?",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonText: 'Sí, editar',
-      cancelButtonText: 'Cancelar'
+      confirmButtonText: "Sí, editar",
+      cancelButtonText: "Cancelar",
     }).then((result) => {
       if (result.isConfirmed) {
-        if (!selectedReservation.clientName || !selectedReservation.startDate || !selectedReservation.endDate) {
+        if (
+          !selectedReservation.nombreCliente ||
+          !selectedReservation.tipoDocumento ||
+          !selectedReservation.documento ||
+          !selectedReservation.startDate ||
+          !selectedReservation.endDate
+        ) {
           Swal.fire({
-            icon: 'error',
-            title: 'Error reserva incompleta',
-            text: 'Por favor, completa todos los campos obligatorios.'
+            icon: "error",
+            title: "Error reserva incompleta",
+            text: "Por favor, completa todos los campos obligatorios.",
           });
           return;
         }
+        const updatedReservation = {
+          ...selectedReservation,
+          startDate: new Date(selectedReservation.startDate).toISOString(),
+          endDate: new Date(selectedReservation.endDate).toISOString(),
+          companions: companions || [],
+          payments: payments || [],
+        };
 
-        if (selectedReservation) {
-          const updatedReservation = { ...selectedReservation, companions, payments };
-          handleEditReservation(updatedReservation);
-        }
+        handleEditReservation(updatedReservation);
+      }
+    });
+  };
+
+  const handleDeleteReservation = (reservationId) => {
+    Swal.fire({
+      title: "¿Estás seguro?",
+      text: "No podrás revertir esta acción. La reserva será eliminada permanentemente.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const updatedReservations = reservations.filter(
+          (reservation) => reservation._id !== reservationId
+        );
+        setReservations(updatedReservations);
+        setFilteredReservations(updatedReservations);
+
+        Swal.fire({
+          icon: "success",
+          title: "Eliminado",
+          text: "La reserva ha sido eliminada correctamente.",
+        });
       }
     });
   };
@@ -170,9 +226,9 @@ const Reservations = () => {
     if (showAddModal) {
       setNewReservation({ ...newReservation, [name]: value });
     } else {
-      setSelectedReservation(prev => ({
+      setSelectedReservation((prev) => ({
         ...prev,
-        [name]: value
+        [name]: value,
       }));
     }
   };
@@ -184,28 +240,36 @@ const Reservations = () => {
     setSelectedReservation(null);
   };
 
-  // Función para descargar la lista de reservas en Excel
   const handleDownloadExcel = () => {
     const worksheet = utils.json_to_sheet(filteredReservations);
     const workbook = utils.book_new();
-    utils.book_append_sheet(workbook, worksheet, 'Reservas');
-    writeFile(workbook, 'reservas.xlsx');
+    utils.book_append_sheet(workbook, worksheet, "Reservas");
+    writeFile(workbook, "reservas.xlsx");
   };
 
+  const totalPages = Math.ceil(filteredReservations.length / reservationsPerPage);
+
   return (
-    <div className="container col p-5 mt-3" style={{ minHeight: "100vh", marginRight: "850px", marginTop: "50px" }}>
+    <div
+      className="container col p-5 mt-3"
+      style={{ minHeight: "100vh", marginRight: "850px", marginTop: "50px" }}
+    >
       <div className="d-flex justify-content-between align-items-center my-3">
         <h2>Reservas</h2>
         <div>
           <Button variant="primary" onClick={() => setShowAddModal(true)}>
             Registrar Reserva
           </Button>
-          <Button variant="success" onClick={handleDownloadExcel} className="ms-2">
+          <Button
+            variant="success"
+            onClick={handleDownloadExcel}
+            className="ms-2"
+          >
             Descargar Excel
           </Button>
         </div>
       </div>
-      <InputGroup className="mb-3" style={{ maxWidth: '300px' }}> {/* Hacer la barra de búsqueda más pequeña */}
+      <InputGroup className="mb-3" style={{ maxWidth: "300px" }}>
         <FormControl
           placeholder="Buscar por cliente o código"
           value={searchTerm}
@@ -226,7 +290,7 @@ const Reservations = () => {
           </tr>
         </thead>
         <tbody>
-          {filteredReservations.map((reservation) => (
+          {currentReservations.map((reservation) => (
             <tr key={reservation._id}>
               <td>{reservation._id}</td>
               <td>{reservation.nombreCliente}</td>
@@ -236,34 +300,69 @@ const Reservations = () => {
               <td>{reservation.endDate}</td>
               <td>{reservation.estado}</td>
               <td>
-                <Button variant="info" onClick={() => handleDetail(reservation)}>Ver Detalle</Button>
-                <Button variant="warning" onClick={() => handleEdit(reservation)}>Editar</Button>
-                <Button variant="danger" onClick={() => handleDeleteReservation(reservation._id)}>Eliminar</Button>
+                <Button
+                  variant="info"
+                  onClick={() => handleDetail(reservation)}
+                  className="me-2"
+                >
+                  Ver Detalle
+                </Button>
+                <Button
+                  variant="warning"
+                  onClick={() => handleEdit(reservation)}
+                  className="me-2"
+                >
+                  Editar
+                </Button>
+                <Button
+                  variant="danger"
+                  onClick={() => handleDeleteReservation(reservation._id)}
+                >
+                  Eliminar
+                </Button>
               </td>
             </tr>
           ))}
         </tbody>
       </Table>
+      
+      {/* Paginación */}
+      <div className="d-flex justify-content-center mt-4">
+        <Button
+          variant="light"
+          disabled={currentPage === 1}
+          onClick={() => handlePageChange(currentPage - 1)}
+        >
+          Anterior
+        </Button>
+        {Array.from({ length: totalPages }, (_, index) => (
+          <Button
+            key={index + 1}
+            variant={currentPage === index + 1 ? "primary" : "light"}
+            onClick={() => handlePageChange(index + 1)}
+            className="mx-1"
+          >
+            {index + 1}
+          </Button>
+        ))}
+        <Button
+          variant="light"
+          disabled={currentPage === totalPages}
+          onClick={() => handlePageChange(currentPage + 1)}
+        >
+          Siguiente
+        </Button>
+      </div>
 
-      {/* Modal para agregar reserva */}
-      <Modal show={showAddModal} onHide={handleCloseModals} size="lg">
+      {/* Add Reservation Modal */}
+      <Modal show={showAddModal} onHide={handleCloseModals}>
         <Modal.Header closeButton>
-          <Modal.Title>Agregar Reserva</Modal.Title>
+          <Modal.Title>Registrar Reserva</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <ReservationForm
-            reservation={{}} // Puedes pasar un objeto vacío si es para agregar
-            onChange={handleChangeReservation}
-          />
-          <CompanionsForm
-            companions={companions}
-            onAdd={(companion) => setCompanions([...companions, { ...companion, id: generateId() }])}
-            onDelete={(id) => setCompanions(companions.filter(comp => comp.id !== id))}
-          />
-          <PaymentsForm
-            payments={payments}
-            onAdd={(payment) => setPayments([...payments, { ...payment, id: generateId() }])}
-            onDelete={(id) => setPayments(payments.filter(pmt => pmt.id !== id))}
+            reservation={newReservation}
+            handleChange={handleChangeReservation}
           />
         </Modal.Body>
         <Modal.Footer>
@@ -271,30 +370,20 @@ const Reservations = () => {
             Cancelar
           </Button>
           <Button variant="primary" onClick={handleAddReservation}>
-            Guardar Reserva
+            Registrar
           </Button>
         </Modal.Footer>
       </Modal>
 
-      {/* Modal para editar reserva */}
-      <Modal show={showEditModal} onHide={handleCloseModals} size="lg">
+      {/* Edit Reservation Modal */}
+      <Modal show={showEditModal} onHide={handleCloseModals}>
         <Modal.Header closeButton>
           <Modal.Title>Editar Reserva</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <ReservationForm
             reservation={selectedReservation}
-            onChange={handleChangeReservation}
-          />
-          <CompanionsForm
-            companions={companions}
-            onAdd={(companion) => setCompanions([...companions, { ...companion, id: generateId() }])}
-            onDelete={(id) => setCompanions(companions.filter(comp => comp.id !== id))}
-          />
-          <PaymentsForm
-            payments={payments}
-            onAdd={(payment) => setPayments([...payments, { ...payment, id: generateId() }])}
-            onDelete={(id) => setPayments(payments.filter(pmt => pmt.id !== id))}
+            handleChange={handleChangeReservation}
           />
         </Modal.Body>
         <Modal.Footer>
@@ -302,42 +391,35 @@ const Reservations = () => {
             Cancelar
           </Button>
           <Button variant="primary" onClick={handleUpdateReservation}>
-            Actualizar Reserva
+            Guardar Cambios
           </Button>
         </Modal.Footer>
       </Modal>
 
-      {/* Modal para ver detalles de la reserva */}
-      <Modal show={showDetailModal} onHide={handleCloseModals} size="lg">
+      {/* Detail Modal */}
+      <Modal show={showDetailModal} onHide={handleCloseModals}>
         <Modal.Header closeButton>
-          <Modal.Title>Detalles de la Reserva</Modal.Title>
+          <Modal.Title>Detalle de Reserva</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {selectedReservation && (
-            <>
-              <h5>Código: {selectedReservation.documento}</h5>
-              <h5>Nombre del Cliente: {selectedReservation.nombreCliente}</h5>
-              <h5>Tipo de Documento: {selectedReservation.tipoDocumento}</h5>
-              <h5>Número de Documento: {selectedReservation.documento}</h5>
-              <h5>Fecha Inicio: {selectedReservation.startDate}</h5>
-              <h5>Fecha Fin: {selectedReservation.endDate}</h5>
-              <h5>Estado: {selectedReservation.estado}</h5>
-
-              <h6>Acompañantes:</h6>
-              <ul>
-                {companions.map(comp => (
-                  <li key={comp.id}>{comp.name}</li>
-                ))}
-              </ul>
-
-              <h6>Pagos:</h6>
-              <ul>
-                {payments.map(pmt => (
-                  <li key={pmt.id}>Monto: {pmt.amount}, Fecha: {pmt.date}, Estado: {pmt.status}</li>
-                ))}
-              </ul>
-            </>
-          )}
+          <h5>Nombre del Cliente: {selectedReservation?.nombreCliente}</h5>
+          <h5>Tipo de Documento: {selectedReservation?.tipoDocumento}</h5>
+          <h5>Número de Documento: {selectedReservation?.documento}</h5>
+          <h5>Fecha Inicio: {selectedReservation?.startDate}</h5>
+          <h5>Fecha Fin: {selectedReservation?.endDate}</h5>
+          <h5>Estado: {selectedReservation?.estado}</h5>
+          <h5>Compañeros:</h5>
+          {companions.map((companion, index) => (
+            <div key={index}>
+              {companion.name} - {companion.age} años
+            </div>
+          ))}
+          <h5>Pagos:</h5>
+          {payments.map((payment, index) => (
+            <div key={index}>
+              Monto: {payment.amount}, Fecha: {payment.date}
+            </div>
+          ))}
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleCloseModals}>
@@ -347,10 +429,6 @@ const Reservations = () => {
       </Modal>
     </div>
   );
-};
-
-const generateId = () => {
-  return Math.random().toString(36).substr(2, 9); // Generar un ID único
 };
 
 export default Reservations;
