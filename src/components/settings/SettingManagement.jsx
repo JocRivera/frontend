@@ -33,10 +33,13 @@ const SettingManagement = () => {
     const validate = (values) => {
         const errors = {}
         if (!values.rol) {
-            errors.rol = 'Name is required';
+            errors.rol = 'Nombre de rol es requerido';
         }
         if (!values.description) {
-            errors.description = 'Description is required';
+            errors.description = 'Descripción es requerida';
+        }
+        if (values.permissions.length === 0) {
+            errors.permission = 'Seleccione al menos un permiso';
         }
         return errors;
     };
@@ -187,7 +190,7 @@ const SettingManagement = () => {
                 setSettings(updatedSettings);
                 Swal.fire({
                     title: "Success!",
-                    text: "Status changed successfully!",
+                    text: "El estado del rol ha sido cambiado!",
                     icon: "success",
                     timer: 2000,
                     showConfirmButton: false,
@@ -233,9 +236,9 @@ const SettingManagement = () => {
                     <tr>
                         <th>Id</th>
                         <th>Rol</th>
-                        <th>Description</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>Descripción</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -270,7 +273,7 @@ const SettingManagement = () => {
             {/* Modal for Adding a Setting */}
             <Modal show={showModal} onHide={() => setShowModal(false)}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Registrar rol</Modal.Title>
+                    <Modal.Title>Añadir rol</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Form onSubmit={handleSubmit}>
@@ -280,18 +283,18 @@ const SettingManagement = () => {
                             {errors.rol && <span style={{ color: 'red' }}>{errors.rol}</span>}
                         </Form.Group>
                         <Form.Group>
-                            <Form.Label>Description</Form.Label>
+                            <Form.Label>Descripción</Form.Label>
                             <Form.Control type="text" name="description" value={newSetting.description} onChange={handleChange} />
                             {errors.description && <span style={{ color: 'red' }}>{errors.description}</span>}
                         </Form.Group>
 
                         <Form.Group>
-                            <Form.Label>Permissions</Form.Label>
+                            <Form.Label>Permisos</Form.Label>
                             <Table>
                                 <thead>
                                     <tr>
-                                        <th>Name</th>
-                                        <th>Access</th>
+                                        <th>Nombre</th>
+                                        <th>Estado</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -309,6 +312,7 @@ const SettingManagement = () => {
                                     ))}
                                 </tbody>
                             </Table>
+                            {errors.permission && <span style={{ color: 'red' }}>{errors.permission}</span>}
                         </Form.Group>
 
                         <Form.Group className="mb-3" controlId="formStatus">
@@ -332,7 +336,7 @@ const SettingManagement = () => {
             {/* Modal for Editing a Setting */}
             <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Edit Role</Modal.Title>
+                    <Modal.Title>Editar Rol</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Form onSubmit={handleEditSubmit}>
@@ -342,18 +346,18 @@ const SettingManagement = () => {
                             {errors.rol && <span style={{ color: 'red' }}>{errors.rol}</span>}
                         </Form.Group>
                         <Form.Group>
-                            <Form.Label>Description</Form.Label>
+                            <Form.Label>Descripción</Form.Label>
                             <Form.Control type="text" name="description" value={editSetting.description} onChange={handleEditChange} />
                             {errors.description && <span style={{ color: 'red' }}>{errors.description}</span>}
                         </Form.Group>
 
                         <Form.Group>
-                            <Form.Label>Permissions</Form.Label>
+                            <Form.Label>Permisos</Form.Label>
                             <Table>
                                 <thead>
                                     <tr>
-                                        <th>Name</th>
-                                        <th>Access</th>
+                                        <th>Nombre</th>
+                                        <th>Estado</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -371,6 +375,7 @@ const SettingManagement = () => {
                                     ))}
                                 </tbody>
                             </Table>
+                            {errors.permission && <span style={{ color: 'red' }}>{errors.permission}</span>}
                         </Form.Group>
 
                         <Form.Group className="mb-3" controlId="formStatus">

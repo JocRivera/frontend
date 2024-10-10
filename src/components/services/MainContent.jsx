@@ -190,10 +190,33 @@ const MainContent = () => {
         // Implementar lógica de búsqueda aquí si es necesario
     };
 
-    const handleServiceStatus = (id) => {
-        const updatedServices = services.map(service =>
-            service._id === id ? { ...service, status: !service.status } : service);
-        setServices(updatedServices);
+    const handleServiceStatus = async (id) => {
+        try {
+            const confirm = await Swal.fire({
+                title: "¿Deseas cambiar el estado del servicio?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Confirmar",
+                cancelButtonText: "Cancelar",
+            });
+            if (confirm.isConfirmed) {
+                // const service = services.find(service => service._id === id);
+                // await axios.put(`http://localhost:3000/service/${id}`, {
+                //     ...service,
+                //     status: !service.status
+                // });
+                // setServices(services.map(service =>
+                //     service._id === id ? { ...service, status: !service.status } : service
+                // ));
+                const updatedServices = services.map(service =>
+                    service._id === id ? { ...service, status: !service.status } : service);
+                setServices(updatedServices);
+                Swal.fire("Actualizado", "El estado del servicio ha sido actualizado.", "success");
+            }
+        } catch (error) {
+            console.error("Error al cambiar el estado del servicio:", error);
+            Swal.fire("Error", "No se pudo cambiar el estado del servicio. Inténtelo de nuevo.", "error");
+        }
     };
 
     // Filtrar servicios basados en la búsqueda
@@ -205,10 +228,7 @@ const MainContent = () => {
     const handlePageChange = (selectedPage) => {
         setCurrentPage(selectedPage.selected);
     };
-
-    // const handlePageChange = () => {
-    //     filteredServices.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
-    // }
+    const displayedServices = filteredServices.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
 
     return (
         <div className='container col p-5 mt-3' style={{ minHeight: "100vh", marginRight: "900px", marginTop: "50px" }}>
@@ -242,8 +262,8 @@ const MainContent = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {filteredServices.length > 0 ? (
-                        filteredServices.map((service, index) => (
+                    {displayedServices.length > 0 ? (
+                        displayedServices.map((service, index) => (
                             <tr key={service._id}>
                                 <td>{index + 1}</td>
                                 <td>{service.service}</td>
