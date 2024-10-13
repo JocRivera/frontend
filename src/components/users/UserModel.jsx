@@ -162,6 +162,18 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
       setShowConfirmPassword(!showConfirmPassword);
     }
   };
+  const StatusSwitch = ({ isActive, onChange }) => (
+    <div className="d-flex align-items-center">
+      <Form.Check
+        type="switch"
+        id="estado-switch"
+        checked={isActive}
+        onChange={onChange}
+        className={`custom-switch ${isActive ? 'active' : 'inactive'}`}
+      />
+       <span className="status-text ml-2">{isActive ? 'Activo' : 'Inactivo'}</span>
+    </div>
+  );
 
   const renderPasswordField = (fieldName, placeholder, value, onChange, onBlur, error, touched, showPassword, toggleVisibility) => {
     return (
@@ -290,22 +302,15 @@ const UserModal = ({ show, handleClose, handleSave, user }) => {
 
           <Form.Group className="mb-3">
             <Form.Label>Estado</Form.Label>
-            <Form.Check
-              type="switch"
-              id="estado-switch"
-              name="estado"
-              checked={formData.estado === "activo"}
+            <StatusSwitch
+              isActive={formData.estado === "activo"}
               onChange={() =>
                 setFormData((prev) => ({
                   ...prev,
                   estado: prev.estado === "activo" ? "inactivo" : "activo",
                 }))
               }
-              label={formData.estado}
             />
-            <Form.Control.Feedback type="invalid">
-              {errors.estado}
-            </Form.Control.Feedback>
           </Form.Group>
 
           {renderPasswordField(
