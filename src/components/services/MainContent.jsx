@@ -18,11 +18,12 @@ const MainContent = () => {
         status: true
     });
 
+
     const [currentService, setCurrentService] = useState(null);
     const [editService, setEditService] = useState({});
     const [errors, setErrors] = useState({});
     const [query, setQuery] = useState(''); // Estado para la búsqueda
-    const [currentPage, setCurrentPage] = useState(); // Estado para la paginación
+    const [currentPage, setCurrentPage] = useState(0); // Estado para la paginación
     const itemsPerPage = 5; // Número de servicios por página
     useEffect(() => {
         const fetchServices = async () => {
@@ -228,6 +229,7 @@ const MainContent = () => {
     const handlePageChange = (selectedPage) => {
         setCurrentPage(selectedPage.selected);
     };
+
     const displayedServices = filteredServices.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
 
     return (

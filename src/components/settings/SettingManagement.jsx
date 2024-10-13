@@ -3,6 +3,7 @@ import * as BsIcons from "react-icons/bs";
 import { Button, Modal, Form, Table } from 'react-bootstrap';
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import ReactPaginate from 'react-paginate';
 
 const SettingManagement = () => {
     const [showModal, setShowModal] = useState(false);
@@ -13,6 +14,8 @@ const SettingManagement = () => {
     const [query, setQuery] = useState('');
     const [errors, setErrors] = useState({ rol: '', description: '' });
     const [permissions, setPermissions] = useState([]);
+    const [currentPage, setCurrentPage] = useState(0);
+    const itemsPerPage = 5;
 
     useEffect(() => {
         const fetchData = async () => {
@@ -213,6 +216,12 @@ const SettingManagement = () => {
         setting.rol.toLowerCase().includes(query.toLowerCase())
     );;
 
+    const handlePageChange = (selectedPage) => {
+        setCurrentPage(selectedPage.selected);
+    }
+
+    const displayedSettings = filteredSettings.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
+
     return (
         <div className='container col p-5 mt-3' style={{ minHeight: "100vh", marginRight: "850px", marginTop: "50px" }}>
             <h2 className='text-center'>Configuracion roles</h2>
@@ -242,8 +251,8 @@ const SettingManagement = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {filteredSettings.length > 0 ? (
-                        filteredSettings.map((setting, index) => (
+                    {displayedSettings.length > 0 ? (
+                        displayedSettings.map((setting, index) => (
                             <tr key={setting._id}>
                                 <td>{index + 1}</td>
                                 <td>{setting.rol}</td>
@@ -269,6 +278,17 @@ const SettingManagement = () => {
                     )}
                 </tbody>
             </Table>
+            <ReactPaginate
+                previousLabel={"Anterior"}
+                nextLabel={"Siguiente"}
+                breakLabel={"..."}
+                pageCount={Math.ceil(filteredSettings.length / itemsPerPage)}
+                marginPagesDisplayed={2}
+                pageRangeDisplayed={5}
+                onPageChange={handlePageChange}
+                containerClassName={"pagination-container"}
+                activeClassName={"active"}
+            />
 
             {/* Modal for Adding a Setting */}
             <Modal show={showModal} onHide={() => setShowModal(false)}>
