@@ -8,17 +8,19 @@ import {
   Row,
   Col,
   Table,
-  Pagination,
 } from "react-bootstrap";
 import { FaUpload, FaTrash, FaEdit, FaClipboardList } from "react-icons/fa";
+import ReactPaginate from "react-paginate";
 import Swal from "sweetalert2";
 import "../../../styles/PlanStyle.css";
 import { parseISO, startOfDay, isBefore } from 'date-fns';
+import { pl } from "date-fns/locale";
 
-// Función para generar un ID autoincrementable simple
-let nextId = 1;
+// Función para generar un ID TOTALMENTE ÚNICO
 const generateUniqueId = () => {
-  return nextId++;
+  const timestamp = Date.now().toString(36);
+  const random = Math.random().toString(36).substr(2);
+  return timestamp + random;
 };
 //
 // // Datos quemados para servicios y alojamientos
@@ -74,9 +76,9 @@ const PlanManagement = () => {
     { id: 3, name: "Service 3", price: 300 },
   ]);
   const [accommodations, setAccommodations] = useState([
-    { id: 1, name: "Accommodation 1", type: "Hotel", price: 500 },
-    { id: 2, name: "Accommodation 2", type: "Hostel", price: 300 },
-    { id: 3, name: "Accommodation 3", type: "Apartment", price: 700 },
+    { id: 1, name: "Accommodation 1", type: "Cabin", price: 500 },
+    { id: 2, name: "Accommodation 2", type: "Room", price: 300 },
+    { id: 3, name: "Accommodation 3", type: "Cabin", price: 700 },
   ]);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -113,8 +115,12 @@ const PlanManagement = () => {
     }
   }, [showAddModal]);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [plansPerPage] = useState(9);
+  const [currentPage, setCurrentPage] = useState(0);
+  const plansPerPage = 9;
+
+  const handlePageClick = (data) => {
+    setCurrentPage(data.selected);
+  };
 
 
   const validate = (values) => {
@@ -441,11 +447,10 @@ const PlanManagement = () => {
     plan.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const indexOfLastPlan = currentPage * plansPerPage;
-  const indexOfFirstPlan = indexOfLastPlan - plansPerPage;
-  const currentPlans = filteredPlans.slice(indexOfFirstPlan, indexOfLastPlan);
-
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const paginatedPlans = filteredPlans.slice(
+    currentPage * plansPerPage,
+    (currentPage + 1) * plansPerPage
+  );
 
 
 
@@ -601,53 +606,31 @@ const PlanManagement = () => {
         Añadir Plan
       </Button> */}
       <Row>
-        {filteredPlans.length > 0 ? (
-          filteredPlans.map((plan) => (
+        {paginatedPlans.length > 0 ? (
+          paginatedPlans.map((plan) => (
             <Col md={4} key={plan.id} className="mb-4">
-              <Card style={{ transition: 'none', transform: 'none' }}>
-                <Card.Body className="d-flex flex-column justify-content-between">
-                  <Card.Title className="text-center text-uppercase">
-                    {plan.name}
-                  </Card.Title>
-                  {plan.image && (
-                    <div className="text-center mb-3">
-                      <img
-                        src={plan.image}
-                        alt={plan.name}
-                        style={{
-                          maxWidth: "100%",
-                          height: "200px",
-                          objectFit: "cover",
-                        }}
-                      />
-                    </div>
-                  )}
-                  <div>
-                    <Card.Text>
-                      <strong>Descripción:</strong> {plan.description}
-                    </Card.Text>
-                    <Card.Text>
-                      <strong>Fecha de Inicio:</strong> {plan.startDate}
-                    </Card.Text>
-                    <Card.Text>
-                      <strong>Fecha Fin:</strong> {plan.endDate}
-                    </Card.Text>
-                    <Card.Text>
-                      <strong>Precio:</strong> {plan.price}
-                    </Card.Text>
-                    <Card.Text>
-                      <strong>Precio de Venta:</strong> {plan.salePrice}
-                    </Card.Text>
-                    <Card.Text>
-                      <strong>Capacidad:</strong> {plan.capacity}
-                    </Card.Text>
-                    <Card.Text>
-                      <strong>Estado:</strong> {plan.status}
-                    </Card.Text>
-                  </div>
-
-                  {/* Raya con sombra */}
-                  <div className="divider"></div>
+              <Card className="h-100 shadow-sm">
+                <Card.Title className="text-center" style={{ fontSize: '2rem' }}>{plan.name}</Card.Title> <br />
+                <Card.Img variant="top" src={plan.image} alt={plan.name} style={{ height: '200px', objectFit: 'cover' }} />
+                <Card.Body>
+                  <Card.Text className="fs-4 fw-bold mb-3">Precio de venta: {plan.salePrice}</Card.Text>
+                  <Card.Text className="fs-5 fw-bold mb-4">Estado: {plan.status}</Card.Text>
+                  <Card.Text className="text-muted mb-2">
+                    <small>
+                      <i className="bi bi-calendar-event me-2"></i>
+                      Disponible desde: {plan.startDate}
+                    </small>
+                    <br />
+                    <small>
+                      <i className="bi bi-calendar-event me-2"></i>
+                      Disponible hasta: {plan.endDate}
+                    </small>
+                    <br />
+                    <small>
+                      Precio: {plan.price} <br />
+                      Capacidad: {plan.capacity} <br />
+                    </small>
+                  </Card.Text>
 
                   <div className="d-flex justify-content-between mt-2">
                     <Button
@@ -679,20 +662,27 @@ const PlanManagement = () => {
                     </Button>
                   </div>
                 </Card.Body>
+                <Card.Footer className="bg-white border-top-0">
+                </Card.Footer>
               </Card>
             </Col>
           ))
         ) : (
           <p>No se encontraron planes.</p>
         )}
+
       </Row>
-      <Pagination className="justify-content-center mt-4">
-        {[...Array(Math.ceil(filteredPlans.length / plansPerPage))].map((_, index) => (
-          <Pagination.Item key={index + 1} active={index + 1 === currentPage} onClick={() => paginate(index + 1)}>
-            {index + 1}
-          </Pagination.Item>
-        ))}
-      </Pagination>
+      <ReactPaginate
+        previousLabel={"Anterior"}
+        nextLabel={"Siguiente"}
+        breakLabel={"..."}
+        pageCount={Math.ceil(filteredPlans.length / plansPerPage)}
+        marginPagesDisplayed={2}
+        pageRangeDisplayed={5}
+        onPageChange={handlePageClick}
+        containerClassName={"pagination-container"}
+        activeClassName={"active"}
+      />
       {/* Modal para añadir plan */}
       <Modal
         show={showAddModal}
@@ -703,89 +693,133 @@ const PlanManagement = () => {
         <Modal.Header closeButton>
           <Modal.Title>Añadir Plan</Modal.Title>
         </Modal.Header>
-        <Modal.Body style={{ maxHeight: 'calc(100vh - 210px)', overflowY: 'auto', minHeight: '750px' }}>
+        <Modal.Body style={{ maxHeight: 'calc(100vh - 210px)', overflowY: 'auto', minHeight: '600px' }}>
           <Form onSubmit={handleSubmit}>
             <Row>
               <Col md={6}>
-                <Form.Group className="mb-3" controlId="formName">
-                  <Form.Label>Nombre</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="name"
-                    value={newPlan.name}
-                    onChange={handleChange}
-                    isInvalid={!!errors.name && touchedFields.name}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {errors.name}
-                  </Form.Control.Feedback>
-                </Form.Group>
-                <Form.Group className="mb-3" controlId="formDescription">
-                  <Form.Label>Descripción</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="description"
-                    value={newPlan.description}
-                    onChange={handleChange}
-                    isInvalid={!!errors.description && touchedFields.description}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {errors.description}
-                  </Form.Control.Feedback>
-                </Form.Group>
-                <Form.Group className="mb-3" controlId="formStartDate">
-                  <Form.Label>Fecha de Inicio</Form.Label>
-                  <Form.Control
-                    type="date"
-                    name="startDate"
-                    value={newPlan.startDate}
-                    onChange={handleChange}
-                    isInvalid={!!errors.startDate && touchedFields.startDate}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {errors.startDate}
-                  </Form.Control.Feedback>
-                </Form.Group>
-                <Form.Group className="mb-3" controlId="formEndDate">
-                  <Form.Label>Fecha Fin</Form.Label>
-                  <Form.Control
-                    type="date"
-                    name="endDate"
-                    value={newPlan.endDate}
-                    onChange={handleChange}
-                    isInvalid={!!errors.endDate && touchedFields.endDate}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {errors.endDate}
-                  </Form.Control.Feedback>
-                </Form.Group>
-                <Form.Group className="mb-3" controlId="formCapacity">
-                  <Form.Label>Capacidad</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="capacity"
-                    value={newPlan.capacity}
-                    onChange={handleChange}
-                    isInvalid={!!errors.capacity && touchedFields.capacity}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {errors.capacity}
-                  </Form.Control.Feedback>
-                </Form.Group>
-                <Form.Group className="mb-3" controlId="formStatus">
-                  <Form.Label>Estado</Form.Label>
-                  <Form.Control
-                    as="select"
-                    name="status"
-                    value={newPlan.status}
-                    onChange={handleChange}
-                  >
-                    <option value="disponible">Disponible</option>
-                    <option value="copado">Copado</option>
-                    <option value="en pausa">En Pausa</option>
-                    <option value="cerrado">Cerrado</option>
-                  </Form.Control>
-                </Form.Group>
+                <Row>
+                  <Col md={4}>
+                    <Form.Group className="mb-3" controlId="formName">
+                      <Form.Label>Nombre</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="name"
+                        value={newPlan.name}
+                        onChange={handleChange}
+                        isInvalid={!!errors.name && touchedFields.name}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors.name}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                    <Form.Group className="mb-3" controlId="formStartDate">
+                      <Form.Label>Fecha de Inicio</Form.Label>
+                      <Form.Control
+                        type="date"
+                        name="startDate"
+                        value={newPlan.startDate}
+                        onChange={handleChange}
+                        isInvalid={!!errors.startDate && touchedFields.startDate}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors.startDate}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                  <Col md={8}>
+                    <Form.Group className="mb-3" controlId="formDescription">
+                      <Form.Label>Descripción</Form.Label>
+                      <Form.Control
+                        as="textarea"
+                        rows={4}
+                        name="description"
+                        value={newPlan.description}
+                        onChange={handleChange}
+                        isInvalid={!!errors.description && touchedFields.description}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors.description}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col md={4}>
+                    <Form.Group className="mb-3" controlId="formEndDate">
+                      <Form.Label>Fecha Fin</Form.Label>
+                      <Form.Control
+                        type="date"
+                        name="endDate"
+                        value={newPlan.endDate}
+                        onChange={handleChange}
+                        isInvalid={!!errors.endDate && touchedFields.endDate}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors.endDate}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                  <Col md={3}>
+                    <Form.Group className="mb-3" controlId="formCapacity">
+                      <Form.Label>Capacidad</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="capacity"
+                        value={newPlan.capacity}
+                        onChange={handleChange}
+                        isInvalid={!!errors.capacity && touchedFields.capacity}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors.capacity}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                  <Col md={5}>
+                    <Form.Group className="mb-3" controlId="formStatus">
+                      <Form.Label>Estado</Form.Label>
+                      <Form.Control
+                        as="select"
+                        name="status"
+                        value={newPlan.status}
+                        onChange={handleChange}
+                      >
+                        <option value="disponible">Disponible</option>
+                        <option value="copado">Copado</option>
+                        <option value="en pausa">En Pausa</option>
+                        <option value="cerrado">Cerrado</option>
+                      </Form.Control>
+                    </Form.Group>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3" controlId="formPrice">
+                      <Form.Label>Precio</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="price"
+                        value={newPlan.price}
+                        readOnly
+                      />
+                    </Form.Group>
+
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3" controlId="formSalePrice">
+                      <Form.Label>Precio de Venta</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="salePrice"
+                        value={newPlan.salePrice}
+                        onChange={handleChange}
+                        isInvalid={!!errors.salePrice && touchedFields.salePrice}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors.salePrice}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                </Row>
               </Col>
               <Col md={6}>
                 <div className="d-flex flex-column align-items-center mb-3">
@@ -822,34 +856,22 @@ const PlanManagement = () => {
                     />
                   </Form.Group>
                 </div>
-                <Form.Group className="mb-3" controlId="formPrice">
-                  <Form.Label>Precio</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="price"
-                    value={newPlan.price}
-                    readOnly
-                  />
-                </Form.Group>
-                <Form.Group className="mb-3" controlId="formSalePrice">
-                  <Form.Label>Precio de Venta</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="salePrice"
-                    value={newPlan.salePrice}
-                    onChange={handleChange}
-                    isInvalid={!!errors.salePrice && touchedFields.salePrice}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {errors.salePrice}
-                  </Form.Control.Feedback>
-                </Form.Group>
+
               </Col>
             </Row>
             <Row>
               <Col md={6}>
                 <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                  <h4>Servicios</h4>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <h4>Servicios</h4>
+                    <Button
+                      variant="primary"
+                      onClick={() => setShowServicesModal(true)}
+                    >
+                      Añadir Servicio
+                    </Button>
+                  </div>
+
                   <Table bordered>
                     <thead>
                       <tr>
@@ -883,16 +905,18 @@ const PlanManagement = () => {
                     </tfoot>
                   </Table>
                 </div>
-                <Button
-                  variant="primary"
-                  onClick={() => setShowServicesModal(true)}
-                >
-                  Añadir Servicio
-                </Button>
               </Col>
               <Col md={6}>
                 <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                  <h4>Alojamientos</h4>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <h4>Alojamientos</h4>
+                    <Button
+                      variant="primary"
+                      onClick={() => setShowAccommodationsModal(true)}
+                    >
+                      Añadir Alojamiento
+                    </Button>
+                  </div>
                   <Table bordered>
                     <thead>
                       <tr>
@@ -928,12 +952,6 @@ const PlanManagement = () => {
                     </tfoot>
                   </Table>
                 </div>
-                <Button
-                  variant="primary"
-                  onClick={() => setShowAccommodationsModal(true)}
-                >
-                  Añadir Alojamiento
-                </Button>
               </Col>
             </Row>
             <br />
@@ -954,89 +972,132 @@ const PlanManagement = () => {
         <Modal.Header closeButton>
           <Modal.Title>Editar Plan</Modal.Title>
         </Modal.Header>
-        <Modal.Body style={{ maxHeight: 'calc(100vh - 210px)', overflowY: 'auto', minHeight: '750px' }}>
+        <Modal.Body style={{ maxHeight: 'calc(100vh - 210px)', overflowY: 'auto', minHeight: '600px' }}>
           <Form onSubmit={handleEditSubmit}>
             <Row>
               <Col md={6}>
-                <Form.Group className="mb-3" controlId="formName">
-                  <Form.Label>Nombre</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="name"
-                    value={editPlan?.name || ""}
-                    onChange={handleEditChange}
-                    isInvalid={!!errors.name}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {errors.name}
-                  </Form.Control.Feedback>
-                </Form.Group>
-                <Form.Group className="mb-3" controlId="formDescription">
-                  <Form.Label>Descripción</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="description"
-                    value={editPlan?.description || ""}
-                    onChange={handleEditChange}
-                    isInvalid={!!errors.description}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {errors.description}
-                  </Form.Control.Feedback>
-                </Form.Group>
-                <Form.Group className="mb-3" controlId="formStartDate">
-                  <Form.Label>Fecha de Inicio</Form.Label>
-                  <Form.Control
-                    type="date"
-                    name="startDate"
-                    value={editPlan?.startDate || ""}
-                    onChange={handleEditChange}
-                    isInvalid={!!errors.startDate}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {errors.startDate}
-                  </Form.Control.Feedback>
-                </Form.Group>
-                <Form.Group className="mb-3" controlId="formEndDate">
-                  <Form.Label>Fecha Fin</Form.Label>
-                  <Form.Control
-                    type="date"
-                    name="endDate"
-                    value={editPlan?.endDate || ""}
-                    onChange={handleEditChange}
-                    isInvalid={!!errors.endDate}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {errors.endDate}
-                  </Form.Control.Feedback>
-                </Form.Group>
-                <Form.Group className="mb-3" controlId="formCapacity">
-                  <Form.Label>Capacidad</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="capacity"
-                    value={editPlan?.capacity || ""}
-                    onChange={handleEditChange}
-                    isInvalid={!!errors.capacity}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {errors.capacity}
-                  </Form.Control.Feedback>
-                </Form.Group>
-                <Form.Group className="mb-3" controlId="formStatus">
-                  <Form.Label>Estado</Form.Label>
-                  <Form.Control
-                    as="select"
-                    name="status"
-                    value={editPlan?.status || "disponible"}
-                    onChange={handleEditChange}
-                  >
-                    <option value="disponible">Disponible</option>
-                    <option value="copado">Copado</option>
-                    <option value="en pausa">En Pausa</option>
-                    <option value="cerrado">Cerrado</option>
-                  </Form.Control>
-                </Form.Group>
+                <Row>
+                  <Col md={4}>
+                    <Form.Group className="mb-3" controlId="formName">
+                      <Form.Label>Nombre</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="name"
+                        value={editPlan?.name || ""}
+                        onChange={handleEditChange}
+                        isInvalid={!!errors.name}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors.name}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                    <Form.Group className="mb-3" controlId="formStartDate">
+                      <Form.Label>Fecha de Inicio</Form.Label>
+                      <Form.Control
+                        type="date"
+                        name="startDate"
+                        value={editPlan?.startDate || ""}
+                        onChange={handleEditChange}
+                        isInvalid={!!errors.startDate}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors.startDate}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                  <Col md={8}>
+                    <Form.Group className="mb-3" controlId="formDescription">
+                      <Form.Label>Descripción</Form.Label>
+                      <Form.Control
+                        as="textarea"
+                        rows={4}
+                        name="description"
+                        value={editPlan?.description || ""}
+                        onChange={handleEditChange}
+                        isInvalid={!!errors.description}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors.description}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col md={4}>
+                    <Form.Group className="mb-3" controlId="formEndDate">
+                      <Form.Label>Fecha Fin</Form.Label>
+                      <Form.Control
+                        type="date"
+                        name="endDate"
+                        value={editPlan?.endDate || ""}
+                        onChange={handleEditChange}
+                        isInvalid={!!errors.endDate}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors.endDate}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                  <Col md={3}>
+                    <Form.Group className="mb-3" controlId="formCapacity">
+                      <Form.Label>Capacidad</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="capacity"
+                        value={editPlan?.capacity || ""}
+                        onChange={handleEditChange}
+                        isInvalid={!!errors.capacity}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors.capacity}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                  <Col md={5}>
+                    <Form.Group className="mb-3" controlId="formStatus">
+                      <Form.Label>Estado</Form.Label>
+                      <Form.Control
+                        as="select"
+                        name="status"
+                        value={editPlan?.status || "disponible"}
+                        onChange={handleEditChange}
+                      >
+                        <option value="disponible">Disponible</option>
+                        <option value="copado">Copado</option>
+                        <option value="en pausa">En Pausa</option>
+                        <option value="cerrado">Cerrado</option>
+                      </Form.Control>
+                    </Form.Group>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3" controlId="formPrice">
+                      <Form.Label>Precio</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="price"
+                        value={editPlan?.price || ""}
+                        readOnly
+                      />
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3" controlId="formSalePrice">
+                      <Form.Label>Precio de Venta</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="salePrice"
+                        value={editPlan?.salePrice || ""}
+                        onChange={handleEditChange}
+                        isInvalid={!!errors.salePrice}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors.salePrice}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                </Row>
               </Col>
               <Col md={6}>
                 <div className="d-flex flex-column align-items-center mb-3">
@@ -1073,34 +1134,22 @@ const PlanManagement = () => {
                     />
                   </Form.Group>
                 </div>
-                <Form.Group className="mb-3" controlId="formPrice">
-                  <Form.Label>Precio</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="price"
-                    value={editPlan?.price || ""}
-                    readOnly
-                  />
-                </Form.Group>
-                <Form.Group className="mb-3" controlId="formSalePrice">
-                  <Form.Label>Precio de Venta</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="salePrice"
-                    value={editPlan?.salePrice || ""}
-                    onChange={handleEditChange}
-                    isInvalid={!!errors.salePrice}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {errors.salePrice}
-                  </Form.Control.Feedback>
-                </Form.Group>
+
+
               </Col>
             </Row>
             <Row>
               <Col md={6}>
                 <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                  <h5>Servicios en el plan</h5>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <h4>Servicios en el plan</h4>
+                    <Button
+                      variant="primary"
+                      onClick={() => setShowServicesModal(true)}
+                    >
+                      Añadir Servicio
+                    </Button>
+                  </div>
                   <Table bordered>
                     <thead>
                       <tr>
@@ -1134,16 +1183,19 @@ const PlanManagement = () => {
                     </tfoot>
                   </Table>
                 </div>
-                <Button
-                  variant="primary"
-                  onClick={() => setShowServicesModal(true)}
-                >
-                  Añadir Servicio
-                </Button>
+
               </Col>
               <Col md={6}>
                 <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                  <h5>Alojamientos en el plan</h5>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <h4>Alojamientos en el plan</h4>
+                    <Button
+                      variant="primary"
+                      onClick={() => setShowAccommodationsModal(true)}
+                    >
+                      Añadir Alojamiento
+                    </Button>
+                  </div>
                   <Table bordered>
                     <thead>
                       <tr>
@@ -1179,15 +1231,9 @@ const PlanManagement = () => {
                     </tfoot>
                   </Table>
                 </div>
-                <Button
-                  variant="primary"
-                  onClick={() => setShowAccommodationsModal(true)}
-                >
-                  Añadir Alojamiento
-                </Button>
+
               </Col>
             </Row>
-            <br />
             <Button variant="primary" type="submit">
               Guardar Cambios
             </Button>
@@ -1388,7 +1434,7 @@ const PlanManagement = () => {
       <Modal
         show={showDetailsModal}
         onHide={() => setShowDetailsModal(false)}
-        size="lg"
+        size="xl"
       >
         <Modal.Header closeButton>
           <Modal.Title>Detalles del Plan</Modal.Title>
@@ -1396,46 +1442,102 @@ const PlanManagement = () => {
         <Modal.Body>
           <Row>
             <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>Nombre</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={detailsPlan.name || ""}
-                  readOnly
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Descripción</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={detailsPlan.description || ""}
-                  readOnly
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Fecha de Inicio</Form.Label>
-                <Form.Control
-                  type="date"
-                  value={detailsPlan.startDate || ""}
-                  readOnly
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Fecha Fin</Form.Label>
-                <Form.Control
-                  type="date"
-                  value={detailsPlan.endDate || ""}
-                  readOnly
-                />
-              </Form.Group>
-              <Form.Group className="mb-3" controlId="formStatus">
-                <Form.Label>Estado</Form.Label>
-                <Form.Control
-                  value={detailsPlan.status || ""}
-                  readOnly
-                >
-                </Form.Control>
-              </Form.Group>
+
+
+              <Row>
+                <Col md={4}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Nombre</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={detailsPlan.name || ""}
+                      readOnly
+                    />
+                  </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Fecha de Inicio</Form.Label>
+                    <Form.Control
+                      type="date"
+                      value={detailsPlan.startDate || ""}
+                      readOnly
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={8}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Descripción</Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={4}
+                      value={detailsPlan.description || ""}
+                      readOnly
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+              <Row>
+                <Col md={4}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Fecha Fin</Form.Label>
+                    <Form.Control
+                      type="date"
+                      value={detailsPlan.endDate || ""}
+                      readOnly
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={3}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Capacidad</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={detailsPlan.capacity || ""}
+                      readOnly
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={5}>
+                  <Form.Group className="mb-3" controlId="formStatus">
+                    <Form.Label>Estado</Form.Label>
+                    <Form.Control
+                      value={detailsPlan.status || ""}
+                      readOnly
+                    >
+                    </Form.Control>
+                  </Form.Group>
+
+                </Col>
+              </Row>
+              <Row>
+                <Col md={6}>
+                  <Form.Group className="mb-3" controlId="formPrice">
+                    <Form.Label>Precio</Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="price"
+                      value={detailsPlan.price || ""}
+                      readOnly
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      {errors.price}
+                    </Form.Control.Feedback>
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3" controlId="formSalePrice">
+                    <Form.Label>Precio de Venta</Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="salePrice"
+                      value={detailsPlan.salePrice || ""}
+                      readOnly
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      {errors.salePrice}
+                    </Form.Control.Feedback>
+                  </Form.Group>
+                </Col>
+              </Row>
             </Col>
             <Col md={6}>
               <div className="d-flex flex-column align-items-center mb-3">
@@ -1468,30 +1570,8 @@ const PlanManagement = () => {
                   )}
                 </div>
               </div>
-              <Form.Group className="mb-3" controlId="formPrice">
-                <Form.Label>Precio</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="price"
-                  value={detailsPlan.price || ""}
-                  readOnly
-                />
-                <Form.Control.Feedback type="invalid">
-                  {errors.price}
-                </Form.Control.Feedback>
-              </Form.Group>
-              <Form.Group className="mb-3" controlId="formSalePrice">
-                <Form.Label>Precio de Venta</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="salePrice"
-                  value={detailsPlan.salePrice || ""}
-                  readOnly
-                />
-                <Form.Control.Feedback type="invalid">
-                  {errors.salePrice}
-                </Form.Control.Feedback>
-              </Form.Group>
+
+
             </Col>
           </Row>
           <Row>
@@ -1503,7 +1583,7 @@ const PlanManagement = () => {
                     <th>Nombre</th>
                     <th>Cantidad</th>
                     <th>Precio</th>
-                    <th>Total</th>
+                    <th>Subtotal</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1513,10 +1593,16 @@ const PlanManagement = () => {
                         <td>{service.name}</td>
                         <td>{service.quantity}</td>
                         <td>{service.price}</td>
-                        <td>{service.total}</td>
+                        <td>{service.subtotal}</td>
                       </tr>
                     ))}
                 </tbody>
+                <tfoot>
+                  <tr>
+                    <td colSpan="3" className="text-right"><strong>Total:</strong></td>
+                    <td><strong>{calculateTotal(detailsPlan.services || [])}</strong></td>
+                  </tr>
+                </tfoot>
               </Table>
             </Col>
             <Col>
@@ -1526,8 +1612,9 @@ const PlanManagement = () => {
                   <tr>
                     <th>Nombre</th>
                     <th>Tipo</th>
+                    <th>Cantidad</th>
                     <th>Precio</th>
-                    <th>Capacidad</th>
+                    <th>Subtotal</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1536,11 +1623,18 @@ const PlanManagement = () => {
                       <tr key={index}>
                         <td>{accommodation.name}</td>
                         <td>{accommodation.type}</td>
+                        <td>{accommodation.quantity}</td>
                         <td>{accommodation.price}</td>
-                        <td>{accommodation.capacity}</td>
+                        <td>{accommodation.subtotal}</td>
                       </tr>
                     ))}
                 </tbody>
+                <tfoot>
+                  <tr>
+                    <td colSpan="4" className="text-right"><strong>Total:</strong></td>
+                    <td><strong>{calculateTotal(detailsPlan.accommodations || [])}</strong></td>
+                  </tr>
+                </tfoot>
               </Table>
             </Col>
           </Row>

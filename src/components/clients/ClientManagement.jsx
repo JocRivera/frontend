@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, FormControl, Form, Modal, InputGroup, Pagination } from 'react-bootstrap';
+import { Table, Button, FormControl, Form, Modal, InputGroup, Row, Col } from 'react-bootstrap';
+import ReactPaginate from 'react-paginate';
 import { FaEyeSlash, FaEye } from "react-icons/fa";
 import Swal from 'sweetalert2';
 
@@ -101,7 +102,7 @@ const ClientModal = ({ show, handleClose, handleSave, client }) => {
                 newErrors.Status = !value ? 'El estado es requerido.' : '';
                 break;
             case 'Password':
-                newErrors.Password = !value ? 'La contraseña es requerida.' : !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(value) ? 'Debe contener al menos una letra mayúscula, una letra minúscula, un número y un carácter especial.' : '';
+                newErrors.Password = !value ? 'La contraseña es requerida.' : !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(value) ? 'Debe contener 8 caracteres de al menos una letra mayúscula, una letra minúscula, un número y un carácter especial.' : '';
                 break;
             case 'Confirmar':
                 newErrors.Confirmar = !value ? 'La confirmación de la contraseña es requerida.' : value !== formData.Password ? 'Las contraseñas no coinciden.' : '';
@@ -186,38 +187,43 @@ const ClientModal = ({ show, handleClose, handleSave, client }) => {
                 <Modal.Title>{client ? 'Editar Cliente' : 'Agregar Cliente'}</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                <Form.Group className="mb-3">
-                    <Form.Label>Tipo de Documento</Form.Label>
-                    <Form.Select
-                        name="DocumentType"
-                        value={formData.DocumentType}
-                        onChange={handleInputChange}
-                        isInvalid={!!errors.DocumentType}
-                    >
-                        <option value="">Seleccione un tipo de documento</option>
-                        <option value="Cédula de ciudadanía">Cédula de ciudadanía</option>
-                        <option value="Cédula de extranjería">Cédula de extranjería</option>
-                        <option value="Pasaporte">Pasaporte</option>
-                    </Form.Select>
-                    <Form.Control.Feedback type="invalid">
-                        {errors.DocumentType}
-                    </Form.Control.Feedback>
-                </Form.Group>
                 <Form>
-                    <Form.Group className="mb-3">
-                        <Form.Label>Identificación</Form.Label>
-                        <Form.Control
-                            type="text"
-                            name="Identification"
-                            value={formData.Identification}
-                            onChange={handleInputChange}
-                            isInvalid={!!errors.Identification}
-                        />
-                        <Form.Control.Feedback type="invalid">
-                            {errors.Identification}
-                        </Form.Control.Feedback>
-                    </Form.Group>
-
+                    <Row>
+                        <Col md={4}>
+                            <Form.Group className="mb-3">
+                                <Form.Label>Tipo de Doc</Form.Label>
+                                <Form.Select
+                                    name="DocumentType"
+                                    value={formData.DocumentType}
+                                    onChange={handleInputChange}
+                                    isInvalid={!!errors.DocumentType}
+                                >
+                                    <option value="">Seleccione un tipo de documento</option>
+                                    <option value="Cédula de ciudadanía">Cédula de ciudadanía</option>
+                                    <option value="Cédula de extranjería">Cédula de extranjería</option>
+                                    <option value="Pasaporte">Pasaporte</option>
+                                </Form.Select>
+                                <Form.Control.Feedback type="invalid">
+                                    {errors.DocumentType}
+                                </Form.Control.Feedback>
+                            </Form.Group>
+                        </Col>
+                        <Col md={8}>
+                            <Form.Group className="mb-3">
+                                <Form.Label>Documento</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    name="Identification"
+                                    value={formData.Identification}
+                                    onChange={handleInputChange}
+                                    isInvalid={!!errors.Identification}
+                                />
+                                <Form.Control.Feedback type="invalid">
+                                    {errors.Identification}
+                                </Form.Control.Feedback>
+                            </Form.Group>
+                        </Col>
+                    </Row>
                     <Form.Group className="mb-3">
                         <Form.Label>Nombre</Form.Label>
                         <Form.Control
@@ -245,101 +251,117 @@ const ClientModal = ({ show, handleClose, handleSave, client }) => {
                             {errors.Email}
                         </Form.Control.Feedback>
                     </Form.Group>
+                    <Row>
+                        <Col md={7}>
+                            <Form.Group className="mb-3">
+                                <Form.Label>Dirección</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    name="Address"
+                                    value={formData.Address}
+                                    onChange={handleInputChange}
+                                    isInvalid={!!errors.Address}
+                                />
+                                <Form.Control.Feedback type="invalid">
+                                    {errors.Address}
+                                </Form.Control.Feedback>
+                            </Form.Group>
+                        </Col>
+                        <Col md={5}>
+                            <Form.Group className="mb-3">
+                                <Form.Label>EPS</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    name="EPS"
+                                    value={formData.EPS}
+                                    onChange={handleInputChange}
+                                    isInvalid={!!errors.EPS}
+                                />
+                                <Form.Control.Feedback type="invalid">
+                                    {errors.EPS}
+                                </Form.Control.Feedback>
+                            </Form.Group>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col md={7}>
+                            <Form.Group className="mb-3">
+                                <Form.Label>Teléfono</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    name="PhoneNumber"
+                                    value={formData.PhoneNumber}
+                                    onChange={handleInputChange}
+                                    isInvalid={!!errors.PhoneNumber}
+                                />
+                                <Form.Control.Feedback type="invalid">
+                                    {errors.PhoneNumber}
+                                </Form.Control.Feedback>
+                            </Form.Group>
 
-                    <Form.Group className="mb-3">
-                        <Form.Label>Teléfono</Form.Label>
-                        <Form.Control
-                            type="text"
-                            name="PhoneNumber"
-                            value={formData.PhoneNumber}
-                            onChange={handleInputChange}
-                            isInvalid={!!errors.PhoneNumber}
-                        />
-                        <Form.Control.Feedback type="invalid">
-                            {errors.PhoneNumber}
-                        </Form.Control.Feedback>
-                    </Form.Group>
+                        </Col>
+                        <Col md={5}>
+                            <Form.Group className="mb-3">
+                                <Form.Label>Estado</Form.Label>
+                                <Form.Select
+                                    name="Status"
+                                    value={formData.Status}
+                                    onChange={handleInputChange}
+                                    isInvalid={!!errors.Status}
+                                >
+                                    <option value="Activo">Activo</option>
+                                    <option value="Inactivo">Inactivo</option>
+                                </Form.Select>
+                                <Form.Control.Feedback type="invalid">
+                                    {errors.Status}
+                                </Form.Control.Feedback>
+                            </Form.Group>
 
-                    <Form.Group className="mb-3">
-                        <Form.Label>Dirección</Form.Label>
-                        <Form.Control
-                            type="text"
-                            name="Address"
-                            value={formData.Address}
-                            onChange={handleInputChange}
-                            isInvalid={!!errors.Address}
-                        />
-                        <Form.Control.Feedback type="invalid">
-                            {errors.Address}
-                        </Form.Control.Feedback>
-                    </Form.Group>
+                        </Col>
+                    </Row>
 
-                    <Form.Group className="mb-3">
-                        <Form.Label>EPS</Form.Label>
-                        <Form.Control
-                            type="text"
-                            name="EPS"
-                            value={formData.EPS}
-                            onChange={handleInputChange}
-                            isInvalid={!!errors.EPS}
-                        />
-                        <Form.Control.Feedback type="invalid">
-                            {errors.EPS}
-                        </Form.Control.Feedback>
-                    </Form.Group>
-
-                    <Form.Group className="mb-3">
-                        <Form.Label>Estado</Form.Label>
-                        <Form.Select
-                            name="Status"
-                            value={formData.Status}
-                            onChange={handleInputChange}
-                            isInvalid={!!errors.Status}
-                        >
-                            <option value="Activo">Activo</option>
-                            <option value="Inactivo">Inactivo</option>
-                        </Form.Select>
-                        <Form.Control.Feedback type="invalid">
-                            {errors.Status}
-                        </Form.Control.Feedback>
-                    </Form.Group>
-
-                    <Form.Group className="mb-3">
-                        <Form.Label>Contraseña</Form.Label>
-                        <InputGroup>
-                            <Form.Control
-                                type={passwordVisible ? 'text' : 'password'}
-                                name="Password"
-                                value={formData.Password}
-                                onChange={handleInputChange}
-                                isInvalid={!!errors.Password}
-                            />
-                            <InputGroup.Text onClick={togglePasswordVisibility} style={{ cursor: 'pointer' }}>
-                                {passwordVisible ? <FaEyeSlash /> : <FaEye />}
-                            </InputGroup.Text>
-                            <Form.Control.Feedback type="invalid">
-                                {errors.Password}
-                            </Form.Control.Feedback>
-                        </InputGroup>
-                    </Form.Group>
-                    <Form.Group>
-                        <Form.Label>Confirmar contraseña</Form.Label>
-                        <InputGroup>
-                            <Form.Control
-                                type={passwordVisible2 ? 'text' : 'password'}
-                                name="Confirmar"
-                                value={formData.Confirmar}
-                                onChange={handleInputChange}
-                                isInvalid={!!errors.Confirmar}
-                            />
-                            <InputGroup.Text onClick={togglePasswordVisibility2} style={{ cursor: 'pointer' }}>
-                                {passwordVisible2 ? <FaEyeSlash /> : <FaEye />}
-                            </InputGroup.Text>
-                            <Form.Control.Feedback type="invalid">
-                                {errors.Confirmar}
-                            </Form.Control.Feedback>
-                        </InputGroup>
-                    </Form.Group>
+                    <Row>
+                        <Col md={6}>
+                            <Form.Group className="mb-3">
+                                <Form.Label>Contraseña</Form.Label>
+                                <InputGroup>
+                                    <Form.Control
+                                        type={passwordVisible ? 'text' : 'password'}
+                                        name="Password"
+                                        value={formData.Password}
+                                        onChange={handleInputChange}
+                                        isInvalid={!!errors.Password}
+                                    />
+                                    <InputGroup.Text onClick={togglePasswordVisibility} style={{ cursor: 'pointer' }}>
+                                        {passwordVisible ? <FaEyeSlash /> : <FaEye />}
+                                    </InputGroup.Text>
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.Password}
+                                    </Form.Control.Feedback>
+                                </InputGroup>
+                            </Form.Group>
+                        </Col>
+                        <Col md={6}>
+                            <Form.Group>
+                                <Form.Label>Confirmar contraseña</Form.Label>
+                                <InputGroup>
+                                    <Form.Control
+                                        type={passwordVisible2 ? 'text' : 'password'}
+                                        name="Confirmar"
+                                        value={formData.Confirmar}
+                                        onChange={handleInputChange}
+                                        isInvalid={!!errors.Confirmar}
+                                    />
+                                    <InputGroup.Text onClick={togglePasswordVisibility2} style={{ cursor: 'pointer' }}>
+                                        {passwordVisible2 ? <FaEyeSlash /> : <FaEye />}
+                                    </InputGroup.Text>
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.Confirmar}
+                                    </Form.Control.Feedback>
+                                </InputGroup>
+                            </Form.Group>
+                        </Col>
+                    </Row>
                     {/* <Form.Group className='mb-3'>{client ? <Form.Label><Button variant='tertiary'>Enviar correo de recuperación</Button></Form.Label> : null}</Form.Group> */}
                 </Form>
             </Modal.Body>
@@ -366,9 +388,12 @@ const ClientManagement = () => {
     const [showDetails, setShowDetails] = useState(false);
     const [selectedClientDetails, setSelectedClientDetails] = useState(null);
 
-    const [currentPage, setCurrentPage] = useState(1);
-    const [clientsPerPage] = useState(10);
+    const [currentPage, setCurrentPage] = useState(0);
+    const clientsPerPage = 3;
 
+    const handlePageClick = (data) => {
+        setCurrentPage(data.selected);
+    };
 
 
 
@@ -439,11 +464,10 @@ const ClientManagement = () => {
         )
     );
 
-    const indexOfLastClient = currentPage * clientsPerPage;
-    const indexOfFirstClient = indexOfLastClient - clientsPerPage;
-    const currentClients = filteredClients.slice(indexOfFirstClient, indexOfLastClient);
-
-    const paginate = (pageNumber) => setCurrentPage(pageNumber);
+    const paginatedClients = filteredClients.slice(
+        currentPage * clientsPerPage,
+        (currentPage + 1) * clientsPerPage
+    );
 
     const toggleClientModal = (client = null) => {
         if (client) {
@@ -521,8 +545,8 @@ const ClientManagement = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {filteredClients.length > 0 ? (
-                        filteredClients.map((client) => (
+                    {paginatedClients.length > 0 ? (
+                        paginatedClients.map((client) => (
                             <tr key={client.Id}>
                                 <td>{client.Id}</td>
                                 <td>{client.Name}</td>
@@ -574,13 +598,17 @@ const ClientManagement = () => {
                     )}
                 </tbody>
             </Table>
-            <Pagination>
-                {[...Array(Math.ceil(filteredClients.length / clientsPerPage))].map((_, index) => (
-                    <Pagination.Item key={index + 1} active={index + 1 === currentPage} onClick={() => paginate(index + 1)}>
-                        {index + 1}
-                    </Pagination.Item>
-                ))}
-            </Pagination>
+            <ReactPaginate
+                previousLabel={"Anterior"}
+                nextLabel={"Siguiente"}
+                breakLabel={"..."}
+                pageCount={Math.ceil(filteredClients.length / clientsPerPage)}
+                marginPagesDisplayed={2}
+                pageRangeDisplayed={5}
+                onPageChange={handlePageClick}
+                containerClassName={"pagination-container"}
+                activeClassName={"active"}
+            />
 
             <ClientModal
                 show={modalState.showClientModal}
