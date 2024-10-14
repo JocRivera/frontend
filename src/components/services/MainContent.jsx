@@ -28,7 +28,7 @@ const MainContent = () => {
     useEffect(() => {
         const fetchServices = async () => {
             try {
-                const response = await axios.get('http://localhost:3000/service');
+                const response = await axios.get('http://192.168.1.28/service');
                 setServices(response.data);
             } catch (error) {
                 console.error("Error al obtener los servicios:", error);
@@ -82,7 +82,7 @@ const MainContent = () => {
 
             if (confirm.isConfirmed) {
                 // Enviar solicitud POST con axios
-                const response = await axios.post('http://localhost:3000/service', newService);
+                const response = await axios.post('http://192.168.1.28/service', newService);
 
                 // Agregar el nuevo servicio a la lista en el estado
                 setServices(prevServices => [...prevServices, response.data]);
@@ -135,7 +135,7 @@ const MainContent = () => {
             });
 
             if (confirm.isConfirmed) {
-                await axios.put(`http://localhost:3000/service/${editService._id}`, editService);
+                await axios.put(`http://192.168.1.28/service/${editService._id}`, editService);
                 setServices(services.map(service =>
                     service._id === editService._id ? editService : service
                 ));
@@ -165,7 +165,7 @@ const MainContent = () => {
 
         if (confirm.isConfirmed) {
             try {
-                await axios.delete(`http://localhost:3000/service/${serviceToDelete._id}`);
+                await axios.delete(`http://192.168.1.28/service/${serviceToDelete._id}`);
                 setServices(prevServices => prevServices.filter(service => service._id !== serviceToDelete._id));
                 Swal.fire("Eliminado", "El servicio ha sido eliminado.", "success");
             } catch (error) {
@@ -202,7 +202,7 @@ const MainContent = () => {
             });
             if (confirm.isConfirmed) {
                 // const service = services.find(service => service._id === id);
-                // await axios.put(`http://localhost:3000/service/${id}`, {
+                // await axios.put(`http://192.168.1.28/service/${id}`, {
                 //     ...service,
                 //     status: !service.status
                 // });

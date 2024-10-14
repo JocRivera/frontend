@@ -21,8 +21,8 @@ const SettingManagement = () => {
         const fetchData = async () => {
             try {
                 const [rolesResponse, permissionsResponse] = await Promise.all([
-                    axios.get('http://localhost:3000/rol'),
-                    axios.get('http://localhost:3000/permission')
+                    axios.get('http://192.168.1.28/rol'),
+                    axios.get('http://192.168.1.28/permission')
                 ]);
                 setSettings(rolesResponse.data);
                 setPermissions(permissionsResponse.data);
@@ -82,7 +82,7 @@ const SettingManagement = () => {
         }
 
         try {
-            const response = await axios.post('http://localhost:3000/rol', newSetting);
+            const response = await axios.post('http://192.168.1.28/rol', newSetting);
             setSettings([...settings, response.data]);
             setNewSetting({ rol: '', description: '', permissions: [], status: true });
             setShowModal(false);
@@ -114,7 +114,7 @@ const SettingManagement = () => {
         }
 
         try {
-            await axios.put(`http://localhost:3000/rol/${editSetting._id}`, editSetting);
+            await axios.put(`http://192.168.1.28/rol/${editSetting._id}`, editSetting);
             const updatedSettings = settings.map(setting =>
                 setting._id === editSetting._id ? editSetting : setting
             );
@@ -146,7 +146,7 @@ const SettingManagement = () => {
 
     const handleDelete = async (setting) => {
         try {
-            await axios.delete(`http://localhost:3000/rol/${setting._id}`);
+            await axios.delete(`http://192.168.1.28/rol/${setting._id}`);
             const updatedSettings = settings.filter(s => s._id !== setting._id);
             setSettings(updatedSettings);
             Swal.fire({
@@ -186,7 +186,7 @@ const SettingManagement = () => {
             if (confirm.isConfirmed) {
                 const settingToUpdate = settings.find(s => s._id === _id);
                 const updatedStatus = !settingToUpdate.status;
-                await axios.patch(`http://localhost:3000/rol/${_id}`, { status: updatedStatus });
+                await axios.patch(`http://192.168.1.28/rol/${_id}`, { status: updatedStatus });
                 const updatedSettings = settings.map(setting =>
                     setting._id === _id ? { ...setting, status: updatedStatus } : setting
                 );
