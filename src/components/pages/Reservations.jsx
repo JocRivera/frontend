@@ -19,7 +19,7 @@ const Reservations = () => {
   const [companions, setCompanions] = useState([]);
   const [payments, setPayments] = useState([]);
   const [newReservation, setNewReservation] = useState({
-    estado: "",
+    estado: "Pendiente",
     tipoDocumento: "",
     documento: "",
     startDate: "",
@@ -28,14 +28,18 @@ const Reservations = () => {
     companions: [],
     payments: [],
   });
-  const [filteredReservations, setFilteredReservations] = useState(reservations);
+  const [filteredReservations, setFilteredReservations] =
+    useState(reservations);
   const [searchTerm, setSearchTerm] = useState("");
+  const itemsPerPage = 1;
+  const [currentPage, setCurrentPage] = useState(0);
 
-  // Paginación
-  const [currentPage, setCurrentPage] = useState(1);
-  const [reservationsPerPage] = useState(5); // Cambia este valor para ajustar el número de reservas por página
+  const handlePageChange = (selectedPage) => {
+    setCurrentPage(selectedPage.selected);
+  };
 
   useEffect(() => {
+    setCurrentPage(0);
     // Simulate fetching data
     const mockReservations = [
       {
@@ -50,11 +54,11 @@ const Reservations = () => {
         payments: [],
       },
       // Add more mock reservations as needed
-      // ...
     ];
     setReservations(mockReservations);
     setFilteredReservations(mockReservations);
   }, []);
+
 
   const handleSearch = (e) => {
     const term = e.target.value.toLowerCase();
@@ -65,19 +69,7 @@ const Reservations = () => {
         res.documento.toLowerCase().includes(term)
     );
     setFilteredReservations(filtered);
-    setCurrentPage(1); // Reset to first page on search
   };
-
-  // Get current reservations
-  const indexOfLastReservation = currentPage * reservationsPerPage;
-  const indexOfFirstReservation = indexOfLastReservation - reservationsPerPage;
-  const currentReservations = filteredReservations.slice(
-    indexOfFirstReservation,
-    indexOfLastReservation
-  );
-
-  // Change page
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const handleAddReservation = () => {
     if (
@@ -133,7 +125,9 @@ const Reservations = () => {
     }
 
     const updatedReservations = reservations.map((reservation) =>
-      reservation._id === updatedReservation._id ? updatedReservation : reservation
+      reservation._id === updatedReservation._id
+        ? updatedReservation
+        : reservation
     );
     setReservations(updatedReservations);
     setFilteredReservations(updatedReservations);
@@ -247,8 +241,6 @@ const Reservations = () => {
     writeFile(workbook, "reservas.xlsx");
   };
 
-  const totalPages = Math.ceil(filteredReservations.length / reservationsPerPage);
-
   return (
     <div
       className="container col p-5 mt-3"
@@ -290,79 +282,80 @@ const Reservations = () => {
           </tr>
         </thead>
         <tbody>
-          {currentReservations.map((reservation) => (
-            <tr key={reservation._id}>
-              <td>{reservation._id}</td>
-              <td>{reservation.nombreCliente}</td>
-              <td>{reservation.tipoDocumento}</td>
-              <td>{reservation.documento}</td>
-              <td>{reservation.startDate}</td>
-              <td>{reservation.endDate}</td>
-              <td>{reservation.estado}</td>
-              <td>
-                <Button
-                  variant="info"
-                  onClick={() => handleDetail(reservation)}
-                  className="me-2"
-                >
-                  Ver Detalle
-                </Button>
-                <Button
-                  variant="warning"
-                  onClick={() => handleEdit(reservation)}
-                  className="me-2"
-                >
-                  Editar
-                </Button>
-                <Button
-                  variant="danger"
-                  onClick={() => handleDeleteReservation(reservation._id)}
-                >
-                  Eliminar
-                </Button>
-              </td>
-            </tr>
-          ))}
+          {filteredReservations
+            .slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
+            .map((reservation) => (
+              <tr key={reservation._id}>
+                <td>{reservation._id}</td>
+                <td>{reservation.nombreCliente}</td>
+                <td>{reservation.tipoDocumento}</td>
+                <td>{reservation.documento}</td>
+                <td>{reservation.startDate}</td>
+                <td>{reservation.endDate}</td>
+                <td>{reservation.estado}</td>
+                <td>
+                  <Button
+                    variant="info"
+                    onClick={() => handleDetail(reservation)}
+                  >
+                    Ver Detalle
+                  </Button>
+                  <Button
+                    variant="warning"
+                    onClick={() => handleEdit(reservation)}
+                  >
+                    Editar
+                  </Button>
+                  <Button
+                    variant="danger"
+                    onClick={() => handleDeleteReservation(reservation._id)}
+                  >
+                    Eliminar
+                  </Button>
+                </td>
+              </tr>
+            ))}
         </tbody>
       </Table>
-      
-      {/* Paginación */}
-      <div className="d-flex justify-content-center mt-4">
-        <Button
-          variant="light"
-          disabled={currentPage === 1}
-          onClick={() => handlePageChange(currentPage - 1)}
-        >
-          Anterior
-        </Button>
-        {Array.from({ length: totalPages }, (_, index) => (
-          <Button
-            key={index + 1}
-            variant={currentPage === index + 1 ? "primary" : "light"}
-            onClick={() => handlePageChange(index + 1)}
-            className="mx-1"
-          >
-            {index + 1}
-          </Button>
-        ))}
-        <Button
-          variant="light"
-          disabled={currentPage === totalPages}
-          onClick={() => handlePageChange(currentPage + 1)}
-        >
-          Siguiente
-        </Button>
-      </div>
+      <ReactPaginate
+  previousLabel={"Anterior"}
+  nextLabel={"Siguiente"}
+  breakLabel={"..."}
+  pageCount={Math.ceil(filteredReservations.length / itemsPerPage)}
+  marginPagesDisplayed={2}
+  pageRangeDisplayed={5}
+  onPageChange={handlePageChange}
+  containerClassName={"pagination-container"}
+  activeClassName={"active"}
+/>
 
-      {/* Add Reservation Modal */}
-      <Modal show={showAddModal} onHide={handleCloseModals}>
+      {/* Modal para agregar reserva */}
+      <Modal show={showAddModal} onHide={handleCloseModals} size="lg">
         <Modal.Header closeButton>
-          <Modal.Title>Registrar Reserva</Modal.Title>
+          <Modal.Title>Agregar Reserva</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <ReservationForm
-            reservation={newReservation}
-            handleChange={handleChangeReservation}
+            reservation={{}}
+            onChange={handleChangeReservation}
+          />
+          <CompanionsForm
+            companions={companions}
+            onAdd={(companion) =>
+              setCompanions([...companions, { ...companion, id: generateId() }])
+            }
+            onDelete={(id) =>
+              setCompanions(companions.filter((comp) => comp.id !== id))
+            }
+          />
+          <PaymentsForm
+            payments={payments}
+            onAdd={(payment) =>
+              setPayments([...payments, { ...payment, id: generateId() }])
+            }
+            onDelete={(id) =>
+              setPayments(payments.filter((pmt) => pmt.id !== id))
+            }
           />
         </Modal.Body>
         <Modal.Footer>
@@ -370,20 +363,38 @@ const Reservations = () => {
             Cancelar
           </Button>
           <Button variant="primary" onClick={handleAddReservation}>
-            Registrar
+            Guardar Reserva
           </Button>
         </Modal.Footer>
       </Modal>
 
-      {/* Edit Reservation Modal */}
-      <Modal show={showEditModal} onHide={handleCloseModals}>
+      {/* Modal para editar reserva */}
+      <Modal show={showEditModal} onHide={handleCloseModals} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>Editar Reserva</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <ReservationForm
             reservation={selectedReservation}
-            handleChange={handleChangeReservation}
+            onChange={handleChangeReservation}
+          />
+          <CompanionsForm
+            companions={companions}
+            onAdd={(companion) =>
+              setCompanions([...companions, { ...companion, id: generateId() }])
+            }
+            onDelete={(id) =>
+              setCompanions(companions.filter((comp) => comp.id !== id))
+            }
+          />
+          <PaymentsForm
+            payments={payments}
+            onAdd={(payment) =>
+              setPayments([...payments, { ...payment, id: generateId() }])
+            }
+            onDelete={(id) =>
+              setPayments(payments.filter((pmt) => pmt.id !== id))
+            }
           />
         </Modal.Body>
         <Modal.Footer>
@@ -391,35 +402,46 @@ const Reservations = () => {
             Cancelar
           </Button>
           <Button variant="primary" onClick={handleUpdateReservation}>
-            Guardar Cambios
+            Actualizar Reserva
           </Button>
         </Modal.Footer>
       </Modal>
 
-      {/* Detail Modal */}
-      <Modal show={showDetailModal} onHide={handleCloseModals}>
+      {/* Modal para ver detalles de la reserva */}
+      <Modal show={showDetailModal} onHide={handleCloseModals} size="lg">
         <Modal.Header closeButton>
-          <Modal.Title>Detalle de Reserva</Modal.Title>
+          <Modal.Title>Detalles de la Reserva</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <h5>Nombre del Cliente: {selectedReservation?.nombreCliente}</h5>
-          <h5>Tipo de Documento: {selectedReservation?.tipoDocumento}</h5>
-          <h5>Número de Documento: {selectedReservation?.documento}</h5>
-          <h5>Fecha Inicio: {selectedReservation?.startDate}</h5>
-          <h5>Fecha Fin: {selectedReservation?.endDate}</h5>
-          <h5>Estado: {selectedReservation?.estado}</h5>
-          <h5>Compañeros:</h5>
-          {companions.map((companion, index) => (
-            <div key={index}>
-              {companion.name} - {companion.age} años
-            </div>
-          ))}
-          <h5>Pagos:</h5>
-          {payments.map((payment, index) => (
-            <div key={index}>
-              Monto: {payment.amount}, Fecha: {payment.date}
-            </div>
-          ))}
+          {selectedReservation && (
+            <>
+              <h5>Código: {selectedReservation.documento}</h5>
+              <h5>Nombre del Cliente: {selectedReservation.nombreCliente}</h5>
+              <h5>Tipo de Documento: {selectedReservation.tipoDocumento}</h5>
+              <h5>Número de Documento: {selectedReservation.documento}</h5>
+              <h5>Fecha Inicio: {selectedReservation.startDate}</h5>
+              <h5>Fecha Fin: {selectedReservation.endDate}</h5>
+              <h5>Estado: {selectedReservation.estado}</h5>
+
+              <h6>Acompañantes:</h6>
+              <ul>
+                {companions.map((comp) => (
+                  <li key={comp.id}>
+                    {comp.name},{comp.age} Años, {comp.document}
+                  </li>
+                ))}
+              </ul>
+
+              <h6>Pagos:</h6>
+              <ul>
+                {payments.map((pmt) => (
+                  <li key={pmt.id}>
+                    Monto: {pmt.amount}, Fecha: {pmt.date}, Estado: {pmt.status}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleCloseModals}>
@@ -429,6 +451,10 @@ const Reservations = () => {
       </Modal>
     </div>
   );
+};
+
+const generateId = () => {
+  return Math.random().toString(36).substr(2, 9);
 };
 
 export default Reservations;

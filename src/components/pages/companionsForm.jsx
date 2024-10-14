@@ -67,7 +67,7 @@ const CompanionsForm = ({ companions = [], onAdd, onDelete }) => {
 
   const handleAdd = () => {
     if (Object.values(errorMessages).some((msg) => msg !== "")) return;
-
+  
     onAdd(companion);
     setCompanion({
       id: null,
@@ -78,6 +78,7 @@ const CompanionsForm = ({ companions = [], onAdd, onDelete }) => {
       birthDate: "",
     });
     setErrorMessages({});
+    Swal.fire("Acompañante agregado!", "El acompañante ha sido agregado exitosamente.", "success");
   };
 
   const handleDelete = (id) => {
