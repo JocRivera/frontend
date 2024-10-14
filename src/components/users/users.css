@@ -1,21 +1,34 @@
-.switch-active .form-check-input {
-    background-color: #0df024; /* Color para estado activo */
-    border-color: #0df024; /* Color para el borde del switch activo */
-    
-  }
+.custom-switch .form-check-input {
   
-  .switch-inactive .form-check-input {
-    background-color: #dc3545; /* Color para estado inactivo */
-    border-color: #dc3545; /* Color para el borde del switch inactivo */
-  }
-  
-  /* También puedes añadir un estilo para el switch cuando está activo */
-  .switch-active .form-check-input:checked {
-    background-color: #0df024; /* Color de fondo cuando está activado */
-  }
-  
-  /* Y para el inactivo */
-  .switch-inactive .form-check-input:checked {
-    background-color: #dc3545; /* Color de fondo cuando está desactivado */
-  }
-  
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.custom-switch .form-check-input:checked:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+}
+
+.custom-switch .form-check-input:not(:checked):hover {
+  background-color: #c82333;
+  border-color: #bd2130;
+}
+.custom-switch .form-check-input:checked {
+  background-color: #28a745;
+  border-color: #28a745;
+}
+
+.custom-switch .form-check-input:not(:checked) {
+  background-color: #dc3545;
+  border-color: #dc3545;
+
+}
+
+.custom-switch .form-check-input:focus {
+  box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.custom-switch.inactive .form-check-input:focus {
+  box-shadow: 0 0 0 0.2rem rgba(246, 244, 244, 0.25);
+}

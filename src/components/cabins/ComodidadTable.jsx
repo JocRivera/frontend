@@ -159,17 +159,14 @@ const ModalComodidad = ({ show, onHide, comodidad, onSave }) => {
   const [selectedArticulo, setSelectedArticulo] = useState(null);
   const [newArticulo, setNewArticulo] = useState("");
   const [newCodigo, setNewCodigo] = useState("");
-  const [codigoArticulo, setCodigoArticulo] = useState(
-    comodidad?.codigoArticulo || ""
-  );
-  const [observacion, setObservacion] = useState(comodidad?.observacion || "");
-  const [fechaIngreso, setFechaIngreso] = useState(
-    comodidad?.fechaIngreso || ""
-  );
-  const [estado, setEstado] = useState(comodidad?.estado || "Disponible");
+  const [codigoArticulo, setCodigoArticulo] = useState("");
+  const [observacion, setObservacion] = useState("");
+  const [fechaIngreso, setFechaIngreso] = useState("");
+  const [estado, setEstado] = useState("Disponible");
   const [showNewArticuloForm, setShowNewArticuloForm] = useState(false);
   const [errors, setErrors] = useState({});
   const [editableNombre, setEditableNombre] = useState("");
+
 
   useEffect(() => {
     if (comodidad) {
@@ -205,14 +202,12 @@ const ModalComodidad = ({ show, onHide, comodidad, onSave }) => {
     setShowNewArticuloForm(false);
     setNewArticulo("");
     setNewCodigo("");
-  };
-
-  const handleSave = () => {
+  };  const handleSave = () => {
     const newErrors = {};
 
     if (!selectedArticulo && !newArticulo && !editableNombre)
       newErrors.articulo = "Debe seleccionar, crear o editar un artículo";
-    if (!codigoArticulo.trim())
+    if (!showNewArticuloForm && !codigoArticulo.trim())
       newErrors.codigo = "El campo Código es obligatorio";
     if (!observacion.trim())
       newErrors.observacion = "El campo Observación es obligatorio";
@@ -233,7 +228,7 @@ const ModalComodidad = ({ show, onHide, comodidad, onSave }) => {
       return;
     }
 
-    let articuloId, nombreArticulo;
+    let articuloId, nombreArticulo, codigoFinal;
 
     if (newArticulo) {
       const nuevoArticulo = {
@@ -244,6 +239,7 @@ const ModalComodidad = ({ show, onHide, comodidad, onSave }) => {
       articuloData.push(nuevoArticulo);
       articuloId = nuevoArticulo.id;
       nombreArticulo = nuevoArticulo.nombre;
+      codigoFinal = newCodigo;
     } else if (comodidad && editableNombre !== comodidad.nombreArticulo) {
       const articuloIndex = articuloData.findIndex(
         (a) => a.id === comodidad.articuloId
@@ -253,9 +249,11 @@ const ModalComodidad = ({ show, onHide, comodidad, onSave }) => {
         articuloData[articuloIndex].codigo = codigoArticulo;
         articuloId = comodidad.articuloId;
         nombreArticulo = editableNombre;
+        codigoFinal = codigoArticulo;
       } else {
         articuloId = comodidad.articuloId;
         nombreArticulo = editableNombre;
+        codigoFinal = codigoArticulo;
       }
     } else {
       articuloId = selectedArticulo
@@ -264,13 +262,14 @@ const ModalComodidad = ({ show, onHide, comodidad, onSave }) => {
       nombreArticulo =
         editableNombre ||
         (selectedArticulo ? selectedArticulo.label : comodidad.nombreArticulo);
+      codigoFinal = codigoArticulo;
     }
 
     onSave({
       id: comodidad ? comodidad.id : Date.now().toString(),
       articuloId,
       nombreArticulo,
-      codigoArticulo,
+      codigoArticulo: codigoFinal,
       observacion,
       fechaIngreso,
       estado,
@@ -285,13 +284,19 @@ const ModalComodidad = ({ show, onHide, comodidad, onSave }) => {
     if (selectedOption) {
       setEditableNombre(selectedOption.label);
       setCodigoArticulo(selectedOption.codigo);
+    } else {
+      // Limpiar campos cuando se deselecciona un artículo
+      setEditableNombre("");
+      setCodigoArticulo("");
+      setObservacion("");
+      setFechaIngreso("");
+      setEstado("Disponible");
     }
   };
 
   const handleCodigoChange = (e) => {
     setCodigoArticulo(e.target.value);
   };
-
   return (
     <Modal
       show={show}
@@ -370,17 +375,19 @@ const ModalComodidad = ({ show, onHide, comodidad, onSave }) => {
                 </>
               )}
 
-              <Form.Group className="mb-3">
-                <Form.Label>Código del Artículo</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={codigoArticulo}
-                  onChange={handleCodigoChange}
-                />
-                {errors.codigo && (
-                  <div className="text-danger">{errors.codigo}</div>
-                )}
-              </Form.Group>
+              {!showNewArticuloForm && (
+                <Form.Group className="mb-3">
+                  <Form.Label>Código del Artículo</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={codigoArticulo}
+                    onChange={handleCodigoChange}
+                  />
+                  {errors.codigo && (
+                    <div className="text-danger">{errors.codigo}</div>
+                  )}
+                </Form.Group>
+              )}
             </Col>
             <Col md={6}>
               <Form.Group className="mb-3">
