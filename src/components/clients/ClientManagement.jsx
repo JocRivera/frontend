@@ -17,6 +17,7 @@ import Swal from 'sweetalert2';
 
 const ClientModal = ({ show, handleClose, handleSave, client }) => {
     const [formData, setFormData] = useState({
+        DocumentType: '',
         Identification: '',
         Name: '',
         Email: '',
@@ -34,6 +35,7 @@ const ClientModal = ({ show, handleClose, handleSave, client }) => {
             setFormData(client);
         else if (!show) {
             setFormData({
+                DocumentType: '',
                 Identification: '',
                 Name: '',
                 Email: '',
@@ -80,7 +82,7 @@ const ClientModal = ({ show, handleClose, handleSave, client }) => {
                     : '';
                 break;
             case 'DocumentType':
-                newErrors.DocumentType = !value ? 'El tipo de documento es requerido.' : '';
+                newErrors.DocumentType = !value || value == "" ? 'El tipo de documento es requerido.' : '';
                 break;
             case 'Email':
                 newErrors.Email = !value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
@@ -389,7 +391,7 @@ const ClientManagement = () => {
     const [selectedClientDetails, setSelectedClientDetails] = useState(null);
 
     const [currentPage, setCurrentPage] = useState(0);
-    const clientsPerPage = 3;
+    const clientsPerPage = 9;
 
     const handlePageClick = (data) => {
         setCurrentPage(data.selected);
