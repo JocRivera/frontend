@@ -3,6 +3,7 @@ import * as BsIcons from "react-icons/bs";
 import { Button, Modal, Form, Table } from 'react-bootstrap';
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import { PlusCircle } from "lucide-react"
 import ReactPaginate from 'react-paginate';
 
 const SettingManagement = () => {
@@ -237,7 +238,8 @@ const SettingManagement = () => {
                     />
                     <Button variant="outline-success" type="submit">Buscar</Button>
                 </Form>
-                <Button className='mb-3' onClick={() => setShowModal(true)}>Añadir</Button>
+                <Button className='mb-3 d-flex align-items-center' onClick={() => setShowModal(true)}><PlusCircle size={20} className='me-2'/>
+                    Añadir</Button>
             </div>
 
             <Table striped bordered hover>
