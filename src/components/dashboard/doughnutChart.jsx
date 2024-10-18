@@ -2,9 +2,9 @@ import React from "react";
 import Chart from 'chart.js/auto';
 import { Doughnut } from 'react-chartjs-2';
 
-const DoughnutsChart = () => {
+const GraficoRosca = () => {
     return (
-        <div className='doughnutChart'>
+        <div className='graficoRosca'>
             <Doughnut
                 data={{
                     labels: ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domindo'],
@@ -40,7 +40,7 @@ const DoughnutsChart = () => {
                 }}
             />
         </div>
-    )
+    );
 }
 
-export default DoughnutsChart;
+export default GraficoRosca;
