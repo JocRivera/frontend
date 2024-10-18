@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Button, Table, FormControl, Modal, InputGroup } from "react-bootstrap";
 import { utils, writeFile } from "xlsx";
+import { FaFileExcel,FaEye } from "react-icons/fa"; // Icono para Excel y ver detalle
 import "bootstrap-icons/font/bootstrap-icons.css";
 
 const MyReservations = () => {
@@ -36,7 +37,8 @@ const MyReservations = () => {
     },
     // Agrega más reservas para probar la paginación
   ]);
-  const [filteredReservations, setFilteredReservations] = useState(reservations);
+  const [filteredReservations, setFilteredReservations] =
+    useState(reservations);
   const [searchTerm, setSearchTerm] = useState("");
 
   // Paginación
@@ -97,8 +99,12 @@ const MyReservations = () => {
     >
       <div className="d-flex justify-content-between align-items-center my-3">
         <h2>Mis Reservas</h2>
-        <Button variant="success" onClick={handleDownloadExcel}>
-          Descargar Excel
+        <Button
+          variant="success"
+          onClick={handleDownloadExcel}
+          className="ms-2"
+        >
+          <FaFileExcel className="me-2" /> Descargar Excel
         </Button>
       </div>
       <InputGroup className="mb-3" style={{ maxWidth: "300px" }}>
@@ -135,8 +141,10 @@ const MyReservations = () => {
                 <Button
                   variant="info"
                   onClick={() => handleDetail(reservation)}
+                  className="me-2"
                 >
-                  Ver Detalle
+                <FaEye className="me-2" />
+                       {/* Ver Detalle */}
                 </Button>
               </td>
             </tr>

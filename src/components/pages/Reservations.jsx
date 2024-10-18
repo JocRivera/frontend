@@ -5,6 +5,9 @@ import ReservationForm from "../pages/ReservationForm";
 import CompanionsForm from "../pages/companionsForm";
 import PaymentsForm from "../pages/PaymentsForm";
 import ReactPaginate from "react-paginate";
+import { AiOutlinePlusCircle } from "react-icons/ai"; // Icono pluscircle
+import { FaFileExcel } from "react-icons/fa"; // Icono para Excel
+import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
 import { utils, writeFile } from "xlsx";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
@@ -31,7 +34,7 @@ const Reservations = () => {
   const [filteredReservations, setFilteredReservations] =
     useState(reservations);
   const [searchTerm, setSearchTerm] = useState("");
-  const itemsPerPage = 1;
+  const itemsPerPage = 9;
   const [currentPage, setCurrentPage] = useState(0);
 
   const handlePageChange = (selectedPage) => {
@@ -45,11 +48,11 @@ const Reservations = () => {
       {
         _id: "1",
         estado: "Confirmada",
-        tipoDocumento: "DNI",
-        documento: "12345678",
+        tipoDocumento: "Cedula de ciudadania",
+        documento: "1032011381",
         startDate: "2024-10-10",
         endDate: "2024-10-15",
-        nombreCliente: "John Doe",
+        nombreCliente: "Isabella Ramos",
         companions: [],
         payments: [],
       },
@@ -58,7 +61,6 @@ const Reservations = () => {
     setReservations(mockReservations);
     setFilteredReservations(mockReservations);
   }, []);
-
 
   const handleSearch = (e) => {
     const term = e.target.value.toLowerCase();
@@ -250,14 +252,14 @@ const Reservations = () => {
         <h2>Reservas</h2>
         <div>
           <Button variant="primary" onClick={() => setShowAddModal(true)}>
-            Registrar Reserva
+            <AiOutlinePlusCircle className="me-2" /> Registrar Reserva
           </Button>
           <Button
             variant="success"
             onClick={handleDownloadExcel}
             className="ms-2"
           >
-            Descargar Excel
+            <FaFileExcel className="me-2" /> Descargar Excel
           </Button>
         </div>
       </div>
@@ -268,17 +270,17 @@ const Reservations = () => {
           onChange={handleSearch}
         />
       </InputGroup>
-      <Table striped bordered hover>
+      <Table striped bordered hover className="w-100">
         <thead>
           <tr>
-            <th>Código</th>
-            <th>Nombre del Cliente</th>
-            <th>Tipo de Documento</th>
-            <th>Número de Documento</th>
-            <th>Fecha Inicio</th>
-            <th>Fecha Fin</th>
-            <th>Estado</th>
-            <th>Acciones</th>
+            <th style={{ width: "10%" }}>Código</th>
+            <th style={{ width: "20%" }}>Nombre del Cliente</th>
+            <th style={{ width: "15%" }}>Tipo de Documento</th>
+            <th style={{ width: "15%" }}>Número de Documento</th>
+            <th style={{ width: "15%" }}>Fecha Inicio</th>
+            <th style={{ width: "15%" }}>Fecha Fin</th>
+            <th style={{ width: "15%" }}>Estado</th>
+            <th style={{ width: "20%" }}>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -294,40 +296,47 @@ const Reservations = () => {
                 <td>{reservation.endDate}</td>
                 <td>{reservation.estado}</td>
                 <td>
-                  <Button
-                    variant="info"
-                    onClick={() => handleDetail(reservation)}
-                  >
-                    Ver Detalle
-                  </Button>
-                  <Button
-                    variant="warning"
-                    onClick={() => handleEdit(reservation)}
-                  >
-                    Editar
-                  </Button>
-                  <Button
-                    variant="danger"
-                    onClick={() => handleDeleteReservation(reservation._id)}
-                  >
-                    Eliminar
-                  </Button>
+                  <div className="d-flex">
+                    <Button
+                      variant="info"
+                      onClick={() => handleDetail(reservation)}
+                      className="me-2"
+                    >
+                      <FaEye className="me-2" />
+                       {/* Ver Detalle */}
+                    </Button>
+                    <Button
+                      variant="warning"
+                      onClick={() => handleEdit(reservation)}
+                      className="me-2"
+                    >
+                      <FaEdit className="me-2" />
+                       {/* Editar */}
+                    </Button>
+                    <Button
+                      variant="danger"
+                      onClick={() => handleDeleteReservation(reservation._id)}
+                    >
+                      <FaTrash className="me-2" /> 
+                      {/* Eliminar */}
+                    </Button>
+                  </div>
                 </td>
               </tr>
             ))}
         </tbody>
       </Table>
       <ReactPaginate
-  previousLabel={"Anterior"}
-  nextLabel={"Siguiente"}
-  breakLabel={"..."}
-  pageCount={Math.ceil(filteredReservations.length / itemsPerPage)}
-  marginPagesDisplayed={2}
-  pageRangeDisplayed={5}
-  onPageChange={handlePageChange}
-  containerClassName={"pagination-container"}
-  activeClassName={"active"}
-/>
+        previousLabel={"Anterior"}
+        nextLabel={"Siguiente"}
+        breakLabel={"..."}
+        pageCount={Math.ceil(filteredReservations.length / itemsPerPage)}
+        marginPagesDisplayed={2}
+        pageRangeDisplayed={5}
+        onPageChange={handlePageChange}
+        containerClassName={"pagination-container"}
+        activeClassName={"active"}
+      />
 
       {/* Modal para agregar reserva */}
       <Modal show={showAddModal} onHide={handleCloseModals} size="lg">
