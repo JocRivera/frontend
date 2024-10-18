@@ -1,7 +1,6 @@
 import React from 'react';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-
 ChartJS.register(
     CategoryScale,
     LinearScale,
@@ -10,12 +9,12 @@ ChartJS.register(
     Tooltip,
     Legend
 );
-
-const GraficoBarras = () => {
+const BarsChart = () => {
     return (
-        <div className='graficoBarras'>
+        <div className='barChart'>
             <Bar
-                data={
+                data={{
+
                     labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio'],
                     datasets: [
                         {
@@ -57,7 +56,7 @@ const GraficoBarras = () => {
                 }}
             />
         </div>
-    );
+    )
 }
 
-export default GraficoBarras;
+export default BarsChart;

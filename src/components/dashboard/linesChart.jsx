@@ -22,6 +22,7 @@ const LinesChart = () => {
             }
         ]
     };
+
     const options = {
         plugins: {
             title: {
@@ -40,11 +41,12 @@ const LinesChart = () => {
             }
         }
     };
+
     return (
-        <div className='graficoLineas'>
-            <Line data={datos} options={opciones} />
+        <div className='lineChart'>
+            <Line data={data} options={options} />
         </div>
-    );
+    )
 }
 
-export default GraficoLineas;
+export default LinesChart;
