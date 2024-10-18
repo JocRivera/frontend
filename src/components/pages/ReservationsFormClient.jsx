@@ -1,20 +1,20 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Form, Button } from 'react-bootstrap';
-import SweetAlert from 'sweetalert2';
-import CompanionsForm from './companionsForm';
-import PaymentsForm from './PaymentsForm';
-import ReservationForm from './ReservationForm'; // Importa el formulario existente
+import React, { useState } from "react";
+import { Container, Row, Col, Button } from "react-bootstrap";
+import SweetAlert from "sweetalert2";
+import CompanionsForm from "./companionsForm";
+import PaymentsForm from "./PaymentsForm";
+import ReservationForm from "./ReservationForm"; // Importa el formulario existente
 
 const ReservationsFormClient = () => {
   const [reservationData, setReservationData] = useState({
-    customerName: '',
-    documentType: '',
-    documentNumber: '',
-    startDate: '',
-    endDate: '',
-    status: 'Reserved',
-    plans: '',
-    price: '',
+    customerName: "",
+    documentType: "",
+    documentNumber: "",
+    startDate: "",
+    endDate: "",
+    status: "Reserved", // Estado predeterminado
+    plans: "",
+    price: "",
   });
 
   const [companions, setCompanions] = useState([]);
@@ -25,20 +25,37 @@ const ReservationsFormClient = () => {
   };
 
   const validateForm = () => {
-    const { customerName, documentType, documentNumber, startDate, endDate, plans, price } = reservationData;
-    if (!customerName || !documentType || !documentNumber || !startDate || !endDate || !plans || !price) {
+    const {
+      customerName,
+      documentType,
+      documentNumber,
+      startDate,
+      endDate,
+      plans,
+      price,
+    } = reservationData;
+
+    if (
+      !customerName ||
+      !documentType ||
+      !documentNumber ||
+      !startDate ||
+      !endDate ||
+      !plans ||
+      !price
+    ) {
       SweetAlert.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Por favor, completa todos los campos requeridos.',
+        icon: "error",
+        title: "Error",
+        text: "Por favor, completa todos los campos requeridos.",
       });
       return false;
     }
     if (new Date(startDate) >= new Date(endDate)) {
       SweetAlert.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'La fecha de inicio debe ser anterior a la fecha de fin.',
+        icon: "error",
+        title: "Error",
+        text: "La fecha de inicio debe ser anterior a la fecha de fin.",
       });
       return false;
     }
@@ -48,53 +65,63 @@ const ReservationsFormClient = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
-      console.log('Reservation Data:', reservationData);
-      console.log('Companions:', companions);
-      console.log('Payments:', payments);
       SweetAlert.fire({
-        icon: 'success',
-        title: 'Éxito',
-        text: 'Reserva registrada correctamente.',
+        icon: "success",
+        title: "Éxito",
+        text: "Reserva registrada correctamente.",
       });
+      // Limpiar los campos del formulario después de mostrar el mensaje de éxito
+      setReservationData({
+        customerName: "",
+        documentType: "",
+        documentNumber: "",
+        startDate: "",
+        endDate: "",
+        status: "Reserved", // Restablece el estado predeterminado
+        plans: "",
+        price: "",
+      });
+      setCompanions([]);
+      setPayments([]);
     }
   };
 
   return (
     <Container className="mt-4">
       <h2 className="text-center mb-4">Reserva de Cliente</h2>
-      <Form onSubmit={handleSubmit}>
-        <Row className="mb-3">
-          <Col md={12}>
-            {/* Reutiliza el componente ReservationForm */}
-            <ReservationForm
-              reservation={reservationData}
-              onChange={handleReservationChange}
-              onRegisterClient={handleSubmit}
-            />
-          </Col>
-        </Row>
+      <Row className="mb-3">
+        <Col md={12}>
+          {/* Reutiliza el componente ReservationForm */}
+          <ReservationForm
+            reservation={reservationData}
+            onChange={handleReservationChange}
+          />
+        </Col>
+      </Row>
 
-        {/* Formularios de acompañantes y pagos */}
-        <Row className="mb-3">
-          <Col md={12}>
-            <CompanionsForm companions={companions} setCompanions={setCompanions} />
-          </Col>
-        </Row>
+      {/* Formularios de acompañantes y pagos */}
+      <Row className="mb-3">
+        <Col md={12}>
+          <CompanionsForm
+            companions={companions}
+            setCompanions={setCompanions}
+          />
+        </Col>
+      </Row>
 
-        <Row className="mb-3">
-          <Col md={12}>
-            <PaymentsForm payments={payments} setPayments={setPayments} />
-          </Col>
-        </Row>
+      <Row className="mb-3">
+        <Col md={12}>
+          <PaymentsForm payments={payments} setPayments={setPayments} />
+        </Col>
+      </Row>
 
-        <Row className="mb-3">
-          <Col md={12} className="text-center">
-            <Button type="submit" variant="primary">
-              Registrar Reserva
-            </Button>
-          </Col>
-        </Row>
-      </Form>
+      <Row className="mb-3">
+        <Col md={12} className="text-center">
+          <Button variant="primary" onClick={handleSubmit}>
+            Guardar Reserva
+          </Button>
+        </Col>
+      </Row>
     </Container>
   );
 };

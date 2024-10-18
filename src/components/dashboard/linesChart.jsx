@@ -1,20 +1,20 @@
 import React from "react";
 import Chart from 'chart.js/auto';
-import {Line} from 'react-chartjs-2';
+import { Line } from 'react-chartjs-2';
 
-const LinesChart = () => {
-    const data = {
-        labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+const GraficoLineas = () => {
+    const datos = {
+        labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio'],
         datasets: [
             {
-                label: 'Sales 2020 (M)',
+                label: 'Ventas 2020 (M)',
                 data: [3, 2, 2, 1, 5, 6, 7],
                 fill: false,
                 borderColor: 'rgba(54, 162, 235, 0.6)',
                 tension: 0.1
             },
             {
-                label: 'Sales 2021 (M)',
+                label: 'Ventas 2021 (M)',
                 data: [1, 3, 2, 2, 6, 3, 4],
                 fill: false,
                 borderColor: 'rgba(255, 206, 86, 0.6)',
@@ -23,7 +23,7 @@ const LinesChart = () => {
         ]
     };
 
-    const options = {
+    const opciones = {
         maintainAspectRatio: false,
         scales: {
             y: {
@@ -33,10 +33,10 @@ const LinesChart = () => {
     };
 
     return (
-        <div className='lineChart'>
-            <Line data={data} options={options} />
+        <div className='graficoLineas'>
+            <Line data={datos} options={opciones} />
         </div>
-    )
+    );
 }
 
-export default LinesChart;
+export default GraficoLineas;
