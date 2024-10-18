@@ -1,10 +1,10 @@
 import React from "react";
 import Chart from 'chart.js/auto';
-import {Line} from 'react-chartjs-2';
+import { Line } from 'react-chartjs-2';
 
 const LinesChart = () => {
     const data = {
-        labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+        labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio'],
         datasets: [
             {
                 label: 'Sales 2020 (M)',
@@ -24,6 +24,16 @@ const LinesChart = () => {
     };
 
     const options = {
+        plugins: {
+            title: {
+                display: true,
+                text: 'Ingresos mensuales',
+                padding: {
+                    top: 10,
+                    bottom: 30,
+                },
+            },
+        },
         maintainAspectRatio: false,
         scales: {
             y: {
