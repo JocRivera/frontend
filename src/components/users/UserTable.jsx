@@ -40,6 +40,16 @@ const UserTable = () => {
     },
   ];
 
+  const StatusSwitch = ({ isActive, onChange, id }) => (
+    <Form.Check
+      type="switch"
+      id={`custom-switch-${id}`}
+      checked={isActive}
+      onChange={onChange}
+      className={`custom-switch ${isActive ? 'active' : 'inactive'}`}
+    />
+  );
+
   const [users, setUsers] = useState(initialUsers);
   const [modalState, setModalState] = useState({
     showUserModal: false,
@@ -222,6 +232,8 @@ const UserTable = () => {
           <Button
             variant="primary"
             className="mb-3"
+            style ={{ backgroundColor: "#007bff" }}
+
             onClick={() => toggleUserModal()}
           >
             Agregar Usuario
@@ -254,14 +266,11 @@ const UserTable = () => {
                   <td>{user.telefono}</td>
                   <td>{user.rol}</td>
                   <td>
-                    <Form.Check
-                      type="switch"
-                      id={`estado-${user.id}`}
-                      name="estado"
-                      checked={user.estado === "activo"}
-                      onChange={() => handleChangeEstado(user)}
-                      label={user.estado}
-                    />
+                  <StatusSwitch
+                    isActive={user.estado === "activo"}
+                    onChange={() => handleChangeEstado(user)}
+                  />
+                  <span>{user.estado}</span>
                   </td>
                   <td
                     className="d-flex justify-content-center"

@@ -2,8 +2,8 @@ import React from "react";
 import Chart from 'chart.js/auto';
 import { Line } from 'react-chartjs-2';
 
-const GraficoLineas = () => {
-    const datos = {
+const LinesChart = () => {
+    const data = {
         labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio'],
         datasets: [
             {
@@ -22,8 +22,17 @@ const GraficoLineas = () => {
             }
         ]
     };
-
-    const opciones = {
+    const options = {
+        plugins: {
+            title: {
+                display: true,
+                text: 'Ingresos mensuales',
+                padding: {
+                    top: 10,
+                    bottom: 30,
+                },
+            },
+        },
         maintainAspectRatio: false,
         scales: {
             y: {
@@ -31,7 +40,6 @@ const GraficoLineas = () => {
             }
         }
     };
-
     return (
         <div className='graficoLineas'>
             <Line data={datos} options={opciones} />

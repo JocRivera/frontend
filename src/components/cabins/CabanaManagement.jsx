@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   Card,
@@ -7,20 +7,23 @@ import {
   Row,
   Col,
   Container,
+  Table
 } from "react-bootstrap";
-import TableComodidad from "./ComodidadTable";
+import Select from 'react-select';
 import Swal from "sweetalert2";
 import ReactPaginate from "react-paginate";
-import { PlusCircle, Edit, Trash, Eye } from "lucide-react";
+import { PlusCircle, Edit, Trash, Eye,FileSpreadsheet  } from "lucide-react";
+import * as XLSX from 'xlsx';
 import "./Cabins.css";
 
 const CabanaManagement = () => {
   const [cabanaList, setCabanaList] = useState([]);
-  const [selectedCabana, setSelectedCabana] = useState(null);
-  const [showCabanaForm, setShowCabanaForm] = useState(false);
-  const [showDetailModal, setShowDetailModal] = useState(false);
+ const [showCabanaForm, setShowCabanaForm] = useState(false);
   const [showComodidadModal, setShowComodidadModal] = useState(false);
- const [formValues, setFormValues] = useState({
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedCabana, setSelectedCabana] = useState(null);
+  const [tempCabanaFormValues, setTempCabanaFormValues] = useState(null);
+  const [formValues, setFormValues] = useState({
     nombre: "",
     capacidad: "",
     estado: "En servicio",
@@ -28,10 +31,187 @@ const CabanaManagement = () => {
     comodidades: [],
     imagen: null,
   });
+
+  const [comodidadesOptions, setComodidadesOptions] = useState([
+    { value: 'cama', label: 'Cama King Size' },
+    { value: 'tv', label: 'TV 4K' },
+    { value: 'jacuzzi', label: 'Jacuzzi' },
+    { value: 'minibar', label: 'Minibar' },
+    { value: 'wifi', label: 'Wi-Fi' },
+  ]);
+
+  const [selectedComodidad, setSelectedComodidad] = useState(null);
+  const [editingComodidadId, setEditingComodidadId] = useState(null);
+  const [newComodidad, setNewComodidad] = useState({
+    nombreArticulo: '',
+    codigoArticulo: '',
+    observacion: '',
+    fechaIngreso: '',
+    estado: 'Disponible',
+  });
+  const [comodidadErrors, setComodidadErrors] = useState({});
+
   const [searchTerm, setSearchTerm] = useState("");
   const [errors, setErrors] = useState({});
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 6;
+
+  const handleComodidadSelect = (selectedOption) => {
+    setSelectedComodidad(selectedOption);
+    if (selectedOption) {
+      const newComodidad = {
+        id: Date.now(),
+        nombreArticulo: selectedOption.label,
+        codigoArticulo: `COD-${selectedOption.value.toUpperCase()}`,
+        observacion: '',
+        fechaIngreso: new Date().toISOString().split('T')[0],
+        estado: 'Disponible',
+      };
+      setFormValues(prev => ({
+        ...prev,
+        comodidades: [...prev.comodidades, newComodidad]
+      }));
+      setSelectedComodidad(null);
+    }
+  };
+
+  const handleNewComodidadChange = (e) => {
+    const { name, value } = e.target;
+    setNewComodidad(prev => ({ ...prev, [name]: value }));
+    
+    const error = validateComodidadField(name, value);
+    setComodidadErrors(prev => ({ ...prev, [name]: error }));
+  };
+ const handleAddNewComodidad = () => {
+    setEditingComodidadId('new');
+    setNewComodidad({
+      nombreArticulo: '',
+      codigoArticulo: '',
+      observacion: '',
+      fechaIngreso: '',
+      estado: 'Disponible',
+    });
+    setTempCabanaFormValues({ ...formValues });
+    setShowCabanaForm(false);
+    setShowComodidadModal(true);
+  };
+  const handleSaveComodidad = () => {
+
+const newErrors = {};
+    Object.keys(newComodidad).forEach(key => {
+      const error = validateComodidadField(key, newComodidad[key]);
+      if (error) newErrors[key] = error;
+    });
+
+    if (Object.keys(newErrors).length > 0) {
+      setComodidadErrors(newErrors);
+      return;
+    }
+
+    let updatedComodidades;
+    if (editingComodidadId === 'new') {
+      const newComodidadWithId = { ...newComodidad, id: Date.now() };
+      updatedComodidades = [...tempCabanaFormValues.comodidades, newComodidadWithId];
+      
+      // Actualizar comodidadesOptions
+      const newOption = {
+        value: newComodidadWithId.codigoArticulo.toLowerCase(),
+        label: newComodidadWithId.nombreArticulo
+      };
+      setComodidadesOptions(prevOptions => [...prevOptions, newOption]);
+    } else {
+      updatedComodidades = tempCabanaFormValues.comodidades.map(c => 
+        c.id === editingComodidadId ? { ...c, ...newComodidad } : c
+      );
+      
+      // Actualizar comodidadesOptions
+      setComodidadesOptions(prevOptions => 
+        prevOptions.map(option => 
+          option.value === newComodidad.codigoArticulo.toLowerCase()
+            ? { ...option, label: newComodidad.nombreArticulo }
+            : option
+        )
+      );
+    }
+
+    setFormValues(prev => ({
+      ...prev,
+      comodidades: updatedComodidades
+    }));
+
+    setShowComodidadModal(false);
+    setShowCabanaForm(true);
+    setEditingComodidadId(null);
+    setNewComodidad({
+      nombreArticulo: '',
+      codigoArticulo: '',
+      observacion: '',
+      fechaIngreso: '',
+      estado: 'Disponible',
+    });
+  };
+
+
+  const handleCloseComodidadModal = () => {
+    setShowComodidadModal(false);
+    setShowCabanaForm(true);
+    setEditingComodidadId(null);
+    setNewComodidad({
+      nombreArticulo: '',
+      codigoArticulo: '',
+      observacion: '',
+      fechaIngreso: '',
+      estado: 'Disponible',
+    });
+  };
+
+
+  const handleDeleteComodidad = (id) => {
+    const comodidadToDelete = formValues.comodidades.find(c => c.id === id);
+    setFormValues(prev => ({
+      ...prev,
+      comodidades: prev.comodidades.filter(c => c.id !== id)
+    }));
+    setComodidadesOptions(prevOptions => 
+      prevOptions.filter(option => option.value !== comodidadToDelete.codigoArticulo.toLowerCase())
+    );
+  };
+  
+  const handleEditComodidad = (id) => {
+    setEditingComodidadId(id);
+    const comodidadToEdit = formValues.comodidades.find(c => c.id === id);
+    setNewComodidad({ ...comodidadToEdit });
+    setTempCabanaFormValues({ ...formValues });
+    setShowCabanaForm(false);
+    setShowComodidadModal(true);
+  };
+
+  const handleSaveEditedComodidad = () => {
+    setFormValues(prev => ({
+      ...prev,
+      comodidades: prev.comodidades.map(c => 
+        c.id === editingComodidadId ? { ...c, ...newComodidad } : c
+      )
+    }));
+    setEditingComodidadId(null);
+    setNewComodidad({
+      nombreArticulo: '',
+      codigoArticulo: '',
+      observacion: '',
+      fechaIngreso: '',
+      estado: 'Disponible',
+    });
+    setShowComodidadModal(false);
+  };
+
+  const handleComodidadChange = (id, field, value) => {
+    setFormValues(prev => ({
+      ...prev,
+      comodidades: prev.comodidades.map(c => 
+        c.id === id ? { ...c, [field]: value } : c
+      )
+    }));
+  };
 
   const handlePageClick = (data) => {
     setCurrentPage(data.selected);
@@ -42,8 +222,7 @@ const CabanaManagement = () => {
     switch (name) {
       case "nombre":
         if (!value.trim()) error = "Nombre es obligatorio";
-        else  if (value.length < 3) error = "Nombre debe tener al menos 3 caracteres";
-
+        else if (value.length < 3) error = "Nombre debe tener al menos 3 caracteres";
         break;
       case "capacidad":
         if (!value) error = "Capacidad es obligatoria";
@@ -51,7 +230,7 @@ const CabanaManagement = () => {
         break;
       case "descripcion":
         if (!value.trim()) error = "Descripción es obligatoria";
-        else  if (value.length < 10) error = "Descripción debe tener al menos 10 caracteres"
+        else if (value.length < 10) error = "Descripción debe tener al menos 10 caracteres";
         break;
       case "imagen":
         if (!value) error = "Imagen es obligatoria";
@@ -65,7 +244,26 @@ const CabanaManagement = () => {
     return error;
   };
 
- 
+  const validateComodidadField = (name, value) => {
+    let error = "";
+    switch (name) {
+      case "nombreArticulo":
+        if (!value.trim()) error = "El nombre del artículo es obligatorio";
+        break;
+      case "codigoArticulo":
+        if (!value.trim()) error = "El código del artículo es obligatorio";
+        break;
+      case "fechaIngreso":
+        if (!value) error = "La fecha de ingreso es obligatoria";
+        break;
+        case "observacion":
+          if (!value.trim()) error = "La observación es obligatoria";
+          break;
+      default:
+        break;
+    }
+    return error;
+  };
   useEffect(() => {
     const newErrors = {};
     Object.keys(formValues).forEach(key => {
@@ -79,10 +277,6 @@ const CabanaManagement = () => {
     const { name, value, type, files } = e.target;
     const newValue = type === "file" ? files[0] : value;
     setFormValues(prev => ({ ...prev, [name]: newValue }));
-  };
-
-  const handleComodidadesChange = (newComodidades) => {
-    setFormValues(prev => ({ ...prev, comodidades: newComodidades }));
   };
 
   const validateForm = () => {
@@ -105,43 +299,42 @@ const CabanaManagement = () => {
       return;
     }
   
-      const saveCabana = () => {
-        if (selectedCabana) {
-          setCabanaList(
-            cabanaList.map((item) =>
-              item.id === formValues.id ? { ...item, ...formValues } : item
-            )
-          );
-          Swal.fire({
-            title: "Cabaña editada con éxito",
-            text: "La cabaña ha sido editada con éxito.",
-            icon: "success",
-            timer: 3000,
-            showConfirmButton: false,
-          });
-        } else {
-          setCabanaList([...cabanaList, { ...formValues, id: Date.now() }]);
-          Swal.fire({
-            title: "Cabaña agregada con éxito",
-            text: "La cabaña ha sido agregada con éxito.",
-            icon: "success",
-            timer: 3000,
-            showConfirmButton: false,
-          });
-        }
-  
-        setShowCabanaForm(false);
-        setSelectedCabana(null);
-        setFormValues({
-          nombre: "",
-          capacidad: "",
-          estado: "En servicio",
-          descripcion: "",
-          comodidades: [],
-          imagen: null,
+    const saveCabana = () => {
+      if (selectedCabana) {
+        setCabanaList(
+          cabanaList.map((item) =>
+            item.id === formValues.id ? { ...item, ...formValues } : item
+          )
+        );
+        Swal.fire({
+          title: "Cabaña editada con éxito",
+          text: "La cabaña ha sido editada con éxito.",
+          icon: "success",
+          timer: 3000,
+          showConfirmButton: false,
         });
-        setShowComodidadModal(false); // Asegurarse de que el modal de comodidades se cierre
-      };
+      } else {
+        setCabanaList([...cabanaList, { ...formValues, id: Date.now() }]);
+        Swal.fire({
+          title: "Cabaña agregada con éxito",
+          text: "La cabaña ha sido agregada con éxito.",
+          icon: "success",
+          timer: 3000,
+          showConfirmButton: false,
+        });
+      }
+
+      setShowCabanaForm(false);
+      setSelectedCabana(null);
+      setFormValues({
+        nombre: "",
+        capacidad: "",
+        estado: "En servicio",
+        descripcion: "",
+        comodidades: [],
+        imagen: null,
+      });
+    };
 
     if (selectedCabana) {
       Swal.fire({
@@ -181,6 +374,7 @@ const CabanaManagement = () => {
     setSelectedCabana(null);
     setShowCabanaForm(true);
   };
+
   const getStatusBadgeClass = (estado) => {
     switch (estado) {
       case "En servicio":
@@ -193,6 +387,7 @@ const CabanaManagement = () => {
         return "bg-secondary";
     }
   };
+
   const handleViewDetails = (cabana) => {
     setSelectedCabana(cabana);
     setShowDetailModal(true);
@@ -230,37 +425,94 @@ const CabanaManagement = () => {
     currentPage * itemsPerPage,
     (currentPage + 1) * itemsPerPage
   );
+  const handleExportComodidades = () => {
+    const allComodidades = [
+      ...comodidadesOptions.map(option => ({
+        'Nombre del Artículo': option.label,
+        'Código del Artículo': `COD-${option.value.toUpperCase()}`,
+        'Observación': '',
+        'Fecha de Ingreso': new Date().toISOString().split('T')[0],
+        'Estado': 'Disponible'
+      })),
+      ...cabanaList.flatMap(cabana => 
+        cabana.comodidades.map(comodidad => ({
+          'Nombre del Artículo': comodidad.nombreArticulo,
+          'Código del Artículo': comodidad.codigoArticulo,
+          'Observación': comodidad.observacion,
+          'Fecha de Ingreso': comodidad.fechaIngreso,
+          'Estado': comodidad.estado
+        }))
+      )
+    ];
+  
+    // Eliminar duplicados basados en el código del artículo
+    const uniqueComodidades = allComodidades.reduce((acc, current) => {
+      const x = acc.find(item => item['Código del Artículo'] === current['Código del Artículo']);
+      if (!x) {
+        return acc.concat([current]);
+      } else {
+        return acc;
+      }
+    }, []);
+  
+    if (uniqueComodidades.length === 0) {
+      Swal.fire({
+        title: "No hay datos para exportar",
+        text: "No se encontraron comodidades para exportar.",
+        icon: "info"
+      });
+      return;
+    }
+  
+    const ws = XLSX.utils.json_to_sheet(uniqueComodidades);
+  
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Comodidades");
+  
+    XLSX.writeFile(wb, "comodidades.xlsx");
+  
+    Swal.fire({
+      title: "Exportación exitosa",
+      text: "Las comodidades se han exportado correctamente.",
+      icon: "success"
+    });
+  };
 
   return (
-    <div
-    className={`container col p-5 mt-3 ${showComodidadModal ? 'overlay-active' : ''}`}
-    style={{ minHeight: "100vh", marginRight: "850px", marginTop: "50px" }}
-  >
-      <h1 className="mb-4">Lista de Cabañas</h1>
-      <Row className="mb-4">
-        <Col md={6}>
-          <div className="search-container">
-            <Form.Control
-              style={{ maxWidth: "300px", marginRight: "20px" }}
-              type="text"
-              placeholder="Buscar por nombre"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="me-2"
-            />
-          </div>
-        </Col>
-        <Col md={6} className="text-md-end">
-          <Button
-            variant="primary"
-            onClick={handleAddCabana}
-            className="add-button"
-          >
-            <PlusCircle size={20} className="me-2" />
-            Añadir Cabaña
-          </Button>
-        </Col>
-      </Row>
+    <div className="container col p-5 mt-3" style={{ minHeight: "100vh", marginRight: "850px", marginTop: "50px" }}>
+    <h1 className="mb-4">Lista de Cabañas</h1>
+    <Row className="mb-4">
+      <Col md={6}>
+        <div className="search-container">
+          <Form.Control
+            style={{ maxWidth: "300px", marginRight: "20px" }}
+            type="text"
+            placeholder="Buscar por nombre"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="me-2"
+          />
+        </div>
+      </Col>
+      <Col md={6} className="text-md-end">
+        <Button
+          variant="primary"
+          onClick={handleAddCabana}
+          className="add-button"
+        >
+          <PlusCircle size={20} className="me-2" />
+          Añadir Cabaña
+        </Button>
+        <Button
+          variant="success"
+          onClick={handleExportComodidades}
+          className="export-button"
+        >
+          <FileSpreadsheet size={20} className="me-2" />
+          Exportar Comodidades
+        </Button>
+      </Col>
+    </Row>
       <Row>
         {paginatedCabanas.length > 0 ? (
           paginatedCabanas.map((cabana) => (
@@ -320,7 +572,7 @@ const CabanaManagement = () => {
           ))
         ) : (
           <Col>
-            <p>No se encontraron cabañas.</p>
+            <p>No seencontraron cabañas.</p>
           </Col>
         )}
       </Row>
@@ -337,135 +589,261 @@ const CabanaManagement = () => {
         activeClassName={"active"}
       />
 
-{showCabanaForm && (
-        <Modal
-          show={showCabanaForm}
-          onHide={() => setShowCabanaForm(false)}
-          size="lg"
-          backdrop="static"
-          keyboard={false}
-        >
-          <Modal.Header closeButton>
-            <Modal.Title>
-              {selectedCabana ? "Editar Cabaña" : "Agregar Cabaña"}
-            </Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Form>
-              <Container>
-                <Row>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Nombre</Form.Label>
-                      <Form.Control
-                        type="text"
-                        name="nombre"
-                        value={formValues.nombre}
-                        onChange={handleInputChange}
-                        isInvalid={!!errors.nombre}
+      <Modal
+        show={showCabanaForm}
+        onHide={() => setShowCabanaForm(false)}
+        size="lg"
+        backdrop="static"
+        keyboard={false}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {selectedCabana ? "Editar Cabaña" : "Agregar Cabaña"}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Container>
+              <Row>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Nombre</Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="nombre"
+                      value={formValues.nombre}
+                      onChange={handleInputChange}
+                      isInvalid={!!errors.nombre}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      {errors.nombre}
+                    </Form.Control.Feedback>
+                  </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Capacidad</Form.Label>
+                    <Form.Control
+                      type="number"
+                      name="capacidad"
+                      value={formValues.capacidad}
+                      onChange={handleInputChange}
+                      isInvalid={!!errors.capacidad}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      {errors.capacidad}
+                    </Form.Control.Feedback>
+                  </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Estado</Form.Label>
+                    <Form.Control
+                      as="select"
+                      name="estado"
+                      value={formValues.estado}
+                      onChange={handleInputChange}
+                    >
+                      <option>En servicio</option>
+                      <option>En mantenimiento</option>
+                      <option>Fuera de servicio</option>
+                    </Form.Control>
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Descripción</Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      name="descripcion"
+                      value={formValues.descripcion}
+                      onChange={handleInputChange}
+                      isInvalid={!!errors.descripcion}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      {errors.descripcion}
+                    </Form.Control.Feedback>
+                  </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Imagen</Form.Label>
+                    <Form.Control
+                      type="file"
+                      name="imagen"
+                      onChange={handleInputChange}
+                      isInvalid={!!errors.imagen}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      {errors.imagen}
+                    </Form.Control.Feedback>
+                  </Form.Group>
+                  {formValues.imagen && (
+                    <img
+                      src={URL.createObjectURL(formValues.imagen)}
+                      alt="Vista previa"
+                      style={{
+                        width: "100%",
+                        maxHeight: "150px",
+                        objectFit: "cover",
+                        marginTop: "10px",
+                      }}
+                    />
+                  )}
+                </Col>
+              </Row>
+              <Row>
+                <Col>
+                  <Form.Group className="mt-3">
+                    <Form.Label>Comodidades</Form.Label>
+                    <div className="d-flex mb-3">
+                      <Select
+                        options={comodidadesOptions}
+                        onChange={handleComodidadSelect}
+                        value={selectedComodidad}
+                        placeholder="Seleccionar comodidad"
+                        className="flex-grow-1 me-2"
                       />
-                      <Form.Control.Feedback type="invalid">
-                        {errors.nombre}
-                      </Form.Control.Feedback>
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Capacidad</Form.Label>
-                      <Form.Control
-                        type="number"
-                        name="capacidad"
-                        value={formValues.capacidad}
-                        onChange={handleInputChange}
-                        isInvalid={!!errors.capacidad}
-                      />
-                      <Form.Control.Feedback type="invalid">
-                        {errors.capacidad}
-                      </Form.Control.Feedback>
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Estado</Form.Label>
-                      <Form.Control
-                        as="select"
-                        name="estado"
-                        value={formValues.estado}
-                        onChange={handleInputChange}
-                      >
-                        <option>En servicio</option>
-                        <option>En mantenimiento</option>
-                        <option>Fuera de servicio</option>
-                      </Form.Control>
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Descripción</Form.Label>
-                      <Form.Control
-                        as="textarea"
-                        rows={3}
-                        name="descripcion"
-                        value={formValues.descripcion}
-                        onChange={handleInputChange}
-                        isInvalid={!!errors.descripcion}
-                      />
-                      <Form.Control.Feedback type="invalid">
-                        {errors.descripcion}
-                      </Form.Control.Feedback>
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Imagen</Form.Label>
-                      <Form.Control
-                        type="file"
-                        name="imagen"
-                        onChange={handleInputChange}
-                        isInvalid={!!errors.imagen}
-                      />
-                      <Form.Control.Feedback type="invalid">
-                        {errors.imagen}
-                      </Form.Control.Feedback>
-                    </Form.Group>
-                    {formValues.imagen && (
-                      <img
-                        src={URL.createObjectURL(formValues.imagen)}
-                        alt="Vista previa"
-                        style={{
-                          width: "100%",
-                          maxHeight: "150px",
-                          objectFit: "cover",
-                          marginTop: "10px",
-                        }}
-                      />
-                    )}
-                  </Col>
-                </Row>
-                <Row>
-                  <Col>
-                    <Form.Group className="mt-3">
-                      <Form.Label>Comodidades</Form.Label>
-                      <TableComodidad
-                        comodidades={formValues.comodidades}
-                        onUpdateComodidades={handleComodidadesChange}
-                        onShowModal={() => setShowComodidadModal(true)}
-                        onHideModal={() => setShowComodidadModal(false)}
-                      />
-                      {errors.comodidades && (
-                        <div className="text-danger">{errors.comodidades}</div>
-                      )}
-                    </Form.Group>
-                  </Col>
-                </Row>
-              </Container>
-            </Form>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowCabanaForm(false)}>
-              Cancelar
-            </Button>
-            <Button variant="primary" onClick={handleSaveCabana}>
-              Guardar
-            </Button>
-          </Modal.Footer>
-        </Modal>
+                       <Button onClick={handleAddNewComodidad} variant="primary"  >
+          <PlusCircle size={16} className="me-2" />
+          Nueva Comodidad
+        </Button>
+                    </div>
+                    <Table striped bordered hover>
+                      <thead>
+                        <tr>
+                          <th>Artículo</th>
+                          <th>Código</th>
+                          <th>Observación</th>
+                          <th>Fecha de Ingreso</th>
+                          <th>Estado</th>
+                          <th>Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {formValues.comodidades.map((comodidad) => (
+                          <tr key={comodidad.id}>
+                            <td>{comodidad.nombreArticulo}</td>
+                            <td>{comodidad.codigoArticulo}</td>
+                            <td>{comodidad.observacion}</td>
+                            <td>{comodidad.fechaIngreso}</td>
+                            <td>{comodidad.estado}</td>
+                            <td>
+                              <Button
+                                variant="outline-primary"
+                                onClick={() => handleEditComodidad(comodidad.id)}
+                                className="me-2"
+                              >
+                                <Edit size={16} />
+                              </Button>
+                              <Button
+                                variant="outline-danger"
+                                onClick={() => handleDeleteComodidad(comodidad.id)}
+                              >
+                                <Trash size={16} />
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                  </Form.Group>
+                </Col>
+              </Row>
+            </Container>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowCabanaForm(false)}>
+            Cancelar
+          </Button>
+          <Button variant="primary" onClick={handleSaveCabana}>
+            Guardar
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
-      )}
+       <Modal 
+      show={showComodidadModal} 
+      onHide={handleCloseComodidadModal}
+    >
+      <Modal.Header closeButton>
+        <Modal.Title>{editingComodidadId === 'new' ? 'Agregar' : 'Editar'} Comodidad</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Form>
+          <Form.Group className="mb-3">
+            <Form.Label>Código del Artículo</Form.Label>
+            <Form.Control
+              type="text"
+              name="codigoArticulo"
+              value={newComodidad.codigoArticulo}
+              onChange={handleNewComodidadChange}
+              isInvalid={!!comodidadErrors.codigoArticulo}
+            />
+            <Form.Control.Feedback type="invalid">
+              {comodidadErrors.codigoArticulo}
+            </Form.Control.Feedback>
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Nombre del Artículo</Form.Label>
+            <Form.Control
+              type="text"
+              name="nombreArticulo"
+              value={newComodidad.nombreArticulo}
+              onChange={handleNewComodidadChange}
+              isInvalid={!!comodidadErrors.nombreArticulo}
+            />
+            <Form.Control.Feedback type="invalid">
+              {comodidadErrors.nombreArticulo}
+            </Form.Control.Feedback>
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Observación</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              name="observacion"
+              value={newComodidad.observacion}
+              onChange={handleNewComodidadChange}
+
+            />
+            <Form.Control.Feedback type="invalid">
+              {comodidadErrors.observacion}
+            </Form.Control.Feedback>
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Fecha de Ingreso</Form.Label>
+            <Form.Control
+              type="date"
+              name="fechaIngreso"
+              value={newComodidad.fechaIngreso}
+              onChange={handleNewComodidadChange}
+              isInvalid={!!comodidadErrors.fechaIngreso}
+            />
+            <Form.Control.Feedback type="invalid">
+              {comodidadErrors.fechaIngreso}
+            </Form.Control.Feedback>
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Estado</Form.Label>
+            <Form.Control
+              as="select"
+              name="estado"
+              value={newComodidad.estado}
+              onChange={handleNewComodidadChange}
+            >
+              <option value="Disponible">Disponible</option>
+              <option value="De Baja">Dado de Baja</option>
+              <option value="En Mantenimiento">En Mantenimiento</option>
+            </Form.Control>
+          </Form.Group>
+        </Form>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={handleCloseComodidadModal}>
+          Cancelar
+        </Button>
+        <Button variant="primary" onClick={handleSaveComodidad}>
+          Guardar
+        </Button>
+      </Modal.Footer>
+    </Modal>
 
       {showDetailModal && (
         <Modal

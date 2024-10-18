@@ -3,6 +3,7 @@ import * as BsIcons from "react-icons/bs";
 import { Button, Modal, Form, Table, FormControl } from 'react-bootstrap';
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import { PlusCircle } from 'lucide-react'
 import ReactPaginate from "react-paginate";
 
 
@@ -18,16 +19,17 @@ const MainContent = () => {
         status: true
     });
 
+
     const [currentService, setCurrentService] = useState(null);
     const [editService, setEditService] = useState({});
     const [errors, setErrors] = useState({});
     const [query, setQuery] = useState(''); // Estado para la búsqueda
-    const [currentPage, setCurrentPage] = useState(); // Estado para la paginación
+    const [currentPage, setCurrentPage] = useState(0); // Estado para la paginación
     const itemsPerPage = 5; // Número de servicios por página
     useEffect(() => {
         const fetchServices = async () => {
             try {
-                const response = await axios.get('http://localhost:3000/service');
+                const response = await axios.get('http://192.168.1.28/service');
                 setServices(response.data);
             } catch (error) {
                 console.error("Error al obtener los servicios:", error);
@@ -81,7 +83,7 @@ const MainContent = () => {
 
             if (confirm.isConfirmed) {
                 // Enviar solicitud POST con axios
-                const response = await axios.post('http://localhost:3000/service', newService);
+                const response = await axios.post('http://192.168.1.28/service', newService);
 
                 // Agregar el nuevo servicio a la lista en el estado
                 setServices(prevServices => [...prevServices, response.data]);
@@ -134,7 +136,7 @@ const MainContent = () => {
             });
 
             if (confirm.isConfirmed) {
-                await axios.put(`http://localhost:3000/service/${editService._id}`, editService);
+                await axios.put(`http://192.168.1.28/service/${editService._id}`, editService);
                 setServices(services.map(service =>
                     service._id === editService._id ? editService : service
                 ));
@@ -164,7 +166,7 @@ const MainContent = () => {
 
         if (confirm.isConfirmed) {
             try {
-                await axios.delete(`http://localhost:3000/service/${serviceToDelete._id}`);
+                await axios.delete(`http://192.168.1.28/service/${serviceToDelete._id}`);
                 setServices(prevServices => prevServices.filter(service => service._id !== serviceToDelete._id));
                 Swal.fire("Eliminado", "El servicio ha sido eliminado.", "success");
             } catch (error) {
@@ -190,10 +192,33 @@ const MainContent = () => {
         // Implementar lógica de búsqueda aquí si es necesario
     };
 
-    const handleServiceStatus = (id) => {
-        const updatedServices = services.map(service =>
-            service._id === id ? { ...service, status: !service.status } : service);
-        setServices(updatedServices);
+    const handleServiceStatus = async (id) => {
+        try {
+            const confirm = await Swal.fire({
+                title: "¿Deseas cambiar el estado del servicio?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Confirmar",
+                cancelButtonText: "Cancelar",
+            });
+            if (confirm.isConfirmed) {
+                // const service = services.find(service => service._id === id);
+                // await axios.put(`http://192.168.1.28/service/${id}`, {
+                //     ...service,
+                //     status: !service.status
+                // });
+                // setServices(services.map(service =>
+                //     service._id === id ? { ...service, status: !service.status } : service
+                // ));
+                const updatedServices = services.map(service =>
+                    service._id === id ? { ...service, status: !service.status } : service);
+                setServices(updatedServices);
+                Swal.fire("Actualizado", "El estado del servicio ha sido actualizado.", "success");
+            }
+        } catch (error) {
+            console.error("Error al cambiar el estado del servicio:", error);
+            Swal.fire("Error", "No se pudo cambiar el estado del servicio. Inténtelo de nuevo.", "error");
+        }
     };
 
     // Filtrar servicios basados en la búsqueda
@@ -206,9 +231,7 @@ const MainContent = () => {
         setCurrentPage(selectedPage.selected);
     };
 
-    // const handlePageChange = () => {
-    //     filteredServices.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
-    // }
+    const displayedServices = filteredServices.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
 
     return (
         <div className='container col p-5 mt-3' style={{ minHeight: "100vh", marginRight: "900px", marginTop: "50px" }}>
@@ -226,7 +249,7 @@ const MainContent = () => {
                     />
                     <Button variant="outline-success" type="submit">Buscar</Button>
                 </Form>
-                <Button variant="primary" className="mb-3" onClick={() => setShowModal(true)}>
+                <Button variant="primary" className="mb-3 d-flex align-items-center" onClick={() => setShowModal(true)}><PlusCircle size={20} className='me-2' />
                     Añadir
                 </Button>
             </div>
@@ -242,8 +265,8 @@ const MainContent = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {filteredServices.length > 0 ? (
-                        filteredServices.map((service, index) => (
+                    {displayedServices.length > 0 ? (
+                        displayedServices.map((service, index) => (
                             <tr key={service._id}>
                                 <td>{index + 1}</td>
                                 <td>{service.service}</td>

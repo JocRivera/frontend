@@ -3,6 +3,8 @@ import * as BsIcons from "react-icons/bs";
 import { Button, Modal, Form, Table } from 'react-bootstrap';
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import { PlusCircle } from "lucide-react"
+import ReactPaginate from 'react-paginate';
 
 const SettingManagement = () => {
     const [showModal, setShowModal] = useState(false);
@@ -13,13 +15,15 @@ const SettingManagement = () => {
     const [query, setQuery] = useState('');
     const [errors, setErrors] = useState({ rol: '', description: '' });
     const [permissions, setPermissions] = useState([]);
+    const [currentPage, setCurrentPage] = useState(0);
+    const itemsPerPage = 5;
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const [rolesResponse, permissionsResponse] = await Promise.all([
-                    axios.get('http://localhost:3000/rol'),
-                    axios.get('http://localhost:3000/permission')
+                    axios.get('http://192.168.1.28/rol'),
+                    axios.get('http://192.168.1.28/permission')
                 ]);
                 setSettings(rolesResponse.data);
                 setPermissions(permissionsResponse.data);
@@ -33,10 +37,13 @@ const SettingManagement = () => {
     const validate = (values) => {
         const errors = {}
         if (!values.rol) {
-            errors.rol = 'Name is required';
+            errors.rol = 'Nombre de rol es requerido';
         }
         if (!values.description) {
-            errors.description = 'Description is required';
+            errors.description = 'Descripción es requerida';
+        }
+        if (values.permissions.length === 0) {
+            errors.permission = 'Seleccione al menos un permiso';
         }
         return errors;
     };
@@ -76,7 +83,7 @@ const SettingManagement = () => {
         }
 
         try {
-            const response = await axios.post('http://localhost:3000/rol', newSetting);
+            const response = await axios.post('http://192.168.1.28/rol', newSetting);
             setSettings([...settings, response.data]);
             setNewSetting({ rol: '', description: '', permissions: [], status: true });
             setShowModal(false);
@@ -108,7 +115,7 @@ const SettingManagement = () => {
         }
 
         try {
-            await axios.put(`http://localhost:3000/rol/${editSetting._id}`, editSetting);
+            await axios.put(`http://192.168.1.28/rol/${editSetting._id}`, editSetting);
             const updatedSettings = settings.map(setting =>
                 setting._id === editSetting._id ? editSetting : setting
             );
@@ -140,7 +147,7 @@ const SettingManagement = () => {
 
     const handleDelete = async (setting) => {
         try {
-            await axios.delete(`http://localhost:3000/rol/${setting._id}`);
+            await axios.delete(`http://192.168.1.28/rol/${setting._id}`);
             const updatedSettings = settings.filter(s => s._id !== setting._id);
             setSettings(updatedSettings);
             Swal.fire({
@@ -180,14 +187,14 @@ const SettingManagement = () => {
             if (confirm.isConfirmed) {
                 const settingToUpdate = settings.find(s => s._id === _id);
                 const updatedStatus = !settingToUpdate.status;
-                await axios.patch(`http://localhost:3000/rol/${_id}`, { status: updatedStatus });
+                await axios.patch(`http://192.168.1.28/rol/${_id}`, { status: updatedStatus });
                 const updatedSettings = settings.map(setting =>
                     setting._id === _id ? { ...setting, status: updatedStatus } : setting
                 );
                 setSettings(updatedSettings);
                 Swal.fire({
                     title: "Success!",
-                    text: "Status changed successfully!",
+                    text: "El estado del rol ha sido cambiado!",
                     icon: "success",
                     timer: 2000,
                     showConfirmButton: false,
@@ -210,6 +217,12 @@ const SettingManagement = () => {
         setting.rol.toLowerCase().includes(query.toLowerCase())
     );;
 
+    const handlePageChange = (selectedPage) => {
+        setCurrentPage(selectedPage.selected);
+    }
+
+    const displayedSettings = filteredSettings.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
+
     return (
         <div className='container col p-5 mt-3' style={{ minHeight: "100vh", marginRight: "850px", marginTop: "50px" }}>
             <h2 className='text-center'>Configuracion roles</h2>
@@ -225,7 +238,8 @@ const SettingManagement = () => {
                     />
                     <Button variant="outline-success" type="submit">Buscar</Button>
                 </Form>
-                <Button className='mb-3' onClick={() => setShowModal(true)}>Añadir</Button>
+                <Button className='mb-3 d-flex align-items-center' onClick={() => setShowModal(true)}><PlusCircle size={20} className='me-2'/>
+                    Añadir</Button>
             </div>
 
             <Table striped bordered hover>
@@ -233,14 +247,14 @@ const SettingManagement = () => {
                     <tr>
                         <th>Id</th>
                         <th>Rol</th>
-                        <th>Description</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>Descripción</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {filteredSettings.length > 0 ? (
-                        filteredSettings.map((setting, index) => (
+                    {displayedSettings.length > 0 ? (
+                        displayedSettings.map((setting, index) => (
                             <tr key={setting._id}>
                                 <td>{index + 1}</td>
                                 <td>{setting.rol}</td>
@@ -266,11 +280,22 @@ const SettingManagement = () => {
                     )}
                 </tbody>
             </Table>
+            <ReactPaginate
+                previousLabel={"Anterior"}
+                nextLabel={"Siguiente"}
+                breakLabel={"..."}
+                pageCount={Math.ceil(filteredSettings.length / itemsPerPage)}
+                marginPagesDisplayed={2}
+                pageRangeDisplayed={5}
+                onPageChange={handlePageChange}
+                containerClassName={"pagination-container"}
+                activeClassName={"active"}
+            />
 
             {/* Modal for Adding a Setting */}
             <Modal show={showModal} onHide={() => setShowModal(false)}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Registrar rol</Modal.Title>
+                    <Modal.Title>Añadir rol</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Form onSubmit={handleSubmit}>
@@ -280,18 +305,18 @@ const SettingManagement = () => {
                             {errors.rol && <span style={{ color: 'red' }}>{errors.rol}</span>}
                         </Form.Group>
                         <Form.Group>
-                            <Form.Label>Description</Form.Label>
+                            <Form.Label>Descripción</Form.Label>
                             <Form.Control type="text" name="description" value={newSetting.description} onChange={handleChange} />
                             {errors.description && <span style={{ color: 'red' }}>{errors.description}</span>}
                         </Form.Group>
 
                         <Form.Group>
-                            <Form.Label>Permissions</Form.Label>
+                            <Form.Label>Permisos</Form.Label>
                             <Table>
                                 <thead>
                                     <tr>
-                                        <th>Name</th>
-                                        <th>Access</th>
+                                        <th>Nombre</th>
+                                        <th>Estado</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -309,6 +334,7 @@ const SettingManagement = () => {
                                     ))}
                                 </tbody>
                             </Table>
+                            {errors.permission && <span style={{ color: 'red' }}>{errors.permission}</span>}
                         </Form.Group>
 
                         <Form.Group className="mb-3" controlId="formStatus">
@@ -332,7 +358,7 @@ const SettingManagement = () => {
             {/* Modal for Editing a Setting */}
             <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Edit Role</Modal.Title>
+                    <Modal.Title>Editar Rol</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Form onSubmit={handleEditSubmit}>
@@ -342,18 +368,18 @@ const SettingManagement = () => {
                             {errors.rol && <span style={{ color: 'red' }}>{errors.rol}</span>}
                         </Form.Group>
                         <Form.Group>
-                            <Form.Label>Description</Form.Label>
+                            <Form.Label>Descripción</Form.Label>
                             <Form.Control type="text" name="description" value={editSetting.description} onChange={handleEditChange} />
                             {errors.description && <span style={{ color: 'red' }}>{errors.description}</span>}
                         </Form.Group>
 
                         <Form.Group>
-                            <Form.Label>Permissions</Form.Label>
+                            <Form.Label>Permisos</Form.Label>
                             <Table>
                                 <thead>
                                     <tr>
-                                        <th>Name</th>
-                                        <th>Access</th>
+                                        <th>Nombre</th>
+                                        <th>Estado</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -371,6 +397,7 @@ const SettingManagement = () => {
                                     ))}
                                 </tbody>
                             </Table>
+                            {errors.permission && <span style={{ color: 'red' }}>{errors.permission}</span>}
                         </Form.Group>
 
                         <Form.Group className="mb-3" controlId="formStatus">

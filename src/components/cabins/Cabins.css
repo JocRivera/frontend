@@ -1,10 +1,12 @@
 .cabana-management {
   background-color: #f8f9fa;
   min-height: 100vh;
+  padding: 20px;
 }
 
 .search-container {
   position: relative;
+  margin-bottom: 20px;
 }
 
 .search-icon {
@@ -18,6 +20,8 @@
 .search-input {
   padding-left: 40px;
   border-radius: 20px;
+  width: 100%;
+  max-width: 300px;
 }
 
 .add-button {
@@ -30,6 +34,7 @@
   border: none;
   border-radius: 15px;
   overflow: hidden;
+  margin-bottom: 20px;
 }
 
 .cabin-card:hover {
@@ -38,8 +43,9 @@
 }
 
 .cabin-image {
-  height: 100%;
+  height: 200px;
   object-fit: cover;
+  width: 100%;
 }
 
 .pagination-container {
@@ -52,11 +58,13 @@
   display: flex;
   padding-left: 0;
   list-style: none;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .pagination-container li {
   list-style: none;
-  margin: 0 5px;
+  margin: 5px;
 }
 
 .pagination-container li a {
@@ -65,6 +73,7 @@
   border-radius: 5px;
   color: #007bff;
   text-decoration: none;
+  display: inline-block;
 }
 
 .pagination-container li.active a {
@@ -77,21 +86,6 @@
   background-color: #e9ecef;
 }
 
-@media (max-width: 768px) {
-  .cabin-card .row {
-    flex-direction: column;
-  }
-
-  .cabin-card .col-md-5,
-  .cabin-card .col-md-7 {
-    width: 100%;
-  }
-
-  .cabin-image {
-    height: 200px;
-  }
-}
-
 .cabin-card .comodidades {
   font-size: 0.9em;
   color: #6c757d;
@@ -102,9 +96,6 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
-/* Existing styles ... */
-
-
 
 .modal-dark-overlay .modal-body,
 .modal-dark-overlay .modal-footer {
@@ -114,12 +105,6 @@
 .btn-sea-blue {
   background-color: #006994;
   border-color: #006994;
-  color: white;
-}
-
-.btn-sea-blue:hover {
-  background-color: #005275;
-  border-color: #005275;
   color: white;
 }
 
@@ -161,31 +146,92 @@
   z-index: 1050;
 }
 
-.modal-comodidad .modal-content {
-  background-color: #006994;
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  .cabana-management {
+    padding: 10px;
+  }
+
+  .search-input {
+    max-width: 100%;
+  }
+
+  .add-button {
+    width: 100%;
+    margin-bottom: 15px;
+  }
+
+  .cabin-card .row {
+    flex-direction: column;
+  }
+
+  .cabin-card .col-md-5,
+  .cabin-card .col-md-7 {
+    width: 100%;
+  }
+
+  .cabin-image {
+    height: 200px;
+  }
+
+  .cabin-card .card-body {
+    padding: 15px;
+  }
+
+  .cabin-card .btn {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .pagination-container li a {
+    padding: 6px 10px;
+  }
 }
 
-.modal-comodidad .modal-header,
-.modal-comodidad .modal-footer {
-  border-color: #005275;
+.button-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 20px;
+  
+
 }
 
-.modal-comodidad .modal-title {
-  color: white;
+.add-button,
+.export-button {
+  border-radius: 20px;
+  padding: 10px 20px;
+  margin-left: 10px;
+  white-space: nowrap;
+  
 }
 
-.modal-comodidad .modal-body {
-  background-color: white;
+
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  .button-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .add-button,
+  .export-button {
+    width: 100%;
+    margin-left: 0;
+    margin-bottom: 10px;
+  }
+
+  .add-button {
+    order: -1; /* Coloca el botón de añadir primero en dispositivos móviles */
+  }
 }
 
-.btn-sea-blue {
-  background-color: #006994;
-  border-color: #006994;
-  color: white;
+@media (max-width: 576px) {
+  .add-button,
+  .export-button {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+  }
 }
 
-.btn-sea-blue:hover {
-  background-color: #005275;
-  border-color: #005275;
-  color: white;
-}
